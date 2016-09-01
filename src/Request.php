@@ -57,10 +57,14 @@
             $aPut    = [];
             $aHeader = $this->OriginalRequest->getHeader('Content-Type');
             if ($aHeader && $aHeader[0] == 'application/x-www-form-urlencoded') {
-                parse_str($this->OriginalRequest->getBody()->getContents(), $aPut);
+                $sContents = $this->OriginalRequest->getBody()->getContents() ?: (string) $this->OriginalRequest->getBody();
+                parse_str($sContents, $aPut);
+            } else if ($aHeader && $aHeader[0]) {
+                new Stream($aPut, $aHeader[0]);
+                $aPut = $aPut['post'] ?? [];
             } else {
                 new Stream($aPut);
-                $aPut = $aPut['post'];
+                $aPut = $aPut['post'] ?? [];
             }
 
             if (isset($aPut['__json'])) {
