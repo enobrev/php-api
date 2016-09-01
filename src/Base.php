@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use Enobrev\API\Exception;
     use Enobrev\Log;
 
     abstract class Base {
@@ -11,6 +12,16 @@
 
         /** @var  Response */
         public $Response;
+
+        /** @var string */
+        private static $sBaseURI = null;
+
+        /**
+         * @param string $sBaseURI
+         */
+        public static function setBaseURI(string $sBaseURI) {
+            self::$sBaseURI = $sBaseURI;
+        }
 
         /**
          * @param string $sClass
@@ -27,9 +38,14 @@
          * @param string $sClass
          * @param string $sMethod
          * @return string
+         * @throws Exception\MissingBaseURI
          */
         protected static function getUri($sClass, $sMethod) {
-            return self::getPath($sClass, $sMethod);
+            if (self::$sBaseURI === null) {
+                throw new Exception\MissingBaseURI();
+            }
+
+            return self::$sBaseURI . self::getPath($sClass, $sMethod);
         }
 
         /**

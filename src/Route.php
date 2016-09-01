@@ -121,6 +121,7 @@
                             $oRest->$sMethod();
 
                             if ($oResults instanceof ORM\Tables) {
+                                // Add the count to the dynamic query output
                                 if (self::$oPathQuery instanceof SQLBuilder) {
                                     self::$oPathQuery->setType(SQLBuilder::TYPE_COUNT);
 
@@ -338,9 +339,18 @@
 
                         if (isset($oRequest->GET['search']) && strlen(trim($oRequest->GET['search']))) {
                             $aConditions = [];
-                            $sSearch = trim($oRequest->GET['search']);
-                            $sSearch = preg_replace('/\s+/', ' ', $sSearch);
-                            $aSearch = explode(' ', $sSearch);
+
+                            $sSearch     = trim($oRequest->GET['search']);
+                            $sSearchType = 'OR';
+
+                            if (preg_match('/^(AND|OR)/', $sSearch, $aMatches)) {
+                                $sSearchType = $aMatches[1];
+                                $sSearch = trim(preg_replace('/^(AND|OR)/', '', $sSearch));
+                            };
+
+                            $sSearch     = preg_replace('/\s+/', ' ', $sSearch);
+                            $sSearch     = preg_replace('/(\w+)\:"(\w+)/', '"${1}:${2}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
+                            $aSearch     = str_getcsv($sSearch, ' ');
 
                             foreach($aSearch as $sSearchTerm) {
                                 if (strpos($sSearchTerm, ':') !== false) {
@@ -350,32 +360,54 @@
                                     $oSearchField = DataMap::getField($oTable, $sSearchField);
 
                                     if ($oSearchField instanceof ORM\Field) {
-                                        Log::d('Route.getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue]);
+                                        Log::d('Route.getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => ':']);
 
                                         if ($sSearchValue == 'null') {
                                             $aConditions[] = SQL::nul($oSearchField);
-                                        } else if ($oSearchField instanceof ORM\Field\Number) {
+                                        } else if ($oSearchField instanceof ORM\Field\Number
+                                               ||  $oSearchField instanceof ORM\Field\Enum) {
                                             $aConditions[] = SQL::eq($oSearchField, $sSearchValue);
                                         } else if ($oSearchField instanceof ORM\Field\Date) {
-                                            // handle dates
+                                            // TODO: handle dates
                                         } else {
                                             $aConditions[] = SQL::like($oSearchField, '%' . $sSearchValue . '%');
                                         }
 
                                         continue;
                                     }
+                                } else if (strpos($sSearchTerm, '>') !== false) {
+                                    // TODO: Obviously ridiculous.  we should be parsing this properly instead of repeating
+                                    $aSearchTerm  = explode('>', $sSearchTerm);
+                                    $sSearchField = array_shift($aSearchTerm);
+                                    $sSearchValue = implode('>', $aSearchTerm);
+                                    $oSearchField = DataMap::getField($oTable, $sSearchField);
+
+                                    if ($oSearchField instanceof ORM\Field) {
+                                        Log::d('Route.getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => '>']);
+
+                                        if ($oSearchField instanceof ORM\Field\Number) {
+                                            $aConditions[] = SQL::gt($oSearchField, $sSearchValue);
+                                        }
+
+                                        continue;
+                                    }
+
                                 }
 
                                 foreach ($oTable->getFields() as $oField) {
                                     if ($oField instanceof ORM\Field\Date) {
-                                        // handle dates
+                                        // TODO: handle dates
                                     } else if ($oField instanceof ORM\Field\Text) {
                                         $aConditions[] = SQL::like($oField, '%' . $sSearchTerm . '%');
                                     }
                                 }
                             }
 
-                            self::$oPathQuery->either(...$aConditions);
+                            if ($sSearchType == 'AND') {
+                                self::$oPathQuery->also(...$aConditions);
+                            } else {
+                                self::$oPathQuery->either(...$aConditions);
+                            }
                         }
 
                         if (isset($oRequest->GET['sort']) && strlen(trim($oRequest->GET['sort']))) {
@@ -465,13 +497,16 @@
                     if (self::$bReturnResponses) {
                         return $oClass->Response->getOutput();
                     } else {
+                        Log::w('Route.endpoint.respond');
                         $oClass->Response->respond();
                     }
                 } else {
+                    Log::w('Route.endpoint.methodNotFound');
                     $oClass->methodNotAllowed();
                 }
             } else {
                 // FIXME: return error;
+                Log::w('Route.endpoint.ClassNotFound');
             }
 
         }
@@ -672,8 +707,8 @@
             try {
                 $sEndpoint   = self::fillEndpointTemplateFromData($sEndpoint);
                 $aPostParams = self::fillPostTemplateFromData($aPostParams);
-            } catch (NoTemplateValues $e) {
-                Log::e('API SKIPPED REQUEST DUE TO MISSING KEYS', [
+            } catch (NoTemplateValuesException $e) {
+                Log::e('API.attemptRequest.skipped.missing.keys', [
                     'endpoint' => $sEndpoint,
                     'params'   => $aPostParams
                 ]);
@@ -697,7 +732,7 @@
             $oResponse = self::index($aServer, $aGet, $aPostParams);
 
             if ($oResponse && $oResponse->status == HTTP\OK) {
-                Log::d('API ENDPOINT RESPONSE', array(
+                Log::d('API.ENDPOINT.RESPONSE', array(
                     'status'  => $oResponse->status,
                     'headers' => $oResponse->headers,
                     'body'    => $oResponse->data
@@ -737,9 +772,9 @@
             } else if ($oResponse) {
                 // TODO: Report Errors
 
-                Log::e('API ENDPOINT RESPONSE', json_decode(json_encode($oResponse), true)); // FIXME: Inefficient and silly object to array conversion
+                Log::e('API.ENDPOINT.RESPONSE', json_decode(json_encode($oResponse), true)); // FIXME: Inefficient and silly object to array conversion
             } else {
-                Log::e('API ENDPOINT NO RESPONSE');
+                Log::e('API.ENDPOINT.RESPONSE.NONE');
             }
         }
 
