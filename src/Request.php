@@ -56,7 +56,7 @@
             // TODO: Not sure if this belongs here - but it works here for now
             $aPut    = [];
             $aHeader = $this->OriginalRequest->getHeader('Content-Type');
-            if ($aHeader[0] == 'application/x-www-form-urlencoded') {
+            if ($aHeader && $aHeader[0] == 'application/x-www-form-urlencoded') {
                 parse_str($this->OriginalRequest->getBody()->getContents(), $aPut);
             } else {
                 new Stream($aPut);
@@ -74,17 +74,16 @@
          * @return array
          */
         protected function handlePost() {
-            $aPost = $this->OriginalRequest->getParsedBody();
+            $aPost   = $this->OriginalRequest->getParsedBody() ?: [];
 
             $aHeader = $this->OriginalRequest->getHeader('Content-Type');
-            if ($aHeader) {
-                if ($aHeader[0] == 'application/json') {
-                    $aPost = array_merge($aPost, json_decode($this->OriginalRequest->getBody()->getContents(), true));
-                }
+            if ($aHeader && $aHeader[0] == 'application/json') {
+                $sContents = $this->OriginalRequest->getBody()->getContents() ?: (string) $this->OriginalRequest->getBody();
+                $aPost     = array_merge($aPost, json_decode($sContents, true));
+            }
 
-                if (isset($aPost['__json'])) {
-                    $aPost = array_merge($aPost, json_decode($aPost['__json'], true));
-                }
+            if (isset($aPost['__json'])) {
+                $aPost = array_merge($aPost, json_decode($aPost['__json'], true));
             }
 
             return $aPost;
