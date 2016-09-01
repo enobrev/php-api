@@ -3,11 +3,12 @@
 
     require __DIR__ . '/../vendor/autoload.php';
 
+    use PHPUnit_Framework_TestCase as TestCase;
     use Enobrev\API\DataMap;
     use Enobrev\API\Mock\User;
     use Enobrev\ORM\Field;
 
-    class DataMapTest extends \PHPUnit_Framework_TestCase {
+    class DataMapTest extends TestCase {
         public function testGetClassName() {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 

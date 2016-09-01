@@ -40,7 +40,12 @@
     "autoload-dev": {
         "psr-4": {
             "Enobrev\\API\\Mock\\": "tests/Mock/"
-        }
+        },
+        "files": [
+            "src/Constants/HTTP.php",
+            "src/Constants/Method.php",
+            "src/Constants/Role.php"
+        ]
     },
     "scripts": {
         "test": "phpunit"
