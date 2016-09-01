@@ -1,0 +1,5 @@
+src/Stream.php
+node_modules/
+*.iml
+.idea/
+vendor/

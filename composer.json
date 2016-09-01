@@ -1,0 +1,43 @@
+{
+    "name": "enobrev/api",
+    "license": "MIT",
+    "version": "0.9.0-dev",
+    "description": "REST-Like API Library",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Mark Armendariz",
+            "email": "src@enobrev.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url":  "https://github.com/enobrev/orm"
+        },
+        {
+            "type": "vcs",
+            "url":  "https://github.com/enobrev/tools"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.10",
+        "enobrev/tools":  "dev-master",
+        "enobrev/orm":  "dev-master",
+        "zendframework/zend-diactoros": "^1.3"
+    },
+    "require-dev": {
+        "monolog/monolog": "^1.17",
+        "phpunit/phpunit": "^5.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Enobrev\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit"
+        ]
+    }
+}
