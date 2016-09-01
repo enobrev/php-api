@@ -164,7 +164,12 @@
          * @return array
          */
         private function splitPath() {
-            return explode('/', trim($this->OriginalRequest->getUri()->getPath(), '/'));
+            $sPath = trim($this->OriginalRequest->getUri()->getPath(), '/');
+            if (strlen($sPath) == 0) {
+                return [];
+            }
+
+            return explode('/', $sPath);
         }
 
         /**
