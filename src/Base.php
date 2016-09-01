@@ -125,7 +125,7 @@
             $aBearer = $this->Request->OriginalRequest->getHeader('Authorization');
             Log::d('Base.checkAuthentication', ['bearer' => $aBearer]);
 
-            return count($aBearer) > 0 ?: $aBearer[0];
+            return count($aBearer) > 0 ? $aBearer[0] : null;
         }
 
         protected function requireAuthenticationHeadersOnly(): bool {
