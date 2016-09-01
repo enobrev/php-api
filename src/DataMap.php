@@ -26,7 +26,7 @@
             }
 
             if (self::$DATA === null) {
-                self::$DATA = json_decode(file_get_contents(__DIR__ . '/DataMap.json'), true);
+                self::$DATA = json_decode(file_get_contents(self::$sDataFile), true);
             }
 
             return self::$DATA;
@@ -44,6 +44,15 @@
             }
 
             throw new Exception\InvalidDataMapPath($sPath);
+        }
+
+        /**
+         * @param string $sPath
+         * @return string mixed
+         */
+        public static function getClassName($sPath) {
+            $aMap = self::getMap('_CLASSES_');
+            return $aMap[$sPath];
         }
 
         /**
@@ -103,6 +112,6 @@
             $aMap          = self::getMap($oDatum->getTitle());
             $sPrivateField = $aMap[$sPublicField];
 
-            return $oDatum->$sPrivateField instanceof ORM\Field ?: $oDatum->$sPrivateField;
+            return $oDatum->$sPrivateField instanceof ORM\Field ? $oDatum->$sPrivateField : null;
         }
     }
