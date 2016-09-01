@@ -27,6 +27,7 @@
             $this->assertTrue($oRequest->isGet());
             $this->assertFalse($oRequest->isPost());
             $this->assertFalse($oRequest->isPut());
+            $this->assertFalse($oRequest->isOptions());
 
             $this->assertCount(2,            $oRequest->Path);
             $this->assertEquals('v1',        $oRequest->Path[0]);
@@ -88,6 +89,7 @@
             $this->assertFalse($oRequest->isGet());
             $this->assertTrue($oRequest->isPost());
             $this->assertFalse($oRequest->isPut());
+            $this->assertFalse($oRequest->isOptions());
 
             $this->assertCount(2,            $oRequest->Path);
             $this->assertEquals('v1',        $oRequest->Path[0]);
@@ -141,6 +143,7 @@
             $this->assertFalse($oRequest->isGet());
             $this->assertFalse($oRequest->isPost());
             $this->assertTrue($oRequest->isPut());
+            $this->assertFalse($oRequest->isOptions());
 
             $this->assertCount(2,            $oRequest->Path);
             $this->assertEquals('v1',        $oRequest->Path[0]);
@@ -162,16 +165,26 @@
 
             $oRequest = new Request($oServerRequest);
 
+            $this->assertArrayHasKey('test', $oRequest->PUT);
+            $this->assertEquals('TEST',      $oRequest->PUT['test']);
+        }
+
+        public function testOptions() {
+            /** @var ServerRequest $oServerRequest */
+            $oServerRequest = new ServerRequest;
+            $oServerRequest = $oServerRequest->withMethod('OPTIONS');
+            $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/testing'));
+
+            $oRequest = new Request($oServerRequest);
+
             $this->assertFalse($oRequest->isGet());
             $this->assertFalse($oRequest->isPost());
-            $this->assertTrue($oRequest->isPut());
+            $this->assertFalse($oRequest->isPut());
+            $this->assertTrue($oRequest->isOptions());
 
             $this->assertCount(2,            $oRequest->Path);
             $this->assertEquals('v1',        $oRequest->Path[0]);
             $this->assertEquals('testing',   $oRequest->Path[1]);
             $this->assertEquals('json',      $oRequest->Format);
-
-            $this->assertArrayHasKey('test', $oRequest->PUT);
-            $this->assertEquals('TEST',      $oRequest->PUT['test']);
         }
     }
