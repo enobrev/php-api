@@ -77,12 +77,14 @@
             $aPost = $this->OriginalRequest->getParsedBody();
 
             $aHeader = $this->OriginalRequest->getHeader('Content-Type');
-            if ($aHeader[0] == 'application/json') {
-                $aPost = array_merge($aPost, json_decode($this->OriginalRequest->getBody()->getContents(), true));
-            }
+            if ($aHeader) {
+                if ($aHeader[0] == 'application/json') {
+                    $aPost = array_merge($aPost, json_decode($this->OriginalRequest->getBody()->getContents(), true));
+                }
 
-            if (isset($aPost['__json'])) {
-                $aPost = array_merge($aPost, json_decode($aPost['__json'], true));
+                if (isset($aPost['__json'])) {
+                    $aPost = array_merge($aPost, json_decode($aPost['__json'], true));
+                }
             }
 
             return $aPost;
