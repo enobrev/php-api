@@ -1,0 +1,10 @@
+<phpunit>
+    <php>
+        <const name="PHPUNIT_ENOBREV_ORM_TESTSUITE" value="true"/>
+    </php>
+    <testsuites>
+        <testsuite name="API Tests">
+            <directory>./tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

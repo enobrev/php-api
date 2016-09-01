@@ -3,3 +3,8 @@ node_modules/
 *.iml
 .idea/
 vendor/
+/tests/Mock/Address.php
+/tests/Mock/Addresses.php
+/tests/Mock/User.php
+/tests/Mock/Users.php
+/tests/Mock/DataMap.json

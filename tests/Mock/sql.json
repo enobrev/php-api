@@ -1,0 +1,339 @@
+{
+    "tables": {
+        "addresses": {
+            "table": {
+                "name": "addresses",
+                "singular": "address",
+                "title": "Address",
+                "plural": "Addresses",
+                "spaced": "addresses",
+                "spaced_singular": "address",
+                "spaced_singular_title": "Address",
+                "spaced_title": "Addresses",
+                "comment": ""
+            },
+            "count": {
+                "outbound": 1,
+                "inbound": 0,
+                "enum": 0,
+                "primary": 1,
+                "unique": 0,
+                "boolean": 0
+            },
+            "m2m": false,
+            "has_owner": true,
+            "has_date": true,
+            "fields": [
+                {
+                    "short": "id",
+                    "short_title": "Id",
+                    "name": "address_id",
+                    "title": "AddressId",
+                    "primary": true,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sAddressId",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\Id",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "      ",
+                    "name_pad": "    "
+                },
+                {
+                    "short": "user_id",
+                    "short_title": "User_id",
+                    "name": "user_id",
+                    "title": "UserId",
+                    "primary": false,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": true,
+                    "var": "sUserId",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\UUIDNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "reference": {
+                        "title": "User",
+                        "title_plural": "Users",
+                        "field": "user_id",
+                        "name": "users",
+                        "name_singular": "user",
+                        "name_spaced": "users",
+                        "name_spaced_singular": "user",
+                        "class": "Table\\User",
+                        "class_plural": "Table\\Users",
+                        "subclass": "User",
+                        "subclass_plural": "Users"
+                    },
+                    "short_pad": " ",
+                    "name_pad": "          "
+                },
+                {
+                    "short": "line_1",
+                    "short_title": "Line_1",
+                    "name": "address_line_1",
+                    "title": "AddressLine1",
+                    "primary": false,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": true,
+                    "var": "sAddressLine1",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\TextNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "  ",
+                    "name_pad": ""
+                },
+                {
+                    "short": "city",
+                    "short_title": "Cities",
+                    "name": "address_city",
+                    "title": "AddressCities",
+                    "primary": false,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": true,
+                    "var": "sAddressCities",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\TextNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "    ",
+                    "name_pad": "  "
+                }
+            ],
+            "types": [
+                "TextNullable",
+                "Id"
+            ],
+            "primary": [
+                {
+                    "short": "id",
+                    "short_title": "Id",
+                    "name": "address_id",
+                    "title": "AddressId",
+                    "primary": true,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sAddressId",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\Id",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "      ",
+                    "name_pad": "    "
+                }
+            ],
+            "unique": [],
+            "interfaces": "OwnerColumn"
+        },
+        "users": {
+            "table": {
+                "name": "users",
+                "singular": "user",
+                "title": "User",
+                "plural": "Users",
+                "spaced": "users",
+                "spaced_singular": "user",
+                "spaced_singular_title": "User",
+                "spaced_title": "Users",
+                "comment": ""
+            },
+            "count": {
+                "outbound": 0,
+                "inbound": 1,
+                "enum": 0,
+                "primary": 1,
+                "unique": 1,
+                "boolean": 1
+            },
+            "m2m": false,
+            "has_owner": true,
+            "has_date": true,
+            "fields": [
+                {
+                    "short": "id",
+                    "short_title": "Id",
+                    "name": "user_id",
+                    "title": "UserId",
+                    "primary": true,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sUserId",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\UUIDNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "inbound_reference": {
+                        "addresses": {
+                            "title": "Address",
+                            "name": "addresses",
+                            "table": "addresses",
+                            "name_singular": "address",
+                            "name_spaced": "addresses",
+                            "name_spaced_singular": "address",
+                            "class": "Table\\Addresses",
+                            "subclass": "Addresses"
+                        }
+                    },
+                    "short_pad": "          ",
+                    "name_pad": "          "
+                },
+                {
+                    "short": "name",
+                    "short_title": "Name",
+                    "name": "user_name",
+                    "title": "UserName",
+                    "primary": false,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sUserName",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\TextNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "        ",
+                    "name_pad": "        "
+                },
+                {
+                    "short": "email",
+                    "short_title": "Email",
+                    "name": "user_email",
+                    "title": "UserEmail",
+                    "primary": false,
+                    "unique": true,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sUserEmail",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\TextNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "       ",
+                    "name_pad": "       "
+                },
+                {
+                    "short": "happy",
+                    "short_title": "Happy",
+                    "name": "user_happy",
+                    "title": "UserHappy",
+                    "primary": false,
+                    "unique": false,
+                    "boolean": true,
+                    "nullable": true,
+                    "var": "bUserHappy",
+                    "default": "1",
+                    "comment": "",
+                    "type": "Field\\Boolean",
+                    "qltype": "bool",
+                    "php_type": "bool",
+                    "short_pad": "       ",
+                    "name_pad": "       "
+                },
+                {
+                    "short": "date_added",
+                    "short_title": "Date_added",
+                    "name": "user_date_added",
+                    "title": "UserDateAdded",
+                    "primary": false,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "dUserDateAdded",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\DateTime",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "short_pad": "  ",
+                    "name_pad": "  "
+                }
+            ],
+            "types": [
+                "UUIDNullable",
+                "TextNullable",
+                "Integer",
+                "DateTime"
+            ],
+            "primary": [
+                {
+                    "short": "id",
+                    "short_title": "Id",
+                    "name": "user_id",
+                    "title": "UserId",
+                    "primary": true,
+                    "unique": false,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sUserId",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\UUIDNullable",
+                    "qltype": "string",
+                    "php_type": "string",
+                    "inbound_reference": {
+                        "addresses": {
+                            "title": "Address",
+                            "name": "addresses",
+                            "table": "addresses",
+                            "name_singular": "address",
+                            "name_spaced": "addresses",
+                            "name_spaced_singular": "address",
+                            "class": "Table\\Addresses",
+                            "subclass": "Addresses"
+                        }
+                    }
+                }
+            ],
+            "unique": [
+                {
+                    "short": "email",
+                    "short_title": "Email",
+                    "name": "user_email",
+                    "title": "UserEmail",
+                    "primary": false,
+                    "unique": true,
+                    "boolean": false,
+                    "nullable": false,
+                    "var": "sUserEmail",
+                    "default": null,
+                    "comment": "",
+                    "type": "Field\\TextNullable",
+                    "qltype": "string",
+                    "php_type": "string"
+                }
+            ],
+            "date_added": {
+                "short": "date_added",
+                "short_title": "Date_added",
+                "name": "user_date_added",
+                "title": "UserDateAdded",
+                "primary": false,
+                "unique": false,
+                "boolean": false,
+                "nullable": false,
+                "var": "dUserDateAdded",
+                "default": null,
+                "comment": "",
+                "type": "Field\\DateTime",
+                "qltype": "string",
+                "php_type": "string"
+            }
+        }
+    }
+}

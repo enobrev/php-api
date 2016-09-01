@@ -1,0 +1,17 @@
+{
+    "_CLASSES_": {
+{% for table in tables %}
+        "{{ table.table.name }}": "{{ table.table.title }}"{% if loop.last %}{% else %},{% endif %}
+
+{% endfor %}
+    },
+{% for table in tables %}
+    "{{ table.table.name }}": {
+{% for field in table.fields %}
+        "{{ field.short }}"{{ field.short_pad }}: "{{ field.name }}"{% if loop.last %}{% else %},{% endif %}
+
+{% endfor %}
+    }{% if loop.last %}{% else %},{% endif %}
+
+{% endfor %}
+}

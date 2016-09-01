@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "6741235a297c810a30d398095628a807",
-    "content-hash": "1287b1d1dc81463bfafe1bd1c803b046",
+    "hash": "5ef2ca8969811cac2d9ed0261f1ed51f",
+    "content-hash": "431cec2599d77eda123bd2f120be12bd",
     "packages": [
         {
             "name": "enobrev/orm",
@@ -13,24 +13,29 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "e9b76c9ffe075e97b4482594a973532c5671a47e"
+                "reference": "3307af6b5d11ccd2300c59a8ec9ccd2b45779f92"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/e9b76c9ffe075e97b4482594a973532c5671a47e",
-                "reference": "e9b76c9ffe075e97b4482594a973532c5671a47e",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/3307af6b5d11ccd2300c59a8ec9ccd2b45779f92",
+                "reference": "3307af6b5d11ccd2300c59a8ec9ccd2b45779f92",
                 "shasum": ""
             },
             "require": {
                 "php": ">=7.0.10"
             },
             "require-dev": {
+                "enobrev/tools": "dev-master",
                 "monolog/monolog": "^1.17",
                 "nategood/commando": "^0.2.8",
                 "phpunit/phpunit": "^5.1",
                 "phpunit/phpunit-mock-objects": "^3.0",
                 "twig/twig": "^1.23"
             },
+            "bin": [
+                "bin/generate_tables.php",
+                "bin/sql_to_json.php"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -39,7 +44,7 @@
             },
             "autoload-dev": {
                 "psr-4": {
-                    "Enobrev\\Mock\\": "tests/Mock/"
+                    "Enobrev\\ORM\\Mock\\": "tests/Mock/"
                 }
             },
             "scripts": {
@@ -61,7 +66,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-01 12:01:18"
+            "time": "2016-09-01 17:59:09"
         },
         {
             "name": "enobrev/tools",
@@ -69,12 +74,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/tools.git",
-                "reference": "2b17f85516fe1dbe96e4e2a79a512bfcba8f0ad6"
+                "reference": "ad7130642389aea0257e1df49922c28d57368c07"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/tools/zipball/2b17f85516fe1dbe96e4e2a79a512bfcba8f0ad6",
-                "reference": "2b17f85516fe1dbe96e4e2a79a512bfcba8f0ad6",
+                "url": "https://api.github.com/repos/enobrev/tools/zipball/ad7130642389aea0257e1df49922c28d57368c07",
+                "reference": "ad7130642389aea0257e1df49922c28d57368c07",
                 "shasum": ""
             },
             "require": {
@@ -107,7 +112,7 @@
                 "source": "https://github.com/enobrev/tools/tree/master",
                 "issues": "https://github.com/enobrev/tools/issues"
             },
-            "time": "2016-09-01 13:07:07"
+            "time": "2016-09-01 17:14:44"
         },
         {
             "name": "monolog/monolog",
@@ -382,6 +387,52 @@
             "time": "2015-06-14 21:17:01"
         },
         {
+            "name": "kevinlebrun/colors.php",
+            "version": "0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kevinlebrun/colors.php.git",
+                "reference": "b13d23b9365ece519abc0eaa77cd3061c5810d30"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kevinlebrun/colors.php/zipball/b13d23b9365ece519abc0eaa77cd3061c5810d30",
+                "reference": "b13d23b9365ece519abc0eaa77cd3061c5810d30",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Colors": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kevin Le Brun",
+                    "email": "lebrun.k@gmail.com",
+                    "homepage": "http://kevinlebrun.fr",
+                    "role": "developer"
+                }
+            ],
+            "description": "Colors for PHP CLI scripts",
+            "homepage": "https://github.com/kevinlebrun/colors.php",
+            "keywords": [
+                "cli",
+                "color",
+                "colors",
+                "console",
+                "shell"
+            ],
+            "time": "2012-03-25 18:18:10"
+        },
+        {
             "name": "myclabs/deep-copy",
             "version": "1.5.1",
             "source": {
@@ -422,6 +473,52 @@
                 "object graph"
             ],
             "time": "2015-11-20 12:04:31"
+        },
+        {
+            "name": "nategood/commando",
+            "version": "0.2.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nategood/commando.git",
+                "reference": "f5833ee1daf83bbda7bf26ab2af478a9b14eecc3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nategood/commando/zipball/f5833ee1daf83bbda7bf26ab2af478a9b14eecc3",
+                "reference": "f5833ee1daf83bbda7bf26ab2af478a9b14eecc3",
+                "shasum": ""
+            },
+            "require": {
+                "kevinlebrun/colors.php": "0.2.*",
+                "php": ">=5.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Commando": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nate Good",
+                    "email": "me@nategood.com"
+                }
+            ],
+            "description": "PHP CLI Commando Style",
+            "homepage": "http://github.com/nategood/commando",
+            "keywords": [
+                "automation",
+                "cli",
+                "command",
+                "command line",
+                "command line interface",
+                "scripting"
+            ],
+            "time": "2016-01-07 18:12:04"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -1573,6 +1670,67 @@
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
             "time": "2016-07-17 14:02:08"
+        },
+        {
+            "name": "twig/twig",
+            "version": "v1.24.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/twigphp/Twig.git",
+                "reference": "33093f6e310e6976baeac7b14f3a6ec02f2d79b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/33093f6e310e6976baeac7b14f3a6ec02f2d79b7",
+                "reference": "33093f6e310e6976baeac7b14f3a6ec02f2d79b7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.7"
+            },
+            "require-dev": {
+                "symfony/debug": "~2.7",
+                "symfony/phpunit-bridge": "~2.7"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.24-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Twig_": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com",
+                    "homepage": "http://fabien.potencier.org",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Armin Ronacher",
+                    "email": "armin.ronacher@active-4.com",
+                    "role": "Project Founder"
+                },
+                {
+                    "name": "Twig Team",
+                    "homepage": "http://twig.sensiolabs.org/contributors",
+                    "role": "Contributors"
+                }
+            ],
+            "description": "Twig, the flexible, fast, and secure template language for PHP",
+            "homepage": "http://twig.sensiolabs.org",
+            "keywords": [
+                "templating"
+            ],
+            "time": "2016-09-01 17:50:53"
         },
         {
             "name": "webmozart/assert",
