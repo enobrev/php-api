@@ -5,9 +5,6 @@
 
     use Enobrev\API\Request;
     use PHPUnit_Framework_TestCase as TestCase;
-    use Enobrev\API\DataMap;
-    use Enobrev\API\Mock\User;
-    use Enobrev\ORM\Field;
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Stream;
     use Zend\Diactoros\Uri;
