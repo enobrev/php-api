@@ -308,18 +308,17 @@
                             }
 
                             $oReference->setValue($aPart[1]);
-                            $oRequest->OriginalRequest = $oRequest->OriginalRequest->withAttribute($oReference->sColumn, $aPart[1]);
+                            $oRequest->updateParam($oReference->sColumn, $aPart[1]);
                         }
                     }
 
                     return $oTable;
                 } else {
-
                     self::$oPathQuery = SQLBuilder::select($oTable);
 
                     if (isset($aLastChunk[1])) {
                         self::$oPathQuery->eq_in($oTable->getPrimary()[0], $aLastChunk[1]);
-                        $oRequest->OriginalRequest = $oRequest->OriginalRequest->withAttribute($oTable->getPrimary()[0]->sColumn, $aLastChunk[1]);
+                        $oRequest->updateParam($oTable->getPrimary()[0]->sColumn, $aLastChunk[1]);
                     }
 
                     while (count($aChunks) > 0) {
@@ -343,7 +342,7 @@
                             }
 
                             self::$oPathQuery->eq_in($oReference, $aPart[1]);
-                            $oRequest->OriginalRequest = $oRequest->OriginalRequest->withAttribute($oReference->sColumn, $aPart[1]);
+                            $oRequest->updateParam($oReference->sColumn, $aPart[1]);
 
                             Log::d('Route.getQueryFromPath.Chunks.AddingAttribute', [
                                 'field' => $oReference->sColumn,
@@ -421,7 +420,7 @@
                                         if ($sSearchValue == 'null') {
                                             $aConditions[] = SQL::nul($oSearchField);
                                         } else if ($oSearchField instanceof ORM\Field\Number
-                                               ||  $oSearchField instanceof ORM\Field\Enum) {
+                                                   ||  $oSearchField instanceof ORM\Field\Enum) {
                                             $aConditions[] = SQL::eq($oSearchField, $sSearchValue);
                                         } else if ($oSearchField instanceof ORM\Field\Date) {
                                             // TODO: handle dates
@@ -539,9 +538,7 @@
                 'attributes'    => $oRequest->OriginalRequest->getAttributes()
             ]);
 
-            foreach($aRoute['params'] as $sKey => $sValue) {
-                $oRequest->OriginalRequest = $oRequest->OriginalRequest->withAttribute($sKey, $sValue);
-            }
+            $oRequest->updateParams($aRoute['params']);
 
             /** @var Base $oClass */
             $oClass  = new $aRoute['class']($oRequest);
