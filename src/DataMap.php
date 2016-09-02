@@ -61,7 +61,7 @@
          */
         public static function getClassName($sPath) {
             $aMap = self::getMap('_CLASSES_');
-            return $aMap[$sPath];
+            return $aMap[$sPath] ?? null;
         }
 
         /**
