@@ -82,18 +82,6 @@
         }
 
         /**
-         * @param string $sVersion
-         * @return string
-         */
-        public static function getIfVersionOrDefault(string $sVersion) {
-            if (Route::isVersion($sVersion) === false) {
-                return Route::defaultVersion();
-            }
-
-            return $sVersion;
-        }
-
-        /**
          * @param Request $oRequest
          * @return Response
          */
