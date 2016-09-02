@@ -6,9 +6,8 @@
     use Enobrev\ORM;
     use Enobrev\SQL;
     use Enobrev\SQLBuilder;
-    use Enobrev\NoticeException;
-    use Zend\Diactoros\Response\EmptyResponse;
-    use Zend\Diactoros\Response\SapiEmitter;
+    use function Enobrev\dbg;
+
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\ServerRequestFactory;
 
@@ -308,9 +307,10 @@
                 } else {
                     $oQuery = self::_getQueryFromPath($oRequest);
 
-                    if ($oResults = ORM\Db::getInstance()->namedQuery('getQueryFromPath', $oQuery)) {
+                    $oDb = ORM\Db::getInstance();
+                    if ($oResults = $oDb->namedQuery('getQueryFromPath', $oQuery)) {
+                        $iRows  = $oDb->getLastRowsAffected();
                         $oTable = self::_getPrimaryTableFromPath($oRequest);
-                        $iRows  = $oResults->rowCount();
 
                         if ($iRows == 1) {
                             Log::d('Route._getResultsFromPath.FoundOne');
@@ -327,7 +327,7 @@
                                 $oQuery->setType(SQLBuilder::TYPE_COUNT);
 
                                 if ($oResult = ORM\Db::getInstance()->namedQuery('getCountQueryFromPath', $oQuery)) {
-                                    if ($oResult->rowCount() > 0) {
+                                    if (ORM\Db::getInstance()->getLastRowsAffected() > 0) {
                                         $oRest->Response->add('counts.' . $oTable->getTitle(), (int) $oResult->fetchColumn());
                                     }
                                 }
@@ -343,11 +343,13 @@
 
                             $oRest->setData($oTable);
                         }
+                    } else {
+                        throw new Exception('No Matching Path to Grab Results From');
                     }
                 }
+            } else {
+                throw new Exception('No Pairs to Grab Results From');
             }
-
-            throw new Exception('No Path to Grab Results From');
         }
 
         /**
