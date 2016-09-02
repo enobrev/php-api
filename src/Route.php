@@ -15,7 +15,6 @@
     use function Enobrev\array_is_multi;
 
     class Route {
-        const VERSIONS = ['v1'];
         const ROUTES = [];
         const QUERIES = [];
 
@@ -31,6 +30,9 @@
         /** @var bool */
         private static $bReturnResponses = false;
 
+        /** @var array  */
+        private static $aVersions = ['v1'];
+
         /** @var string  */
         private static $sNamespaceAPI = null;
 
@@ -40,10 +42,12 @@
         /**
          * @param string $sNamespaceAPI
          * @param string $sNamespaceTable
+         * @param array  $aVersions
          */
-        public static function init(string $sNamespaceAPI, string $sNamespaceTable) {
+        public static function init(string $sNamespaceAPI, string $sNamespaceTable, array $aVersions = ['v1']) {
             self::$sNamespaceAPI   = trim($sNamespaceAPI, '\\');
             self::$sNamespaceTable = trim($sNamespaceTable, '\\');
+            self::$aVersions       = $aVersions;
         }
 
         /**
@@ -60,6 +64,33 @@
             } else {
                 $oResponse->respond();
             }
+        }
+
+        /**
+         * @param string $sVersion
+         * @return bool
+         */
+        public static function isVersion(string $sVersion) {
+            return in_array($sVersion, self::$aVersions);
+        }
+
+        /**
+         * @return string
+         */
+        public static function defaultVersion() {
+            return self::$aVersions[0];
+        }
+
+        /**
+         * @param string $sVersion
+         * @return string
+         */
+        public static function getIfVersionOrDefault(string $sVersion) {
+            if (Route::isVersion($sVersion) === false) {
+                return Route::defaultVersion();
+            }
+
+            return $sVersion;
         }
 
         /**
@@ -585,7 +616,7 @@
          * @todo Cache These for Production
          */
         public static function _generateRoutes() {
-            foreach (self::VERSIONS as $sVersion) {
+            foreach (self::$aVersions as $sVersion) {
                 foreach (self::ROUTES as $sRoute => $aRoute) {
                     $aRoute['version'] = $sVersion;
 

@@ -98,7 +98,7 @@
          */
         public function pathIsRoot() {
             if (count($this->Path) == 1) {
-                return in_array($this->Path[0], Route::VERSIONS);
+                return Route::isVersion($this->Path[0]);
             }
 
             return false;
@@ -153,11 +153,13 @@
             $this->OriginalRequest = $this->OriginalRequest->withAttribute($sKey, $sValue);
         }
 
+        /**
+         * Adds Version to Beginning of Path Array if it's not already there
+         */
         private function ensurePathVersion() {
-            if (count($this->Path) == 0) {
-                $sVersion = Route::VERSIONS[0];
-            } else if (array_search($this->Path[0], Route::VERSIONS) === false) {
-                $sVersion = Route::VERSIONS[0];
+            if (count($this->Path) == 0
+            ||  Route::isVersion($this->Path[0]) === false) {
+                $sVersion = Route::defaultVersion();
             } else {
                 $sVersion = array_shift($this->Path);
             }
