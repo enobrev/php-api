@@ -16,7 +16,7 @@
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;
 
-    class SetRestDataFromPathTest extends TestCase {
+    class GetResponseTest extends TestCase {
 
         const DOMAIN = 'example.com';
 
@@ -64,7 +64,7 @@
             $this->oAddress1->address_line_1->setValue('123 Main Street');
             $this->oAddress1->address_city->setValue('Chicago');
             $this->oAddress1->insert();
-            
+
             $this->oAddress2 = new Table\Address;
             $this->oAddress2->user_id->setValue($this->oUser1);
             $this->oAddress2->address_line_1->setValue('234 Main Street');
@@ -92,71 +92,19 @@
             $oServerRequest = $oServerRequest->withMethod('GET');
             $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users/' . $this->oUser1->user_id->getValue()));
 
-            $oRequest = new Request($oServerRequest);
-            $oRest    = Route::_getRestClass($oRequest);
+            $oRequest  = new Request($oServerRequest);
+            $oResponse = Route::_getResponse($oRequest);
+            $oOutput   = $oResponse->getOutput();
 
-            Route::_setRestDataFromPath($oRest, $oRequest);
+            $this->assertObjectHasAttribute('data', $oOutput);
+            $this->assertObjectHasAttribute('users', $oOutput->data);
+            $this->assertArrayHasKey($this->oUser1->user_id->getValue(), $oOutput->data->users);
 
-            $this->assertInstanceOf(Table\User::class, $oRest->getData());
-            $this->assertEquals($this->oUser1, $oRest->getData());
-        }
+            $aUser = $oOutput->data->users[$this->oUser1->user_id->getValue()];
 
-        public function testExistingTableAddress() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
-            /** @var ServerRequest $oServerRequest */
-            $oServerRequest = new ServerRequest;
-            $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/addresses/' . $this->oAddress1->address_id->getValue()));
-
-            $oRequest = new Request($oServerRequest);
-            $oRest    = Route::_getRestClass($oRequest);
-
-            Route::_setRestDataFromPath($oRest, $oRequest);
-
-            $this->assertInstanceOf(Table\Address::class, $oRest->getData());
-            $this->assertEquals($this->oAddress1, $oRest->getData());
-        }
-
-        public function testExistingTableUsers() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
-            /** @var ServerRequest $oServerRequest */
-            $oServerRequest = new ServerRequest;
-            $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users/'));
-
-            $oRequest = new Request($oServerRequest);
-            $oRest    = Route::_getRestClass($oRequest);
-
-            Route::_setRestDataFromPath($oRest, $oRequest);
-
-            $oData = $oRest->getData();
-            $this->assertInstanceOf(Table\Users::class, $oData);
-            $this->assertCount(2, $oData);
-            $this->assertEquals($this->oUser1, $oData[0]);
-            $this->assertEquals($this->oUser2, $oData[1]);
-        }
-
-        public function testExistingTableAddresses() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
-            /** @var ServerRequest $oServerRequest */
-            $oServerRequest = new ServerRequest;
-            $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/addresses/'));
-            $oServerRequest = $oServerRequest->withQueryParams(['search' => 'city:Brooklyn']);
-
-            $oRequest = new Request($oServerRequest);
-            $oRest    = Route::_getRestClass($oRequest);
-
-            Route::_setRestDataFromPath($oRest, $oRequest);
-
-            $oData = $oRest->getData();
-            $this->assertInstanceOf(Table\Address::class, $oData);
-            $this->assertEquals($this->oAddress2, $oData);
+            $this->assertEquals($this->oUser1->user_name->getValue(),       $aUser['name']);
+            $this->assertEquals($this->oUser1->user_email->getValue(),      $aUser['email']);
+            $this->assertEquals($this->oUser1->user_happy->getValue(),      $aUser['happy']);
+            $this->assertEquals((string) $this->oUser1->user_date_added, $aUser['date_added']);
         }
     }

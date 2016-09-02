@@ -5,8 +5,8 @@
     use Enobrev\API\Mock\Table;
     use Enobrev\API\Role;
 
-    class Address extends Rest  {
-        /** @var Table\Address|Table\Address */
+    class User extends Rest  {
+        /** @var Table\User|Table\User */
         protected $Data;
 
         protected $DefaultRole = Role\VIEWER;
