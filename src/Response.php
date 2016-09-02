@@ -90,7 +90,7 @@
          * @param string $sScheme
          * @param array  $aAllowedURIs
          */
-        public static function init(string $sDomain, string $sScheme, array $aAllowedURIs = ['*']) {
+        public static function init(string $sDomain, string $sScheme = 'https://', array $aAllowedURIs = ['*']) {
             self::$sScheme      = $sScheme;
             self::$sDomain      = $sDomain;
             self::$aAllowedURIs = $aAllowedURIs;
