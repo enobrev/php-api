@@ -5,7 +5,7 @@
 
     use PHPUnit_Framework_TestCase as TestCase;
     use Enobrev\API\DataMap;
-    use Enobrev\API\Mock\User;
+    use Enobrev\API\Mock\Table\User;
     use Enobrev\ORM\Field;
 
     class DataMapTest extends TestCase {

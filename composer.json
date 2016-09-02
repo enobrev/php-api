@@ -39,7 +39,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Enobrev\\API\\Mock\\": "tests/Mock/"
+            "Enobrev\\API\\Mock\\Table\\": "tests/Mock/Table",
+            "Enobrev\\API\\Mock\\":        "tests/Mock/API"
         },
         "files": [
             "src/Constants/HTTP.php",

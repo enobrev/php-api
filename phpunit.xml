@@ -1,5 +1,6 @@
 <phpunit>
     <php>
+        <const name="PHPUNIT_ENOBREV_API_TESTSUITE" value="true"/>
         <const name="PHPUNIT_ENOBREV_ORM_TESTSUITE" value="true"/>
     </php>
     <testsuites>

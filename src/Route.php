@@ -137,8 +137,7 @@
                             $oRest->Response->setFormat(Response::FORMAT_EMPTY);
                         }
                     } else {
-                        $oResults = self::_getQueryFromPath($oRequest);
-                        //$oRest->setRequest($oRequest); // TODO: Not Ideal to Re-Set the request here, but ensures we have the latest parsed path values
+                        self::_setRestDataFromPath($oRest, $oRequest);
 
                         Log::d('Route.query.dynamic', [
                             'path'          => $oRequest->Path,
@@ -148,27 +147,10 @@
                             'query'         => $oRequest->GET
                         ]);
 
-                        if ($oResults) {
-                            $oRest->setData($oResults);
-                        }
-
-                        if (!$oResults && $oRequest->isPut()) { // Tried to PUT with an ID and no record was found
+                        if (!$oRest->hasData() && $oRequest->isPut()) { // Tried to PUT with an ID and no record was found
                             $oRest->Response->statusNotFound();
                         } else {
                             $oRest->$sMethod();
-
-                            if ($oResults instanceof ORM\Tables) {
-                                // Add the count to the dynamic query output
-                                if (self::$oPathQuery instanceof SQLBuilder) {
-                                    self::$oPathQuery->setType(SQLBuilder::TYPE_COUNT);
-
-                                    if ($oResult = ORM\Db::getInstance()->namedQuery('getCountQueryFromPath', self::$oPathQuery)) {
-                                        if ($oResult->num_rows > 0) {
-                                            $oRest->Response->add('counts.' . $oResults->getTable()->getTitle(), (int) $oResult->fetch_object()->row_count);
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
 
@@ -253,23 +235,14 @@
             return implode('\\', [self::$sNamespaceTable, $sTableClass]);
         }
 
-        /**
-         * @param Request $oRequest
-         * @return ORM\Table|ORM\Tables
-         * @throws ORM\DbException
-         * @throws \Exception
-         */
-        public static function _getQueryFromPath(Request &$oRequest) {
-            $aPath      = $oRequest->Path;
-            $sVersion   = array_shift($aPath); // not using version, but still need to shift
-            $aChunks    = $aLastChunk = array_chunk($aPath, 2);
+        public static function _getPrimaryTableFromPath(Request $oRequest) {
+            $aPairs = $oRequest->getPathPairs();
 
-            if (count($aChunks) > 0) {
-                $aLastChunk = array_pop($aChunks);
-
-                $sClassName = DataMap::getClassName($aLastChunk[0]);
+            if (count($aPairs) > 0) {
+                $aLastPair  = array_pop($aPairs);
+                $sClassName = DataMap::getClassName($aLastPair[0]);
                 if (!$sClassName) {
-                    throw new Exception\InvalidTable("Never Heard of " . $aLastChunk[0]);
+                    throw new Exception\InvalidTable("Never Heard of " . $aLastPair[0]);
                 }
 
                 $sClass = self::_getNamespacedTableClassName($sClassName);
@@ -277,28 +250,42 @@
                 /** @var ORM\Table $oTable */
                 $oTable = new $sClass;
                 if ($oTable instanceof ORM\Table === false) {
-                    return false;  // TODO: Throw Error
+                    throw new Exception('Invalid Primary Table in Path');
                 }
 
-                Log::d('Route.getQueryFromPath.Querying', [
-                    'table_class'   => get_class($oTable),
-                    'table'         => $oTable->getTitle()
-                ]);
+                return $oTable;
+            }
+        }
 
-                if ($oRequest->isPost() && !isset($aLastChunk[1])) {
-                    Log::d('Route.getQueryFromPath.Post.NoId');
+        /**
+         * @param Request $oRequest
+         * @param Rest    $oRest
+         * @return ORM\Table|ORM\Tables
+         * @throws Exception\InvalidReference
+         * @throws Exception\InvalidTable
+         * @throws \Enobrev\API\Exception
+         */
+        public static function _setRestDataFromPath(Rest $oRest, Request &$oRequest) {
+            $aPairs = $oRequest->getPathPairs();
+
+            if (count($aPairs) > 0) {
+                $aLastPair = array_pop($aPairs);
+                if ($oRequest->isPost() && !isset($aLastPair[1])) {
+                    Log::d('Route._getResultsFromPath.Post.NoId');
+
+                    $oTable = self::_getPrimaryTableFromPath($oRequest);
 
                     // Prefill empty POST object with url params
-                    while (count($aChunks) > 0) {
-                        $aPart = array_shift($aChunks);
+                    while (count($aPairs) > 0) {
+                        $aPart      = array_shift($aPairs);
                         $sClassName = DataMap::getClassName($aPart[0]);
-                        $sClass = self::_getNamespacedTableClassName($sClassName);
+                        $sClass     = self::_getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
                         $oWhereTable = new $sClass();
 
                         if ($oWhereTable instanceof ORM\Table === false) {
-                            return false;  // TODO: Throw Error
+                            throw new Exception('Invalid Where Table in Path');
                         }
 
                         if (isset($aPart[1])) {
@@ -308,221 +295,258 @@
                             }
 
                             $oReference->setValue($aPart[1]);
-                            $oRequest->updateParam($oReference->sColumn, $aPart[1]);
+                            $oRequest->updateParam($oReference->sColumn, $oReference->getValue());
                         }
                     }
 
-                    return $oTable;
+                    $oRest->setData($oTable);
                 } else {
-                    self::$oPathQuery = SQLBuilder::select($oTable);
+                    $oQuery = self::_getQueryFromPath($oRequest);
 
-                    if (isset($aLastChunk[1])) {
-                        self::$oPathQuery->eq_in($oTable->getPrimary()[0], $aLastChunk[1]);
-                        $oRequest->updateParam($oTable->getPrimary()[0]->sColumn, $aLastChunk[1]);
+                    if ($oResults = ORM\Db::getInstance()->namedQuery('getQueryFromPath', $oQuery)) {
+                        $oTable = self::_getPrimaryTableFromPath($oRequest);
+
+                        if ($oResults->num_rows == 1) {
+                            Log::d('Route._getResultsFromPath.FoundOne');
+
+                            $oTable->setFromObject($oResults->fetch_object());
+                            $oRest->setData($oTable);
+                        } else if ($oResults->num_rows > 1) {
+                            Log::d('Route._getResultsFromPath.FoundMultiple');
+
+                            $oOutput = $oTable::getTables();
+                            while ($oResult = $oResults->fetch_object()) {
+                                $oOutput->append($oTable::createFromObject($oResult));
+                            }
+
+                            // Add the count to the dynamic query output
+                            if ($oQuery instanceof SQLBuilder) {
+                                $oQuery->setType(SQLBuilder::TYPE_COUNT);
+
+                                if ($oResult = ORM\Db::getInstance()->namedQuery('getCountQueryFromPath', $oQuery)) {
+                                    if ($oResult->num_rows > 0) {
+                                        $oRest->Response->add('counts.' . $oOutput->getTable()->getTitle(), (int) $oResult->fetch_object()->row_count);
+                                    }
+                                }
+                            }
+
+                            $oRest->setData($oOutput);
+                        } else if ($oRequest->isPost()) {
+                            Log::d('Route._getResultsFromPath.FoundNone.Post');
+
+                            $aPrimary = $oTable->getPrimaryFieldNames();
+                            if (count($aPrimary) == 1) {
+                                $sPrimary = array_shift($aPrimary);
+                                $oTable->$sPrimary->setValue($aLastPair[1]);
+                            }
+
+                            $oRest->setData($oTable);
+                        }
+                    }
+                }
+            }
+
+            throw new Exception('No Path to Grab Results From');
+        }
+
+        /**
+         * @param Request   $oRequest
+         * @return SQL|SQLBuilder|string
+         * @throws Exception\InvalidReference
+         * @throws Exception\InvalidTable
+         * @throws \Enobrev\API\Exception
+         */
+        public static function _getQueryFromPath(Request &$oRequest) {
+            $oTable    = self::_getPrimaryTableFromPath($oRequest);
+
+            Log::d('Route._getQueryFromPath', [
+                'table_class'   => get_class($oTable),
+                'table'         => $oTable->getTitle()
+            ]);
+
+            $oQuery = SQLBuilder::select($oTable);
+
+            $aPairs    = $oRequest->getPathPairs();
+            $aLastPair = array_pop($aPairs);
+            if (isset($aLastPair[1])) {
+                $oQuery->eq_in($oTable->getPrimary()[0], $aLastPair[1]);
+                $oRequest->updateParam($oTable->getPrimary()[0]->sColumn, $aLastPair[1]);
+            }
+
+            while (count($aPairs) > 0) {
+                Log::d('Route._getQueryFromPath.Pairs', $aPairs);
+
+                $aPart = array_shift($aPairs);
+                $sClassName = DataMap::getClassName($aPart[0]);
+                $sClass = self::_getNamespacedTableClassName($sClassName);
+
+                /** @var ORM\Table $oWhereTable */
+                $oWhereTable = new $sClass();
+
+                if ($oWhereTable instanceof ORM\Table === false) {
+                    throw new Exception('Invalid Where Table in Query Path');
+                }
+
+                if (isset($aPart[1])) {
+                    Log::d('Route._getQueryFromPath.Pairs.PartWithValue', $aPart);
+                    $oReference = $oTable->getFieldThatReferencesTable($oWhereTable);
+                    if ($oReference instanceof ORM\Field === false) {
+                        throw new Exception\InvalidReference("Cannot Associate " . (new \ReflectionClass($oTable))->getShortName() . ' with ' . (new \ReflectionClass($oWhereTable))->getShortName());
                     }
 
-                    while (count($aChunks) > 0) {
-                        Log::d('Route.getQueryFromPath.Chunks', $aChunks);
-                        $aPart = array_shift($aChunks);
-                        $sClassName = DataMap::getClassName($aPart[0]);
-                        $sClass = self::_getNamespacedTableClassName($sClassName);
+                    $oQuery->eq_in($oReference, $aPart[1]);
+                    $oRequest->updateParam($oReference->sColumn, $aPart[1]);
 
-                        /** @var ORM\Table $oWhereTable */
-                        $oWhereTable = new $sClass();
+                    Log::d('Route._getQueryFromPath.Pairs.AddingAttribute', [
+                        'field' => $oReference->sColumn,
+                        'value' => $aPart[1]
+                    ]);
+                }
+            }
 
-                        if ($oWhereTable instanceof ORM\Table === false) {
-                            return false;  // TODO: Throw Error
-                        }
+            if (isset($aLastPair[1])) {
+                Log::d('Route._getQueryFromPath.Querying.HasID');
+            } else {
+                Log::d('Route._getQueryFromPath.Querying.NoID');
 
-                        if (isset($aPart[1])) {
-                            Log::d('Route.getQueryFromPath.Chunks.PartWithValue', $aPart);
-                            $oReference = $oTable->getFieldThatReferencesTable($oWhereTable);
-                            if ($oReference instanceof ORM\Field === false) {
-                                throw new Exception\InvalidReference("Cannot Associate " . (new \ReflectionClass($oTable))->getShortName() . ' with ' . (new \ReflectionClass($oWhereTable))->getShortName());
-                            }
+                $iPer   = isset($oRequest->GET['per'])  ? $oRequest->GET['per']  : 1000;
+                $iPage  = isset($oRequest->GET['page']) ? $oRequest->GET['page'] : 1;
+                $iStart = $iPer * ($iPage - 1);
 
-                            self::$oPathQuery->eq_in($oReference, $aPart[1]);
-                            $oRequest->updateParam($oReference->sColumn, $aPart[1]);
+                $oQuery->limit($iStart, $iPer);
 
-                            Log::d('Route.getQueryFromPath.Chunks.AddingAttribute', [
-                                'field' => $oReference->sColumn,
-                                'value' => $aPart[1]
-                            ]);
-                        }
-                    }
+                if (isset($oRequest->GET['search']) && strlen(trim($oRequest->GET['search']))) {
+                    $aConditions = [];
 
-                    if (isset($aLastChunk[1])) {
-                        Log::d('Route.getQueryFromPath.Querying.HasID');
+                    $sSearch     = trim($oRequest->GET['search']);
+                    $sSearchType = 'OR';
 
-                        // TABLE
-                        if ($oResults = ORM\Db::getInstance()->namedQuery('getQueryFromPath', self::$oPathQuery)) {
-                            if ($oResults->num_rows == 1) {
-                                Log::d('Route.getQueryFromPath.Querying.HasID.FoundOne');
+                    if (preg_match('/^(AND|OR)/', $sSearch, $aMatches)) {
+                        $sSearchType = $aMatches[1];
+                        $sSearch = trim(preg_replace('/^(AND|OR)/', '', $sSearch));
+                    };
 
-                                $oTable->setFromObject($oResults->fetch_object());
+                    $sSearch     = preg_replace('/\s+/', ' ', $sSearch);
+                    $sSearch     = preg_replace('/(\w+)\:"(\w+)/', '"${1}:${2}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
+                    $aSearch     = str_getcsv($sSearch, ' ');
 
-                                return $oTable;
-                            } else if ($oResults->num_rows > 1) {
-                                Log::d('Route.getQueryFromPath.Querying.HasID.FoundMultiple');
+                    foreach($aSearch as $sSearchTerm) {
+                        if (strpos($sSearchTerm, ':') !== false) {
+                            $aSearchTerm  = explode(':', $sSearchTerm);
+                            $sSearchField = array_shift($aSearchTerm);
+                            $sSearchValue = implode(':', $aSearchTerm);
+                            $oSearchField = DataMap::getField($oTable, $sSearchField);
 
-                                $oOutput = $oTable::getTables();
-                                while ($oResult = $oResults->fetch_object()) {
-                                    $oOutput->append($oTable::createFromObject($oResult));
-                                }
+                            if ($oSearchField instanceof ORM\Field) {
+                                Log::d('Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => ':']);
 
-                                return $oOutput;
-                            } else if ($oRequest->isPost()) {
-                                Log::d('Route.getQueryFromPath.Querying.HasID.FoundNone.Post');
-
-                                $aPrimary = $oTable->getPrimaryFieldNames();
-                                if (count($aPrimary) == 1) {
-                                    $sPrimary = array_shift($aPrimary);
-                                    $oTable->$sPrimary->setValue($aLastChunk[1]);
-                                }
-
-                                return $oTable;
-                            }
-                        }
-                    } else {
-                        Log::d('Route.getQueryFromPath.Querying.NoID');
-
-                        $iPer   = isset($oRequest->GET['per'])  ? $oRequest->GET['per']  : 1000;
-                        $iPage  = isset($oRequest->GET['page']) ? $oRequest->GET['page'] : 1;
-                        $iStart = $iPer * ($iPage - 1);
-
-                        self::$oPathQuery->limit($iStart, $iPer);
-
-                        if (isset($oRequest->GET['search']) && strlen(trim($oRequest->GET['search']))) {
-                            $aConditions = [];
-
-                            $sSearch     = trim($oRequest->GET['search']);
-                            $sSearchType = 'OR';
-
-                            if (preg_match('/^(AND|OR)/', $sSearch, $aMatches)) {
-                                $sSearchType = $aMatches[1];
-                                $sSearch = trim(preg_replace('/^(AND|OR)/', '', $sSearch));
-                            };
-
-                            $sSearch     = preg_replace('/\s+/', ' ', $sSearch);
-                            $sSearch     = preg_replace('/(\w+)\:"(\w+)/', '"${1}:${2}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
-                            $aSearch     = str_getcsv($sSearch, ' ');
-
-                            foreach($aSearch as $sSearchTerm) {
-                                if (strpos($sSearchTerm, ':') !== false) {
-                                    $aSearchTerm  = explode(':', $sSearchTerm);
-                                    $sSearchField = array_shift($aSearchTerm);
-                                    $sSearchValue = implode(':', $aSearchTerm);
-                                    $oSearchField = DataMap::getField($oTable, $sSearchField);
-
-                                    if ($oSearchField instanceof ORM\Field) {
-                                        Log::d('Route.getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => ':']);
-
-                                        if ($sSearchValue == 'null') {
-                                            $aConditions[] = SQL::nul($oSearchField);
-                                        } else if ($oSearchField instanceof ORM\Field\Number
-                                                   ||  $oSearchField instanceof ORM\Field\Enum) {
-                                            $aConditions[] = SQL::eq($oSearchField, $sSearchValue);
-                                        } else if ($oSearchField instanceof ORM\Field\Date) {
-                                            // TODO: handle dates
-                                        } else {
-                                            $aConditions[] = SQL::like($oSearchField, '%' . $sSearchValue . '%');
-                                        }
-
-                                        continue;
-                                    }
-                                } else if (strpos($sSearchTerm, '>') !== false) {
-                                    // TODO: Obviously ridiculous.  we should be parsing this properly instead of repeating
-                                    $aSearchTerm  = explode('>', $sSearchTerm);
-                                    $sSearchField = array_shift($aSearchTerm);
-                                    $sSearchValue = implode('>', $aSearchTerm);
-                                    $oSearchField = DataMap::getField($oTable, $sSearchField);
-
-                                    if ($oSearchField instanceof ORM\Field) {
-                                        Log::d('Route.getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => '>']);
-
-                                        if ($oSearchField instanceof ORM\Field\Number) {
-                                            $aConditions[] = SQL::gt($oSearchField, $sSearchValue);
-                                        }
-
-                                        continue;
-                                    }
-
-                                }
-
-                                foreach ($oTable->getFields() as $oField) {
-                                    if ($oField instanceof ORM\Field\Date) {
-                                        // TODO: handle dates
-                                    } else if ($oField instanceof ORM\Field\Text) {
-                                        $aConditions[] = SQL::like($oField, '%' . $sSearchTerm . '%');
-                                    }
-                                }
-                            }
-
-                            if ($sSearchType == 'AND') {
-                                self::$oPathQuery->also(...$aConditions);
-                            } else {
-                                self::$oPathQuery->either(...$aConditions);
-                            }
-                        }
-
-                        if (isset($oRequest->GET['sort']) && strlen(trim($oRequest->GET['sort']))) {
-                            $sGetSort = trim($oRequest->GET['sort']);
-                            $sGetSort = preg_replace('/\,s+/', ',', $sGetSort);
-                            $aSort    = explode(',', $sGetSort);
-
-                            foreach($aSort as $sSort) {
-                                if (strpos($sSort, '.')) {
-                                    $aSort = explode('.', $sSort);
-                                    if (count($aSort) == 2) {
-                                        $sSortTable = DataMap::getClassName($aSort[0]);
-                                        $sSortField = $aSort[1];
-
-                                        Log::d('Route.getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
-
-                                        $sSortTableClass = self::_getNamespacedTableClassName($sSortTable);
-
-                                        /** @var ORM\Table $oSortTable */
-                                        $oSortTable = new $sSortTableClass();
-                                        if (!$oSortTable instanceof ORM\Table) {
-                                            throw new Exception\InvalidTable($sSortTableClass . " is not a valid Table");
-                                        }
-
-                                        $oSortReference = $oTable->getFieldThatReferencesTable($oSortTable);
-                                        if ($oSortReference instanceof ORM\Field === false) {
-                                            throw new Exception\InvalidReference("Cannot Associate " . (new \ReflectionClass($oTable))->getShortName() . ' with ' . (new \ReflectionClass($oSortReference))->getShortName());
-                                        }
-
-                                        $sReferenceField = $oSortReference->referenceField();
-                                        self::$oPathQuery->join($oSortReference, $oSortTable->$sReferenceField);
-
-                                        $oSortField = DataMap::getField($oSortTable, $sSortField);
-                                        self::$oPathQuery->asc($oSortField);
-                                    }
+                                if ($sSearchValue == 'null') {
+                                    $aConditions[] = SQL::nul($oSearchField);
+                                } else if ($oSearchField instanceof ORM\Field\Number
+                                       ||  $oSearchField instanceof ORM\Field\Enum) {
+                                    $aConditions[] = SQL::eq($oSearchField, $sSearchValue);
+                                } else if ($oSearchField instanceof ORM\Field\Date) {
+                                    // TODO: handle dates
                                 } else {
-                                    $oSortField = DataMap::getField($oTable, $sSort);
-                                    if ($oSortField instanceof ORM\Field) {
-                                        self::$oPathQuery->asc($oSortField);
-                                    }
+                                    $aConditions[] = SQL::like($oSearchField, '%' . $sSearchValue . '%');
                                 }
+
+                                continue;
                             }
+                        } else if (strpos($sSearchTerm, '>') !== false) {
+                            // TODO: Obviously ridiculous.  we should be parsing this properly instead of repeating
+                            $aSearchTerm  = explode('>', $sSearchTerm);
+                            $sSearchField = array_shift($aSearchTerm);
+                            $sSearchValue = implode('>', $aSearchTerm);
+                            $oSearchField = DataMap::getField($oTable, $sSearchField);
+
+                            if ($oSearchField instanceof ORM\Field) {
+                                Log::d('Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => '>']);
+
+                                if ($oSearchField instanceof ORM\Field\Number) {
+                                    $aConditions[] = SQL::gt($oSearchField, $sSearchValue);
+                                } else if ($oSearchField instanceof ORM\Field\Date) {
+                                    // TODO: handle dates
+                                }
+
+                                continue;
+                            }
+
                         }
 
-                        // TABLES
-                        if ($oResults = ORM\Db::getInstance()->namedQuery('getQueryFromPath', self::$oPathQuery)) {
-                            if ($oResults->num_rows > 0) {
-                                $oOutput = $oTable::getTables();
-                                while ($oResult = $oResults->fetch_object()) {
-                                    $oOutput->append($oTable::createFromObject($oResult));
+                        foreach ($oTable->getFields() as $oField) {
+                            if ($oField instanceof ORM\Field\Date) {
+                                // TODO: handle dates
+                            } else if ($oField instanceof ORM\Field\Text) {
+                                $aConditions[] = SQL::like($oField, '%' . $sSearchTerm . '%');
+                            }
+                        }
+                    }
+
+                    if ($sSearchType == 'AND') {
+                        $oQuery->also(...$aConditions);
+                    } else {
+                        $oQuery->either(...$aConditions);
+                    }
+                }
+
+                if (isset($oRequest->GET['sort']) && strlen(trim($oRequest->GET['sort']))) {
+                    $sGetSort = trim($oRequest->GET['sort']);
+                    $sGetSort = preg_replace('/,\s+/', ',', $sGetSort);
+                    $aSort    = explode(',', $sGetSort);
+
+                    foreach($aSort as $sSort) {
+                        if (strpos($sSort, '.')) {
+                            $aSort = explode('.', $sSort);
+                            if (count($aSort) == 2) {
+                                $sSortTable = DataMap::getClassName($aSort[0]);
+                                $sSortField = $aSort[1];
+
+                                Log::d('Route._getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
+
+                                $sSortTableClass = self::_getNamespacedTableClassName($sSortTable);
+
+                                /** @var ORM\Table $oSortTable */
+                                $oSortTable = new $sSortTableClass();
+                                if (!$oSortTable instanceof ORM\Table) {
+                                    throw new Exception\InvalidTable($sSortTableClass . " is not a valid Table");
                                 }
 
-                                return $oOutput;
+                                $oSortReference = $oSortTable->getFieldThatReferencesTable($oTable);
+                                if ($oSortReference instanceof ORM\Field !== false) {
+                                    // The SortBy Field is in a table that references our Primary Table
+                                    // Join from the Referenced Primary Table Field to the Sort Table Referencing Field
+                                    $sReferenceField = $oSortReference->referenceField();
+                                    $oQuery->join($oTable->$sReferenceField, $oSortReference);
+                                } else {
+                                    $oSortReference = $oTable->getFieldThatReferencesTable($oSortTable);
+
+                                    if ($oSortReference instanceof ORM\Field === false) {
+                                        throw new Exception\InvalidReference("Cannot Associate " . (new \ReflectionClass($oTable))->getShortName() . ' with ' . (new \ReflectionClass($oSortReference))->getShortName());
+                                    }
+
+                                    // The SortBy Field is in a table that our Primary Table references
+                                    // Join from the Referencing Primary Table Field to the Referenced Sort Table Field Base Table Field
+                                    $sReferenceField = $oSortReference->referenceField();
+                                    $oQuery->join($oSortReference, $oSortTable->$sReferenceField);
+                                }
+
+
+
+                                $oSortField = DataMap::getField($oSortTable, $sSortField);
+                                $oQuery->asc($oSortField);
+                            }
+                        } else {
+                            $oSortField = DataMap::getField($oTable, $sSort);
+                            if ($oSortField instanceof ORM\Field) {
+                                $oQuery->asc($oSortField);
                             }
                         }
                     }
                 }
             }
 
-            return false;   // TODO: Throw Error
+            return $oQuery;
         }
 
         /**
