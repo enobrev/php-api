@@ -9,13 +9,17 @@
     use Enobrev\SQLBuilder;
     use function Enobrev\dbg;
 
+    use RecursiveIteratorIterator;
+    use RecursiveDirectoryIterator;
+    use FilesystemIterator;
+    use SplFileInfo;
+
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\ServerRequestFactory;
 
     use function Enobrev\array_is_multi;
 
     class Route {
-        const ROUTES = [];
         const QUERIES = [];
 
         /** @var array  */
@@ -31,20 +35,27 @@
         private static $aVersions = ['v1'];
 
         /** @var string  */
+        private static $sPathAPI = null;
+
+        /** @var string  */
         private static $sNamespaceAPI = null;
 
         /** @var string  */
         private static $sNamespaceTable = null;
 
         /**
+         * @param string $sPathAPI
          * @param string $sNamespaceAPI
          * @param string $sNamespaceTable
          * @param array  $aVersions
          */
-        public static function init(string $sNamespaceAPI, string $sNamespaceTable, array $aVersions = ['v1']) {
+        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, array $aVersions = ['v1']) {
+            self::$sPathAPI        = rtrim($sPathAPI, '/') . '/';
             self::$sNamespaceAPI   = trim($sNamespaceAPI, '\\');
             self::$sNamespaceTable = trim($sNamespaceTable, '\\');
             self::$aVersions       = $aVersions;
+
+            self::_generateRoutes();
         }
 
         /**
@@ -98,7 +109,7 @@
                 $oRest   = self::_getRestClass($oRequest);
 
                 Log::d('Route.query.rest', [
-                    'class'         => get_class($oRest)
+                    'class' => get_class($oRest)
                 ]);
 
                 if ($oRequest->isOptions()) {
@@ -110,7 +121,7 @@
                 if (method_exists($oRest, $sMethod)) {
 
                     /** @var ORM\Tables|ORM\Table $oResults */
-                    $aRoute = self::_matchRoute(self::$aCachedQueryRoutes, $oRequest);
+                    $aRoute = self::_matchQuery(self::$aCachedQueryRoutes, $oRequest);
                     if ($aRoute) {
                         $sClass       = $aRoute['class'];
                         $sQueryMethod = $aRoute['method'];
@@ -124,7 +135,9 @@
                         ]);
 
                         if (method_exists($sClass, $sQueryMethod)) {
+                            // TODO: If Class is a Table, then use Rest and setData from that Method, otherwise, just run the Method
                             $oResults = $sClass::$sQueryMethod($aRoute['params']);
+
                             if ($oResults) {
                                 $oRest->setData($oResults);
                             }
@@ -563,7 +576,9 @@
                 'attributes'    => $oRequest->OriginalRequest->getAttributes()
             ]);
 
-            $oRequest->updateParams($aRoute['params']);
+            if (isset($aRoute['params'])) {
+                $oRequest->updateParams($aRoute['params']);
+            }
 
             /** @var Base $oClass */
             $oClass  = new $aRoute['class']($oRequest);
@@ -597,6 +612,22 @@
          * @return array|bool
          */
         public static function _matchRoute(Array $aRoutes, Request $oRequest) {
+            $sRoute = implode('/', $oRequest->Path);
+            $sRoute = trim($sRoute, '/');
+
+            if (isset($aRoutes[$sRoute])) {
+                return $aRoutes[$sRoute];
+            }
+
+            return false;
+        }
+
+        /**
+         * @param array $aRoutes
+         * @param Request $oRequest
+         * @return array|bool
+         */
+        public static function _matchQuery(Array $aRoutes, Request $oRequest) {
             $iSegments = count($oRequest->Path);
             $sRoute = implode('/', $oRequest->Path);
             $sRoute = trim($sRoute, '/');
@@ -623,65 +654,57 @@
         }
 
         /**
+         * Traverse the API path, find all the version folders, and add a Route for each Public Method in all Classes that extend API\Base
+         * Ideally we would have a script that would write all these routes to a cached file during the build process
+         * and then the routes would be loaded immediately for production systems
+         *
          * @todo Cache These for Production
          */
         public static function _generateRoutes() {
             foreach (self::$aVersions as $sVersion) {
-                foreach (self::ROUTES as $sRoute => $aRoute) {
-                    $aRoute['version'] = $sVersion;
+                $sVersionPath = self::$sPathAPI . $sVersion . '/';
+                if (file_exists($sVersionPath)) {
+                    /** @var SplFileInfo[] $aFiles */
+                    $aFiles  = new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator(
+                            $sVersionPath,
+                            FilesystemIterator::SKIP_DOTS
+                        )
+                    );
 
-                    $sRoute  = str_replace('{version}', $sVersion, $sRoute);
-                    $sRoute  = trim($sRoute, '/');
-                    $aPath   = explode('/', str_replace('/?', '', $sRoute));
+                    foreach($aFiles as $oFile) {
+                        $sFile = file_get_contents($oFile->getPathname());
+                        if (preg_match('/class\s+([^\s]+)\s+extends\s+(((\\\)?Enobrev\\\)?API\\\)?Base/', $sFile, $aMatches)) {
+                            $aPublicMethods     = [];
+                            $sClass             = $aMatches[1];
+                            $sClassPath         = self::_getNamespacedAPIClassName($sVersion, $sClass);
+                            $oReflectionClass   = new \ReflectionClass($sClassPath);
+                            $aReflectionMethods = $oReflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
 
-                    $aParsed = [];
-                    $aParams = [];
-                    foreach($aPath as $sSegment) {
-                        if (strpos($sSegment, '{') === 0) {
-                            $sMatch    = trim($sSegment, "{}");
-                            $aParams[] = $sMatch;
-                            $aParsed[] = '(?<' . $sMatch . '>[^/]+)';
-                        } else {
-                            $aParsed[] = $sSegment;
+                            foreach($aReflectionMethods as $oReflectionMethod) {
+                                if ($oReflectionMethod->class == $oReflectionClass->getName()) {
+                                    $aPublicMethods[] = $oReflectionMethod->name;
+                                }
+                            }
+
+                            foreach($aPublicMethods as $sMethod) {
+                                $sRoute = implode('/', [$sVersion, $sClass, $sMethod]);
+                                self::$aCachedRoutes[$sRoute] = [
+                                    'class'  => $sClassPath,
+                                    'method' => $sMethod
+                                ];
+                            }
                         }
                     }
-
-                    $sRoute             = implode('/', $aParsed);
-                    $sRoute             = str_replace('*', '([^/]+)', $sRoute);
-                    $sRoute             = '~' . $sRoute . '~';
-
-                    $aRoute['segments'] = count($aPath);
-                    $aRoute['class']    = str_replace('{version}', $sVersion,  $aRoute['class']);
-                    $aRoute['params']   = $aParams;
-                    self::$aCachedRoutes[$sRoute] = $aRoute;
-                }
-
-                foreach (self::QUERIES as $sRoute => $aRoute) {
-                    $sRoute  = str_replace('{version}', $sVersion, $sRoute);
-                    $sRoute  = trim($sRoute, '/');
-                    $aPath   = explode('/', $sRoute);
-
-                    $aParsed = [];
-                    $aParams = [];
-                    foreach($aPath as $sSegment) {
-                        if (strpos($sSegment, '{') === 0) {
-                            $sMatch    = trim($sSegment, "{}");
-                            $aParams[] = $sMatch;
-                            $aParsed[] = '(?<' . $sMatch . '>[^/]+)';
-                        } else {
-                            $aParsed[] = $sSegment;
-                        }
-                    }
-
-                    $sRoute             = implode('/', $aParsed);
-                    $sRoute             = str_replace('*', '([^/]+)', $sRoute);
-                    $sRoute             = '~' . $sRoute . '~';
-
-                    $aRoute['segments'] = count($aPath);
-                    $aRoute['params']   = $aParams;
-                    self::$aCachedQueryRoutes[$sRoute] = $aRoute;
                 }
             }
+        }
+
+        /**
+         * @return array
+         */
+        public static function _getCachedRoutes() {
+            return self::$aCachedRoutes;
         }
 
         private static $aData = [];
@@ -788,7 +811,7 @@
             try {
                 $sEndpoint   = self::_fillEndpointTemplateFromData($sEndpoint);
                 $aPostParams = self::_fillPostTemplateFromData($aPostParams);
-            } catch (NoTemplateValuesException $e) {
+            } catch (Exception\NoTemplateValues $e) {
                 Log::e('API.attemptRequest.skipped.missing.keys', [
                     'endpoint' => $sEndpoint,
                     'params'   => $aPostParams
@@ -938,5 +961,3 @@
             return $sTemplate;
         }
     }
-
-    Route::_generateRoutes();

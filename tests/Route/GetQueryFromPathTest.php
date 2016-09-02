@@ -14,13 +14,14 @@
     use Zend\Diactoros\Uri;
 
     class GetQueryFromPathTest extends TestCase {
-
         const DOMAIN = 'example.com';
 
-        public function testExistingTableUsers() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
+        public static function setUpBeforeClass() {
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
             Response::init(self::DOMAIN);
+        }
 
+        public function testExistingTableUsers() {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -33,9 +34,6 @@
         }
 
         public function testExistingTableAddresses() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -48,9 +46,6 @@
         }
 
         public function testExistingNonExistentTable() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -63,9 +58,6 @@
         }
 
         public function testWithStringId() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -78,9 +70,6 @@
         }
 
         public function testWithIntId() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -93,9 +82,6 @@
         }
 
         public function testWithPaging() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -109,9 +95,6 @@
         }
 
         public function testWithSort() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -125,9 +108,6 @@
         }
 
         public function testWithSortAndPaging() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -141,9 +121,6 @@
         }
 
         public function testWithForeignSort() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -157,9 +134,6 @@
         }
 
         public function testWithOppositeForeignSort() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -173,9 +147,6 @@
         }
 
         public function testWithMultipleSort() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -189,9 +160,6 @@
         }
 
         public function testWithMultipleSortSpaced() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -205,9 +173,6 @@
         }
 
         public function testWithMultipleSortWithForeign() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -221,9 +186,6 @@
         }
 
         public function testWithPlainSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -237,9 +199,6 @@
         }
 
         public function testWithFieldSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -252,10 +211,7 @@
             $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%test%" LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithFieldNumaricSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
+        public function testWithFieldNumericSearch() {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -269,9 +225,6 @@
         }
 
         public function testWithFieldNullSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -285,9 +238,6 @@
         }
 
         public function testWithFieldGreaterThanSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -301,9 +251,6 @@
         }
 
         public function testWithQuotedFieldSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -317,9 +264,6 @@
         }
 
         public function testWithMultiFieldSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -333,9 +277,6 @@
         }
 
         public function testWithMultiAndFieldSearch() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -350,10 +291,6 @@
         
         public function testWithMultiForeignFieldAndSearch() {
             // FIXME: Cannot Currently search with Foreign Fields
-            /*
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');

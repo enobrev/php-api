@@ -38,6 +38,11 @@
         /** @var  Table\Address */
         private $oAddress3;
 
+        public static function setUpBeforeClass() {
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
+            Response::init(self::DOMAIN);
+        }
+
         public function setUp() {
             $sDatabase = file_get_contents(__DIR__ . '/../Mock/sqlite.sql');
 
@@ -84,9 +89,6 @@
         }
 
         public function testExistingTableUser() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -110,9 +112,6 @@
         }
 
         public function testExistingTableAddress() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');

@@ -16,17 +16,17 @@
 
         const DOMAIN = 'example.com';
 
-        public function testInit() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
+        public static function setUpBeforeClass() {
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
+            Response::init(self::DOMAIN);
+        }
 
+        public function testInit() {
             $this->assertEquals('Enobrev\\API\\Mock\\Table\\test', Route::_getNamespacedTableClassName('test'));
             $this->assertEquals('Enobrev\\API\\Mock\\v1\\test', Route::_getNamespacedAPIClassName('v1', 'test'));
         }
 
         public function testGetRestClassOverridden() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -39,9 +39,6 @@
         }
 
         public function testGetRestClassNotOverridden() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -54,9 +51,6 @@
         }
 
         public function testGetRestClassAnything() {
-            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
-            Response::init(self::DOMAIN);
-
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
