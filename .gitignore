@@ -5,3 +5,4 @@ node_modules/
 vendor/
 /tests/Mock/DataMap.json
 /tests/Mock/Table/
+mysql2sqlite.sh
