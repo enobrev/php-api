@@ -31,6 +31,21 @@
         /** @var bool */
         private static $bReturnResponses = false;
 
+        /** @var string  */
+        private static $sNamespaceAPI = null;
+
+        /** @var string  */
+        private static $sNamespaceTable = null;
+
+        /**
+         * @param string $sNamespaceAPI
+         * @param string $sNamespaceTable
+         */
+        public static function init(string $sNamespaceAPI, string $sNamespaceTable) {
+            self::$sNamespaceAPI   = trim($sNamespaceAPI, '\\');
+            self::$sNamespaceTable = trim($sNamespaceTable, '\\');
+        }
+
         /**
          * @param ServerRequest $oServerRequest
          * @return \stdClass|void
@@ -192,12 +207,31 @@
             return new Rest($oRequest);
         }
 
-        public static function _getNamespacedAPIClassName($sAPIClass, $sTopClass) {
-            return implode('\\', ['Enobrev', 'API', $sAPIClass, $sTopClass]);
+        /**
+         * @param string $sVersionPath
+         * @param string $sAPIClass
+         * @return string
+         * @throws Exception\Response
+         */
+        public static function _getNamespacedAPIClassName(string $sVersionPath, string $sAPIClass) {
+            if (self::$sNamespaceAPI === null) {
+                throw new Exception\Response('API Route Not Initialized');
+            }
+
+            return implode('\\', [self::$sNamespaceAPI, $sVersionPath, $sAPIClass]);
         }
 
-        public static function _getNamespacedTableClassName($sTableClass) {
-            return implode('\\', ['Enobrev', 'Table', $sTableClass]);
+        /**
+         * @param string $sTableClass
+         * @return string
+         * @throws Exception\Response
+         */
+        public static function _getNamespacedTableClassName(string $sTableClass) {
+            if (self::$sNamespaceTable === null) {
+                throw new Exception\Response('API Route Not Initialized');
+            }
+
+            return implode('\\', [self::$sNamespaceTable, $sTableClass]);
         }
 
         /**
