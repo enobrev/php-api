@@ -154,6 +154,15 @@
         }
 
         /**
+         * @return array
+         */
+        public function getPathPairs() {
+            $aPath      = $this->Path;
+            $sVersion   = array_shift($aPath); // not using version, but still need to shift
+            return array_chunk($aPath, 2);
+        }
+
+        /**
          * Adds Version to Beginning of Path Array if it's not already there
          */
         private function ensurePathVersion() {
