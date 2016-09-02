@@ -102,9 +102,35 @@
 
             $aUser = $oOutput->data->users[$this->oUser1->user_id->getValue()];
 
+            $this->assertEquals($this->oUser1->user_id->getValue(),         $aUser['id']);
             $this->assertEquals($this->oUser1->user_name->getValue(),       $aUser['name']);
             $this->assertEquals($this->oUser1->user_email->getValue(),      $aUser['email']);
             $this->assertEquals($this->oUser1->user_happy->getValue(),      $aUser['happy']);
-            $this->assertEquals((string) $this->oUser1->user_date_added, $aUser['date_added']);
+            $this->assertEquals((string) $this->oUser1->user_date_added,    $aUser['date_added']);
+        }
+
+        public function testExistingTableAddress() {
+            Route::init('\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
+            Response::init(self::DOMAIN);
+
+            /** @var ServerRequest $oServerRequest */
+            $oServerRequest = new ServerRequest;
+            $oServerRequest = $oServerRequest->withMethod('GET');
+            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/addresses/' . $this->oAddress1->address_id->getValue()));
+
+            $oRequest  = new Request($oServerRequest);
+            $oResponse = Route::_getResponse($oRequest);
+            $oOutput   = $oResponse->getOutput();
+
+            $this->assertObjectHasAttribute('data', $oOutput);
+            $this->assertObjectHasAttribute('addresses', $oOutput->data);
+            $this->assertArrayHasKey($this->oAddress1->address_id->getValue(), $oOutput->data->addresses);
+
+            $aAddress = $oOutput->data->addresses[$this->oAddress1->address_id->getValue()];
+
+            $this->assertEquals($this->oAddress1->address_id->getValue(),       $aAddress['id']);
+            $this->assertEquals($this->oAddress1->user_id->getValue(),          $aAddress['user_id']);
+            $this->assertEquals($this->oAddress1->address_line_1->getValue(),   $aAddress['line_1']);
+            $this->assertEquals($this->oAddress1->address_city->getValue(),     $aAddress['city']);
         }
     }

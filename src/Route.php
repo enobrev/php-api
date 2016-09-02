@@ -24,9 +24,6 @@
         /** @var array  */
         private static $aCachedQueryRoutes = [];
 
-        /** @var SQL|SQLBuilder|string */
-        private static $oPathQuery;
-
         /** @var bool */
         private static $bReturnResponses = false;
 
