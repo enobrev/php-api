@@ -305,32 +305,28 @@
 
                     if ($oResults = ORM\Db::getInstance()->namedQuery('getQueryFromPath', $oQuery)) {
                         $oTable = self::_getPrimaryTableFromPath($oRequest);
+                        $iRows  = $oResults->rowCount();
 
-                        if ($oResults->num_rows == 1) {
+                        if ($iRows == 1) {
                             Log::d('Route._getResultsFromPath.FoundOne');
 
-                            $oTable->setFromObject($oResults->fetch_object());
-                            $oRest->setData($oTable);
-                        } else if ($oResults->num_rows > 1) {
+                            $oRest->setData($oResults->fetchObject(get_class($oTable)));
+                        } else if ($iRows > 1) {
                             Log::d('Route._getResultsFromPath.FoundMultiple');
 
-                            $oOutput = $oTable::getTables();
-                            while ($oResult = $oResults->fetch_object()) {
-                                $oOutput->append($oTable::createFromObject($oResult));
-                            }
+                            $oTables = $oTable::getTables();
+                            $oRest->setData(new $oTables($oResults->fetchAll(get_class($oTable))));
 
                             // Add the count to the dynamic query output
                             if ($oQuery instanceof SQLBuilder) {
                                 $oQuery->setType(SQLBuilder::TYPE_COUNT);
 
                                 if ($oResult = ORM\Db::getInstance()->namedQuery('getCountQueryFromPath', $oQuery)) {
-                                    if ($oResult->num_rows > 0) {
-                                        $oRest->Response->add('counts.' . $oOutput->getTable()->getTitle(), (int) $oResult->fetch_object()->row_count);
+                                    if ($oResult->rowCount() > 0) {
+                                        $oRest->Response->add('counts.' . $oTable->getTitle(), (int) $oResult->fetchColumn());
                                     }
                                 }
                             }
-
-                            $oRest->setData($oOutput);
                         } else if ($oRequest->isPost()) {
                             Log::d('Route._getResultsFromPath.FoundNone.Post');
 
