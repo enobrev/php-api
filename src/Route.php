@@ -235,6 +235,11 @@
             return implode('\\', [self::$sNamespaceTable, $sTableClass]);
         }
 
+        /**
+         * @param Request $oRequest
+         * @return ORM\Table
+         * @throws Exception\InvalidTable
+         */
         public static function _getPrimaryTableFromPath(Request $oRequest) {
             $aPairs = $oRequest->getPathPairs();
 
@@ -250,7 +255,7 @@
                 /** @var ORM\Table $oTable */
                 $oTable = new $sClass;
                 if ($oTable instanceof ORM\Table === false) {
-                    throw new Exception('Invalid Primary Table in Path');
+                    throw new Exception\InvalidTable('Invalid Primary Table in Path'); // DataMap is Wrong?!
                 }
 
                 return $oTable;
