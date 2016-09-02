@@ -9,17 +9,14 @@
     use Enobrev\NoticeException;
     use Zend\Diactoros\Response\EmptyResponse;
     use Zend\Diactoros\Response\SapiEmitter;
+    use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\ServerRequestFactory;
 
     use function Enobrev\array_is_multi;
 
     class Route {
-        const VERSIONS = [
-            'v1'
-        ];
-
+        const VERSIONS = ['v1'];
         const ROUTES = [];
-
         const QUERIES = [];
 
         // TODO: Pull these from DataMap
@@ -38,16 +35,30 @@
         private static $bReturnResponses = false;
 
         /**
-         * @param array|null $aServer
-         * @param array|null $aGet
-         * @param array|null $aPost
+         * @param ServerRequest $oServerRequest
          * @return \stdClass|void
          */
-        public static function index(array $aServer = null, array $aGet = null, array $aPost = null) {
-            $oRequest = new Request(ServerRequestFactory::fromGlobals($aServer, $aGet, $aPost));
+        public static function index(ServerRequest $oServerRequest = null) {
+            $oServerRequest = $oServerRequest ?? ServerRequestFactory::fromGlobals();
+            $oRequest = new Request($oServerRequest);
+            $oResponse = self::getResponse($oRequest);
 
-            if ($oRequest->pathIsRoot() && !$oRequest->isOptions() && self::attemptMultiRequest($oRequest)) {
-                return;
+            if (self::$bReturnResponses) {
+                return $oResponse->getOutput();
+            } else {
+                $oResponse->respond();
+            }
+        }
+
+        /**
+         * @param Request $oRequest
+         * @return Response
+         */
+        private static function getResponse(Request $oRequest) {
+            if (!self::$bReturnResponses && $oRequest->pathIsRoot() && !$oRequest->isOptions()) {
+                if ($oResponse = self::attemptMultiRequest($oRequest)) {
+                    return $oResponse;
+                }
             }
 
             $aRoute   = self::matchRoute(self::$aCachedRoutes, $oRequest);
@@ -56,7 +67,6 @@
             }
 
             try {
-                $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
                 $oRest   = self::getRestClass($oRequest);
 
                 Log::d('Route.query.rest', [
@@ -65,14 +75,10 @@
 
                 if ($oRequest->isOptions()) {
                     $oRest->options();
-
-                    if (self::$bReturnResponses) {
-                        return $oRest->Response->getOutput();
-                    } else {
-                        $oRest->Response->respond();
-                    }
+                    return $oRest->Response;
                 }
 
+                $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
                 if (method_exists($oRest, $sMethod)) {
 
                     /** @var ORM\Tables|ORM\Table $oResults */
@@ -135,14 +141,11 @@
                         }
                     }
 
-                    if (self::$bReturnResponses) {
-                        return $oRest->Response->getOutput();
-                    } else {
-                        $oRest->Response->respond();
-                    }
+                    return $oRest->Response;
                 }
 
-                $oRest->methodNotAllowed();
+                $oRest->Response->statusMethodNotAllowed();
+                return $oRest->Response;
             } catch (\Exception $e) {
                 Log::c('API.REQUEST.FAIL', [
                     'request' => [
@@ -157,13 +160,10 @@
                     ]
                 ]);
 
-                if (self::$bReturnResponses) {
-                    $oResponse = new \stdClass();
-                    $oResponse->status = HTTP\SERVICE_UNAVAILABLE;
-                    return $oResponse;
-                } else {
-                    (new SapiEmitter())->emit(new EmptyResponse(HTTP\SERVICE_UNAVAILABLE));
-                }
+                $oResponse = new Response($oRequest);
+                $oResponse->setStatus(HTTP\SERVICE_UNAVAILABLE);
+                $oResponse->setFormat(Response::FORMAT_EMPTY);
+                return $oResponse;
             }
         }
 
@@ -186,7 +186,7 @@
                 }
 
                 if ($sTopClass) {
-                    $sRestClass = implode('\\', ['Napkin', 'API', $oRequest->Path[0], $sTopClass]);
+                    $sRestClass = self::getNamespacedAPIClassName($oRequest->Path[0], $sTopClass);
                     if (class_exists($sRestClass)) {
                         return new $sRestClass($oRequest);
                     }
@@ -194,6 +194,14 @@
             }
 
             return new Rest($oRequest);
+        }
+
+        protected static function getNamespacedAPIClassName($sAPIClass, $sTopClass) {
+            return implode('\\', ['Enobrev', 'API', $sAPIClass, $sTopClass]);
+        }
+
+        protected static function getNamespacedTableClassName($sTableClass) {
+            return implode('\\', ['Enobrev', 'Table', $sTableClass]);
         }
 
         /**
@@ -204,7 +212,7 @@
          */
         private static function getQueryFromPath(Request &$oRequest) {
             $aPath      = $oRequest->Path;
-            $sVersion   = array_shift($aPath);
+            $sVersion   = array_shift($aPath); // not using version, but still need to shift
             $aChunks    = $aLastChunk = array_chunk($aPath, 2);
 
             if (count($aChunks) > 0) {
@@ -216,7 +224,7 @@
                     throw new Exception\InvalidTable("Never Heard of " . $aLastChunk[0]);
                 }
 
-                $sClass = implode('\\', ['Napkin', 'Table', $sClassName]);
+                $sClass = self::getNamespacedTableClassName($sClassName);
 
                 /** @var ORM\Table $oTable */
                 $oTable = new $sClass;
@@ -236,7 +244,7 @@
                     while (count($aChunks) > 0) {
                         $aPart = array_shift($aChunks);
                         $sClassName = self::tableToClass[$aPart[0]];
-                        $sClass = implode('\\', ['Napkin', 'Table', $sClassName]);
+                        $sClass = self::getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
                         $oWhereTable = new $sClass();
@@ -270,7 +278,7 @@
                         Log::d('Route.getQueryFromPath.Chunks', $aChunks);
                         $aPart = array_shift($aChunks);
                         $sClassName = self::tableToClass[$aPart[0]];
-                        $sClass = implode('\\', ['Napkin', 'Table', $sClassName]);
+                        $sClass = self::getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
                         $oWhereTable = new $sClass();
@@ -424,7 +432,7 @@
 
                                         Log::d('Route.getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
 
-                                        $sSortTableClass = implode('\\', ['Napkin', 'Table', $sSortTable]);
+                                        $sSortTableClass = self::getNamespacedTableClassName($sSortTable);
 
                                         /** @var ORM\Table $oSortTable */
                                         $oSortTable = new $sSortTableClass();
@@ -470,6 +478,11 @@
             return false;   // TODO: Throw Error
         }
 
+        /**
+         * @param array   $aRoute
+         * @param Request $oRequest
+         * @return Response|void
+         */
         private static function endpoint(Array $aRoute, Request $oRequest) {
             Log::d('Route.endpoint', [
                 'class'         => $aRoute['class'],
@@ -492,23 +505,20 @@
                 }
 
                 if (method_exists($oClass, $sMethod)) {
+                    Log::d('Route.endpoint.response');
                     $oClass->$sMethod();
-
-                    if (self::$bReturnResponses) {
-                        return $oClass->Response->getOutput();
-                    } else {
-                        Log::w('Route.endpoint.respond');
-                        $oClass->Response->respond();
-                    }
                 } else {
                     Log::w('Route.endpoint.methodNotFound');
                     $oClass->methodNotAllowed();
                 }
+
+                return $oClass->Response;
             } else {
                 // FIXME: return error;
                 Log::w('Route.endpoint.ClassNotFound');
             }
 
+            return;
         }
 
         /**
@@ -656,11 +666,11 @@
          *
          *
          * @param Request $oRequest
-         * @return bool
+         * @return Response|void
          */
         private static function attemptMultiRequest(Request $oRequest) {
             if (self::$bReturnResponses) {
-                return false;
+                return;
             }
 
             Log::d('Route.attemptMultiRequest', [
@@ -693,10 +703,11 @@
 
                 $oResponse = new Response($oRequest);
                 $oResponse->add(self::$aData);
-                $oResponse->respond();
+
+                return $oResponse;
             }
 
-            return false;
+            return;
         }
 
         /**
