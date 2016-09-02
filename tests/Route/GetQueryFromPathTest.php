@@ -60,8 +60,6 @@
 
             $this->expectException(Exception\InvalidTable::class);
             $oQuery = Route::_getQueryFromPath($oRequest);
-
-            dbg((string) $oQuery);
         }
 
         public function testWithStringId() {

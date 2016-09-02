@@ -5,12 +5,7 @@
 
     use PHPUnit_Framework_TestCase as TestCase;
 
-    use Enobrev\API\Response;
-    use Enobrev\API\Request;
     use Enobrev\API\Route;
-
-    use Zend\Diactoros\ServerRequest;
-    use Zend\Diactoros\Uri;
 
     class RouteTest extends TestCase {
 
