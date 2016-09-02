@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use PDO;
     use Enobrev\API\Exception;
     use Enobrev\Log;
     use Enobrev\ORM;
@@ -320,7 +321,7 @@
                             Log::d('Route._getResultsFromPath.FoundMultiple');
 
                             $oTables = $oTable::getTables();
-                            $oRest->setData(new $oTables($oResults->fetchAll(get_class($oTable))));
+                            $oRest->setData(new $oTables($oResults->fetchAll(PDO::FETCH_CLASS, get_class($oTable))));
 
                             // Add the count to the dynamic query output
                             if ($oQuery instanceof SQLBuilder) {
