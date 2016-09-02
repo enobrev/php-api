@@ -38,7 +38,7 @@
         public static function index(ServerRequest $oServerRequest = null) {
             $oServerRequest = $oServerRequest ?? ServerRequestFactory::fromGlobals();
             $oRequest = new Request($oServerRequest);
-            $oResponse = self::getResponse($oRequest);
+            $oResponse = self::_getResponse($oRequest);
 
             if (self::$bReturnResponses) {
                 return $oResponse->getOutput();
@@ -51,20 +51,20 @@
          * @param Request $oRequest
          * @return Response
          */
-        private static function getResponse(Request $oRequest) {
+        public static function _getResponse(Request $oRequest) {
             if (!self::$bReturnResponses && $oRequest->pathIsRoot() && !$oRequest->isOptions()) {
-                if ($oResponse = self::attemptMultiRequest($oRequest)) {
+                if ($oResponse = self::_attemptMultiRequest($oRequest)) {
                     return $oResponse;
                 }
             }
 
-            $aRoute   = self::matchRoute(self::$aCachedRoutes, $oRequest);
+            $aRoute   = self::_matchRoute(self::$aCachedRoutes, $oRequest);
             if ($aRoute) {
-                return self::endpoint($aRoute, $oRequest);
+                return self::_endpoint($aRoute, $oRequest);
             }
 
             try {
-                $oRest   = self::getRestClass($oRequest);
+                $oRest   = self::_getRestClass($oRequest);
 
                 Log::d('Route.query.rest', [
                     'class'         => get_class($oRest)
@@ -79,7 +79,7 @@
                 if (method_exists($oRest, $sMethod)) {
 
                     /** @var ORM\Tables|ORM\Table $oResults */
-                    $aRoute = self::matchRoute(self::$aCachedQueryRoutes, $oRequest);
+                    $aRoute = self::_matchRoute(self::$aCachedQueryRoutes, $oRequest);
                     if ($aRoute) {
                         $sClass       = $aRoute['class'];
                         $sQueryMethod = $aRoute['method'];
@@ -103,7 +103,7 @@
                             $oRest->Response->setFormat(Response::FORMAT_EMPTY);
                         }
                     } else {
-                        $oResults = self::getQueryFromPath($oRequest);
+                        $oResults = self::_getQueryFromPath($oRequest);
                         //$oRest->setRequest($oRequest); // TODO: Not Ideal to Re-Set the request here, but ensures we have the latest parsed path values
 
                         Log::d('Route.query.dynamic', [
@@ -169,7 +169,7 @@
          * @param Request $oRequest
          * @return Rest
          */
-        private static function getRestClass(Request $oRequest) {
+        public static function _getRestClass(Request $oRequest) {
             if (count($oRequest->Path) > 1) {
                 $aPath         = $oRequest->Path;
                 $sTopClass     = null;
@@ -182,7 +182,7 @@
                 }
 
                 if ($sTopClass) {
-                    $sRestClass = self::getNamespacedAPIClassName($oRequest->Path[0], $sTopClass);
+                    $sRestClass = self::_getNamespacedAPIClassName($oRequest->Path[0], $sTopClass);
                     if (class_exists($sRestClass)) {
                         return new $sRestClass($oRequest);
                     }
@@ -192,11 +192,11 @@
             return new Rest($oRequest);
         }
 
-        protected static function getNamespacedAPIClassName($sAPIClass, $sTopClass) {
+        public static function _getNamespacedAPIClassName($sAPIClass, $sTopClass) {
             return implode('\\', ['Enobrev', 'API', $sAPIClass, $sTopClass]);
         }
 
-        protected static function getNamespacedTableClassName($sTableClass) {
+        public static function _getNamespacedTableClassName($sTableClass) {
             return implode('\\', ['Enobrev', 'Table', $sTableClass]);
         }
 
@@ -206,7 +206,7 @@
          * @throws ORM\DbException
          * @throws \Exception
          */
-        private static function getQueryFromPath(Request &$oRequest) {
+        public static function _getQueryFromPath(Request &$oRequest) {
             $aPath      = $oRequest->Path;
             $sVersion   = array_shift($aPath); // not using version, but still need to shift
             $aChunks    = $aLastChunk = array_chunk($aPath, 2);
@@ -219,7 +219,7 @@
                     throw new Exception\InvalidTable("Never Heard of " . $aLastChunk[0]);
                 }
 
-                $sClass = self::getNamespacedTableClassName($sClassName);
+                $sClass = self::_getNamespacedTableClassName($sClassName);
 
                 /** @var ORM\Table $oTable */
                 $oTable = new $sClass;
@@ -239,7 +239,7 @@
                     while (count($aChunks) > 0) {
                         $aPart = array_shift($aChunks);
                         $sClassName = DataMap::getClassName($aPart[0]);
-                        $sClass = self::getNamespacedTableClassName($sClassName);
+                        $sClass = self::_getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
                         $oWhereTable = new $sClass();
@@ -273,7 +273,7 @@
                         Log::d('Route.getQueryFromPath.Chunks', $aChunks);
                         $aPart = array_shift($aChunks);
                         $sClassName = DataMap::getClassName($aPart[0]);
-                        $sClass = self::getNamespacedTableClassName($sClassName);
+                        $sClass = self::_getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
                         $oWhereTable = new $sClass();
@@ -427,7 +427,7 @@
 
                                         Log::d('Route.getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
 
-                                        $sSortTableClass = self::getNamespacedTableClassName($sSortTable);
+                                        $sSortTableClass = self::_getNamespacedTableClassName($sSortTable);
 
                                         /** @var ORM\Table $oSortTable */
                                         $oSortTable = new $sSortTableClass();
@@ -478,7 +478,7 @@
          * @param Request $oRequest
          * @return Response|void
          */
-        private static function endpoint(Array $aRoute, Request $oRequest) {
+        public static function _endpoint(Array $aRoute, Request $oRequest) {
             Log::d('Route.endpoint', [
                 'class'         => $aRoute['class'],
                 'path'          => $oRequest->Path,
@@ -521,7 +521,7 @@
          * @param Request $oRequest
          * @return array|bool
          */
-        private static function matchRoute(Array $aRoutes, Request $oRequest) {
+        public static function _matchRoute(Array $aRoutes, Request $oRequest) {
             $iSegments = count($oRequest->Path);
             $sRoute = implode('/', $oRequest->Path);
             $sRoute = trim($sRoute, '/');
@@ -550,7 +550,7 @@
         /**
          * @todo Cache These for Production
          */
-        public static function generateRoutes() {
+        public static function _generateRoutes() {
             foreach (self::VERSIONS as $sVersion) {
                 foreach (self::ROUTES as $sRoute => $aRoute) {
                     $aRoute['version'] = $sVersion;
@@ -663,7 +663,7 @@
          * @param Request $oRequest
          * @return Response|void
          */
-        private static function attemptMultiRequest(Request $oRequest) {
+        public static function _attemptMultiRequest(Request $oRequest) {
             if (self::$bReturnResponses) {
                 return;
             }
@@ -684,15 +684,15 @@
                     foreach($aQuery as $sEndpoint => $aPost) {
                         if (array_is_multi($aPost)) {
                             foreach($aPost as $aEach) {
-                                self::attemptRequest($sEndpoint, $aEach);
+                                self::_attemptRequest($sEndpoint, $aEach);
                             }
                         } else {
-                            self::attemptRequest($sEndpoint, $aPost);
+                            self::_attemptRequest($sEndpoint, $aPost);
                         }
                     }
                 } else {
                     while (count($aQuery) > 0) {
-                        self::attemptRequest(array_shift($aQuery));
+                        self::_attemptRequest(array_shift($aQuery));
                     }
                 }
 
@@ -709,10 +709,10 @@
          * @param string $sEndpoint
          * @param array $aPostParams
          */
-        private static function attemptRequest($sEndpoint, array $aPostParams = []) {
+        public static function _attemptRequest($sEndpoint, array $aPostParams = []) {
             try {
-                $sEndpoint   = self::fillEndpointTemplateFromData($sEndpoint);
-                $aPostParams = self::fillPostTemplateFromData($aPostParams);
+                $sEndpoint   = self::_fillEndpointTemplateFromData($sEndpoint);
+                $aPostParams = self::_fillPostTemplateFromData($aPostParams);
             } catch (NoTemplateValuesException $e) {
                 Log::e('API.attemptRequest.skipped.missing.keys', [
                     'endpoint' => $sEndpoint,
@@ -735,7 +735,7 @@
                 parse_str(substr($aServer['QUERY_STRING'], 1), $aGet);
             }
 
-            $oResponse = self::index($aServer, $aGet, $aPostParams);
+            $oResponse = self::index(new ServerRequest($aServer, $aGet, $aPostParams));
 
             if ($oResponse && $oResponse->status == HTTP\OK) {
                 Log::d('API.ENDPOINT.RESPONSE', array(
@@ -791,10 +791,10 @@
          * @return string
          * @throws \Exception
          */
-        private static function fillEndpointTemplateFromData($sEndpoint) {
+        public static function _fillEndpointTemplateFromData($sEndpoint) {
             $aEndpoint  = explode('/', $sEndpoint);
             foreach($aEndpoint as $sSegment) {
-                $mTemplateValue = self::getTemplateValue($sSegment);
+                $mTemplateValue = self::_getTemplateValue($sSegment);
                 if ($mTemplateValue !== self::NO_VALUE) {
                     $sEndpoint = str_replace($sSegment, $mTemplateValue, $sEndpoint);
                 }
@@ -810,10 +810,10 @@
          * @return array
          * @throws \Exception
          */
-        private static function fillPostTemplateFromData(array $aPost) {
+        public static function _fillPostTemplateFromData(array $aPost) {
             if (count($aPost)) {
                 foreach($aPost as $sParam => $mValue) {
-                    $mTemplateValue = self::getTemplateValue($mValue);
+                    $mTemplateValue = self::_getTemplateValue($mValue);
                     if ($mTemplateValue !== self::NO_VALUE) {
                         $aPost[$sParam] = $mTemplateValue;
                     }
@@ -825,7 +825,7 @@
 
         const NO_VALUE = 'NO_VALUE';
 
-        private static function getTemplateValue($sTemplate) {
+        public static function _getTemplateValue($sTemplate) {
             if (strpos($sTemplate, '{') === 0) {
                 $sMatch = trim($sTemplate, "{}");
                 $aMatch = explode('.', $sMatch);
@@ -864,4 +864,4 @@
         }
     }
 
-    Route::generateRoutes();
+    Route::_generateRoutes();
