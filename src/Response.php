@@ -259,7 +259,7 @@
 
             if ($mValue instanceof DateTime) {
                 /** @var DateTime $mValue */
-                $mValue->setTimezone(new DateTimeZone('GMT'));
+                // $mValue->setTimezone(new DateTimeZone('GMT')); - FIXME: should only be doing this by explicit request
                 $mValue = $mValue->format(DateTime::RFC3339);
             }
 
