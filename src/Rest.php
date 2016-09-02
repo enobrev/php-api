@@ -37,6 +37,13 @@
         }
 
         /**
+         * @return ORM\ModifiedDateColumn|ORM\ModifiedDateColumn[]|Table|ORM\Tables
+         */
+        public function getData() {
+            return $this->Data;
+        }
+
+        /**
          * Figures out the current user's role according to the user record
          * @return string
          */
