@@ -48,7 +48,16 @@
 
         /**
          * @param string $sPath
-         * @return string mixed
+         * @return bool
+         */
+        public static function hasClassPath($sPath) {
+            $aMap = self::getMap('_CLASSES_');
+            return isset($aMap[$sPath]);
+        }
+
+        /**
+         * @param string $sPath
+         * @return string
          */
         public static function getClassName($sPath) {
             $aMap = self::getMap('_CLASSES_');

@@ -9,6 +9,14 @@
     use Enobrev\ORM\Field;
 
     class DataMapTest extends TestCase {
+        public function testHasClassPath() {
+            DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
+
+            $this->assertTrue(DataMap::hasClassPath('users'));
+            $this->assertTrue(DataMap::hasClassPath('addresses'));
+            $this->assertFalse(DataMap::hasClassPath('whatever'));
+        }
+
         public function testGetClassName() {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 

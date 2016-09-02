@@ -19,9 +19,6 @@
         const ROUTES = [];
         const QUERIES = [];
 
-        // TODO: Pull these from DataMap
-        const tableToClass = [];
-
         /** @var array  */
         private static $aCachedRoutes = [];
 
@@ -174,14 +171,13 @@
          */
         private static function getRestClass(Request $oRequest) {
             if (count($oRequest->Path) > 1) {
-                $aTableToClass = self::tableToClass;
                 $aPath         = $oRequest->Path;
                 $sTopClass     = null;
 
                 while(count($aPath) > 0 && $sTopClass === null) {
                     $sTopMost = array_pop($aPath);
-                    if (isset($aTableToClass[$sTopMost])) {
-                        $sTopClass = $aTableToClass[$sTopMost];
+                    if (DataMap::hasClassPath($sTopMost)) {
+                        $sTopClass = DataMap::getClassName($sTopMost);
                     }
                 }
 
@@ -218,9 +214,8 @@
             if (count($aChunks) > 0) {
                 $aLastChunk = array_pop($aChunks);
 
-                try {
-                    $sClassName = self::tableToClass[$aLastChunk[0]];
-                } catch (NoticeException $e) {
+                $sClassName = DataMap::getClassName($aLastChunk[0]);
+                if (!$sClassName) {
                     throw new Exception\InvalidTable("Never Heard of " . $aLastChunk[0]);
                 }
 
@@ -243,7 +238,7 @@
                     // Prefill empty POST object with url params
                     while (count($aChunks) > 0) {
                         $aPart = array_shift($aChunks);
-                        $sClassName = self::tableToClass[$aPart[0]];
+                        $sClassName = DataMap::getClassName($aPart[0]);
                         $sClass = self::getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
@@ -277,7 +272,7 @@
                     while (count($aChunks) > 0) {
                         Log::d('Route.getQueryFromPath.Chunks', $aChunks);
                         $aPart = array_shift($aChunks);
-                        $sClassName = self::tableToClass[$aPart[0]];
+                        $sClassName = DataMap::getClassName($aPart[0]);
                         $sClass = self::getNamespacedTableClassName($sClassName);
 
                         /** @var ORM\Table $oWhereTable */
@@ -427,7 +422,7 @@
                                 if (strpos($sSort, '.')) {
                                     $aSort = explode('.', $sSort);
                                     if (count($aSort) == 2) {
-                                        $sSortTable = self::tableToClass[$aSort[0]];
+                                        $sSortTable = DataMap::getClassName($aSort[0]);
                                         $sSortField = $aSort[1];
 
                                         Log::d('Route.getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
