@@ -29,6 +29,14 @@
         }
 
         /**
+         * @return bool
+         */
+        public function hasData() {
+            return $this->Data instanceof ORM\Table
+                || $this->Data instanceof ORM\Tables;
+        }
+
+        /**
          * Figures out the current user's role according to the user record
          * @return string
          */
