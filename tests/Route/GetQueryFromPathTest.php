@@ -1,5 +1,5 @@
 <?php
-    namespace Enobrev;
+    namespace Enobrev\Test\Route;
 
     require __DIR__ . '/../../vendor/autoload.php';
 

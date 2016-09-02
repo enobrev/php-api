@@ -1,9 +1,10 @@
 <?php
-    namespace Enobrev;
+    namespace Enobrev\Test\Route;
 
     require __DIR__ . '/../vendor/autoload.php';
 
     use Enobrev\API\Request;
+    use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Stream;
