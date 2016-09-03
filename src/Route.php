@@ -61,11 +61,12 @@
          * @return \stdClass|void
          */
         public static function index(ServerRequest $oServerRequest = null) {
+            $bReturn        = self::$bReturnResponses; // Set this before _getResponse overrides it
             $oServerRequest = $oServerRequest ?? ServerRequestFactory::fromGlobals();
-            $oRequest = new Request($oServerRequest);
-            $oResponse = self::_getResponse($oRequest);
+            $oRequest       = new Request($oServerRequest);
+            $oResponse      = self::_getResponse($oRequest);
 
-            if (self::$bReturnResponses) {
+            if ($bReturn) {
                 Log::d('Route.index.return');
                 return $oResponse->getOutput();
             } else {
