@@ -66,8 +66,10 @@
             $oResponse = self::_getResponse($oRequest);
 
             if (self::$bReturnResponses) {
+                Log::d('Route.index.return');
                 return $oResponse->getOutput();
             } else {
+                Log::d('Route.index.respond');
                 $oResponse->respond();
             }
         }
