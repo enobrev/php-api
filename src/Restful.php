@@ -52,13 +52,6 @@
          * HTTP HEAD
          */
         public function head() {
-            /*
-            if (!$this->ensureNotRoles(Role\FORBIDDEN)) {
-                $this->Response->statusForbidden();
-                return;
-            }
-            */
-
             if ($this->Data instanceof ORM\Tables) {
                 $this->heads();
                 return;
@@ -82,13 +75,6 @@
          * HTTP GET
          */
         public function get() {
-            /*
-            if (!$this->ensureNotRoles(Role\FORBIDDEN)) {
-                $this->Response->statusForbidden();
-                return;
-            }
-            */
-
             if ($this->Data instanceof ORM\Tables) {
                 $this->gets();
                 return;
@@ -133,18 +119,6 @@
          * HTTP POST
          */
         public function post() {
-            /*
-            if (!$this->requireAuthentication()) {
-                $this->Response->statusUnauthorized();
-                return;
-            }
-
-            if (!$this->ensureRoles(Role\ADMIN, Role\OWNER)) {
-                $this->Response->statusForbidden();
-                return;
-            }
-            */
-
             if ($this->Data instanceof ORM\Table === false) {
                 $this->Response->statusBadRequest();
                 return;
@@ -186,19 +160,6 @@
          * HTTP PUT
          */
         public function put() {
-            /*
-            if (!$this->requireAuthentication()) {
-                // TODO: Show Authentication Error
-                $this->Response->statusUnauthorized();
-                return;
-            }
-
-            if (!$this->ensureRoles(Role\ADMIN, Role\OWNER)) {
-                $this->Response->statusForbidden();
-                return;
-            }
-            */
-
             if ($this->Data instanceof ORM\Table === false) {
                 $this->Response->statusNotFound();
                 return;
@@ -238,14 +199,6 @@
          * @return array
          */
         protected function overridePrimaries(array $aOverridePrimaries = []) {
-            /* TODO: Figure out how to handle "Me"
-            if ($this->Data instanceof ORM\OwnerColumn) {
-                $oField = $this->Data->getOwnerField();
-                $sField = $oField->sColumn;
-                $aOverridePrimaries[$sField] = $this->Me->$sField;
-            }
-            */
-
             $aAttributes = $this->Request->OriginalRequest->getAttributes();
             foreach($aAttributes as $sField => $sValue) {
                 $oField = $this->Data->$sField;
@@ -261,19 +214,6 @@
          * HTTP DELETE
          */
         public function delete() {
-            /*
-            if (!$this->requireAuthentication()) {
-                // TODO: Show Authentication Error
-                $this->Response->statusUnauthorized();
-                return;
-            }
-
-            if (!$this->ensureRoles(Role\ADMIN, Role\OWNER)) {
-                $this->Response->statusForbidden();
-                return;
-            }
-            */
-
             if ($this->Data instanceof ORM\Table === false) {
                 $this->Response->statusNotFound();
                 return;
