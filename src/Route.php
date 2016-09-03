@@ -347,13 +347,12 @@
 
         /**
          * @param Request $oRequest
-         * @param Base    $oRest
-         * @return ORM\Table|ORM\Tables
+         * @param Rest    $oRest
          * @throws Exception\InvalidReference
          * @throws Exception\InvalidTable
          * @throws \Enobrev\API\Exception
          */
-        public static function _setRestDataFromPath(Base $oRest, Request &$oRequest) {
+        public static function _setRestDataFromPath(Rest $oRest, Request &$oRequest) {
             $aPairs = $oRequest->getPathPairs();
 
             if (count($aPairs) > 0) {
@@ -877,8 +876,6 @@
 
                 return $oResponse;
             }
-
-            return;
         }
 
         /**
