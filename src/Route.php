@@ -908,7 +908,7 @@
                 parse_str(substr($aServer['QUERY_STRING'], 1), $aGet);
             }
 
-            $oResponse = self::index(new ServerRequest($aServer, $aGet, $aPostParams));
+            $oResponse = self::index(ServerRequestFactory::fromGlobals($aServer, $aGet, $aPostParams));
 
             if ($oResponse && $oResponse->status == HTTP\OK) {
                 Log::d('API.ENDPOINT.RESPONSE', array(
