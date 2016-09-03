@@ -2,11 +2,8 @@
     namespace Enobrev\API;
 
     use Enobrev\API\Exception;
-    use Enobrev\Log;
 
     abstract class Base {
-        protected $DefaultRole = Role\FORBIDDEN;
-
         /** @var  Request */
         public $Request;
 
@@ -85,31 +82,6 @@
             return array_map('strtoupper', get_class_methods($this));
         }
 
-        protected function isAdmin() {
-            return false;
-        }
-
-        /**
-         * @return string
-         */
-        protected function role() {
-            if ($this->isAdmin()) {
-                return Role\ADMIN;
-            }
-
-            return Role\FORBIDDEN;
-        }
-
-        protected function ensureRoles(...$aAcceptedRoles) {
-            $this->checkAuthentication();
-            return in_array($this->role(), $aAcceptedRoles);
-        }
-
-        protected function ensureNotRoles(...$aUnacceptableRoles) {
-            $this->checkAuthentication();
-            return !in_array($this->role(), $aUnacceptableRoles);
-        }
-
         public function options() {
             $this->Response->setAllow(
                 array_intersect(
@@ -119,33 +91,6 @@
             );
 
             $this->Response->statusNoContent();
-        }
-
-        protected function checkAuthentication() {
-            $aBearer = $this->Request->OriginalRequest->getHeader('Authorization');
-            Log::d('Base.checkAuthentication', ['bearer' => $aBearer]);
-
-            return count($aBearer) > 0 ? $aBearer[0] : null;
-        }
-
-        protected function requireAuthenticationHeadersOnly(): bool {
-            $this->checkAuthentication();
-
-            return false;
-        }
-
-        protected function requireAdministrativeAccess(): bool {
-            if (!$this->requireAuthentication()) {
-                $this->Response->statusUnauthorized();
-                return false;
-            }
-
-            return true;
-        }
-
-        protected function requireAuthentication(): bool {
-            $this->checkAuthentication();
-            return false;
         }
 
         public function methodNotAllowed() {

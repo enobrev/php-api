@@ -20,38 +20,43 @@
     use function Enobrev\array_is_multi;
 
     class Route {
-        /** @var array  */
+        /** @var array */
         private static $aCachedRoutes = [];
 
-        /** @var array  */
+        /** @var array */
         private static $aCachedQueryRoutes = [];
 
         /** @var bool */
         private static $bReturnResponses = false;
 
-        /** @var array  */
+        /** @var array */
         private static $aVersions = ['v1'];
 
-        /** @var string  */
+        /** @var string */
         private static $sPathAPI = null;
 
-        /** @var string  */
+        /** @var string */
         private static $sNamespaceAPI = null;
 
-        /** @var string  */
+        /** @var string */
         private static $sNamespaceTable = null;
+
+        /** @var string */
+        private static $sRestClass = BasicRest::class;
 
         /**
          * @param string $sPathAPI
          * @param string $sNamespaceAPI
          * @param string $sNamespaceTable
+         * @param string $sRestClass
          * @param array  $aVersions
          */
-        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, array $aVersions = ['v1']) {
+        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, string $sRestClass = BasicRest::class, array $aVersions = ['v1']) {
             self::$sPathAPI        = rtrim($sPathAPI, '/') . '/';
             self::$sNamespaceAPI   = trim($sNamespaceAPI, '\\');
             self::$sNamespaceTable = trim($sNamespaceTable, '\\');
             self::$aVersions       = $aVersions;
+            self::$sRestClass      = $sRestClass;
 
             self::_generateRoutes();
         }
@@ -269,7 +274,7 @@
         /**
          * move down the path from right to left until we find the segment that represents a table
          * @param Request $oRequest
-         * @return Rest
+         * @return RestfulInterface
          */
         public static function _getRestClass(Request $oRequest) {
             if (count($oRequest->Path) > 1) {
@@ -291,7 +296,7 @@
                 }
             }
 
-            return new Rest($oRequest);
+            return new self::$sRestClass($oRequest);
         }
 
         /**
@@ -349,13 +354,13 @@
         }
 
         /**
-         * @param Request $oRequest
-         * @param Rest    $oRest
+         * @param Request           $oRequest
+         * @param RestfulInterface  $oRest
          * @throws Exception\InvalidReference
          * @throws Exception\InvalidTable
          * @throws \Enobrev\API\Exception
          */
-        public static function _setRestDataFromPath(Rest $oRest, Request &$oRequest) {
+        public static function _setRestDataFromPath(RestfulInterface $oRest, Request &$oRequest) {
             $aPairs = $oRequest->getPathPairs();
 
             if (count($aPairs) > 0) {
@@ -920,7 +925,7 @@
 
             $oResponse = self::index(ServerRequestFactory::fromGlobals($aServer, $aGet, $aPostParams));
 
-            if ($oResponse && $oResponse->status == HTTP\OK) {
+            if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
                 Log::d('API.ENDPOINT.RESPONSE', array(
                     'status'  => $oResponse->status,
                     'headers' => $oResponse->headers,
