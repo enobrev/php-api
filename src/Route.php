@@ -761,7 +761,12 @@
                             }
 
                             foreach($aPublicMethods as $sMethod) {
-                                $sRoute = implode('/', [$sVersion, $sClass, $sMethod]);
+                                if ($sMethod == 'index') {
+                                    $sRoute = implode('/', [$sVersion, $sClass]);
+                                } else {
+                                    $sRoute = implode('/', [$sVersion, $sClass, $sMethod]);
+                                }
+                                
                                 self::$aCachedRoutes[$sRoute] = [
                                     'class'  => $sClassPath,
                                     'method' => $sMethod
