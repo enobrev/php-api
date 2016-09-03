@@ -19,6 +19,8 @@
         public static function setUpBeforeClass() {
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1', 'v2']);
             Response::init(self::DOMAIN);
+
+            //dbg(Route::_getCachedRoutes());
         }
 
         public function testRouteA() {

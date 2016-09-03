@@ -20,8 +20,6 @@
     use function Enobrev\array_is_multi;
 
     class Route {
-        const QUERIES = [];
-
         /** @var array  */
         private static $aCachedRoutes = [];
 
@@ -71,6 +69,67 @@
                 return $oResponse->getOutput();
             } else {
                 $oResponse->respond();
+            }
+        }
+
+        const QUERY_ROUTE_ENDPOINT = 'ENDPOINT';
+        const QUERY_ROUTE_TABLE    = 'TABLE';
+
+        /**
+         * @param string $sRoute
+         * @param string $sClass
+         * @param string $sMethod
+         */
+        public static function addEndpointRoute(string $sRoute, string $sClass, string $sMethod) {
+            self::addQueryRoute(self::QUERY_ROUTE_ENDPOINT, $sRoute, $sClass, $sMethod);
+        }
+
+        /**
+         * @param string $sRoute
+         * @param string $sClass
+         * @param string $sMethod
+         */
+        public static function addTableRoute(string $sRoute, string $sClass, string $sMethod) {
+            self::addQueryRoute(self::QUERY_ROUTE_TABLE, $sRoute, $sClass, $sMethod);
+        }
+
+        /**
+         * @param string $sType
+         * @param string $sRoute
+         * @param string $sClass
+         * @param string $sMethod
+         */
+        private static function addQueryRoute(string $sType, string $sRoute, string $sClass, string $sMethod) {
+            foreach (self::$aVersions as $sVersion) {
+                $aRoute = [
+                    'type'   => $sType,
+                    'class'  => $sClass,
+                    'method' => $sMethod
+                ];
+
+                $sVersionedRoute  = $sVersion . '/' . trim($sRoute, '/');
+                $aPath            = explode('/', $sVersionedRoute);
+
+                $aParsed = [];
+                $aParams = [];
+                foreach($aPath as $sSegment) {
+                    if (strpos($sSegment, '{') === 0) {
+                        $sMatch    = trim($sSegment, "{}");
+                        $aParams[] = $sMatch;
+                        $aParsed[] = '(?<' . $sMatch . '>[^/]+)';
+                    } else {
+                        $aParsed[] = $sSegment;
+                    }
+                }
+
+                $sVersionedRoute = implode('/', $aParsed);
+                $sVersionedRoute = str_replace('*', '([^/]+)', $sVersionedRoute);
+                $sVersionedRoute = '~' . $sVersionedRoute . '~';
+
+                $aRoute['segments'] = count($aPath);
+                $aRoute['params']   = $aParams;
+
+                self::$aCachedQueryRoutes[$sVersionedRoute] = $aRoute;
             }
         }
 
@@ -135,13 +194,27 @@
                         ]);
 
                         if (method_exists($sClass, $sQueryMethod)) {
-                            // TODO: If Class is a Table, then use Rest and setData from that Method, otherwise, just run the Method
-                            $oResults = $sClass::$sQueryMethod($aRoute['params']);
+                            // If Class is a Table, then use Rest and setData from that Method, otherwise, just run the Method
+                            switch($aRoute['type']) {
+                                case self::QUERY_ROUTE_TABLE:
+                                    $oResults = $sClass::$sQueryMethod($aRoute['params']);
 
-                            if ($oResults) {
-                                $oRest->setData($oResults);
+                                    if ($oResults) {
+                                        $oRest->setData($oResults);
+                                    }
+
+                                    $oRest->$sMethod();
+                                    break;
+
+                                case self::QUERY_ROUTE_ENDPOINT:
+                                    $oRequest->updateParams($aRoute['params']);
+
+                                    /** @var Base $oClass */
+                                    $oClass = new $sClass($oRequest);
+                                    $oClass->$sQueryMethod();
+                                    return $oClass->Response;
+                                    break;
                             }
-                            $oRest->$sMethod();
                         } else {
                             $oRest->Response->setStatus(HTTP\SERVICE_UNAVAILABLE);
                             $oRest->Response->setFormat(Response::FORMAT_EMPTY);
@@ -274,17 +347,19 @@
 
         /**
          * @param Request $oRequest
-         * @param Rest    $oRest
+         * @param Base    $oRest
          * @return ORM\Table|ORM\Tables
          * @throws Exception\InvalidReference
          * @throws Exception\InvalidTable
          * @throws \Enobrev\API\Exception
          */
-        public static function _setRestDataFromPath(Rest $oRest, Request &$oRequest) {
+        public static function _setRestDataFromPath(Base $oRest, Request &$oRequest) {
             $aPairs = $oRequest->getPathPairs();
 
             if (count($aPairs) > 0) {
                 $aLastPair = array_pop($aPairs);
+                $bHasClass = DataMap::getClassName($aLastPair[0]) !== null;
+
                 if ($oRequest->isPost() && !isset($aLastPair[1])) {
                     Log::d('Route._getResultsFromPath.Post.NoId');
 
@@ -315,7 +390,7 @@
                     }
 
                     $oRest->setData($oTable);
-                } else {
+                } else if ($bHasClass) {
                     $oQuery = self::_getQueryFromPath($oRequest);
 
                     $oDb = ORM\Db::getInstance();
@@ -576,10 +651,6 @@
                 'attributes'    => $oRequest->OriginalRequest->getAttributes()
             ]);
 
-            if (isset($aRoute['params'])) {
-                $oRequest->updateParams($aRoute['params']);
-            }
-
             /** @var Base $oClass */
             $oClass  = new $aRoute['class']($oRequest);
             $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
@@ -662,6 +733,9 @@
          */
         public static function _generateRoutes() {
             foreach (self::$aVersions as $sVersion) {
+                // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
+                // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
+
                 $sVersionPath = self::$sPathAPI . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
                     /** @var SplFileInfo[] $aFiles */
@@ -705,6 +779,10 @@
          */
         public static function _getCachedRoutes() {
             return self::$aCachedRoutes;
+        }
+
+        public static function _getCachedQueryRoutes() {
+            return self::$aCachedQueryRoutes;
         }
 
         private static $aData = [];
