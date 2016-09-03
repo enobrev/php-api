@@ -35,19 +35,19 @@
     "autoload": {
         "psr-4": {
             "Enobrev\\API\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Enobrev\\API\\Mock\\Table\\": "tests/Mock/Table",
-            "Enobrev\\API\\Mock\\":        "tests/Mock/API",
-            "Enobrev\\Test\\":             "tests"
         },
         "files": [
             "src/Constants/HTTP.php",
             "src/Constants/Method.php",
             "src/Constants/Role.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Enobrev\\API\\Mock\\Table\\": "tests/Mock/Table",
+            "Enobrev\\API\\Mock\\":        "tests/Mock/API",
+            "Enobrev\\Test\\":             "tests"
+        }
     },
     "scripts": {
         "test": "phpunit"
