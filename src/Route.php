@@ -420,8 +420,9 @@
                                 $oQuery->setType(SQLBuilder::TYPE_COUNT);
 
                                 if ($oResult = ORM\Db::getInstance()->namedQuery('getCountQueryFromPath', $oQuery)) {
-                                    if (ORM\Db::getInstance()->getLastRowsAffected() > 0) {
-                                        $oRest->Response->add('counts.' . $oTable->getTitle(), (int) $oResult->fetchColumn());
+                                    $iCount = $oResult->fetchColumn();
+                                    if ($iCount !== false) {
+                                        $oRest->Response->add('counts.' . $oTable->getTitle(), (int) $iCount);
                                     }
                                 }
                             }

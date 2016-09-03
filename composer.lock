@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ff804abae2d3d2067e016076e77d95ef",
-    "content-hash": "431cec2599d77eda123bd2f120be12bd",
+    "hash": "085dd3b36187e6630b349fae57d27d5a",
+    "content-hash": "2e712b829183b14cb33b3734ce0fcb62",
     "packages": [
         {
             "name": "enobrev/orm",
@@ -13,16 +13,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "d7b010dce94771d1f09bc310c0d247b7b3fa91ec"
+                "reference": "383e8b400f4889c74ade7e85b839550f8b650c35"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/d7b010dce94771d1f09bc310c0d247b7b3fa91ec",
-                "reference": "d7b010dce94771d1f09bc310c0d247b7b3fa91ec",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/383e8b400f4889c74ade7e85b839550f8b650c35",
+                "reference": "383e8b400f4889c74ade7e85b839550f8b650c35",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.0.10"
+                "php": ">=7.0.09"
             },
             "require-dev": {
                 "enobrev/tools": "dev-master",
@@ -66,7 +66,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-02 20:53:29"
+            "time": "2016-09-03 18:20:15"
         },
         {
             "name": "enobrev/tools",
@@ -1624,16 +1624,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v3.1.3",
+            "version": "v3.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "1819adf2066880c7967df7180f4f662b6f0567ac"
+                "reference": "f291ed25eb1435bddbe8a96caaef16469c2a092d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/1819adf2066880c7967df7180f4f662b6f0567ac",
-                "reference": "1819adf2066880c7967df7180f4f662b6f0567ac",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/f291ed25eb1435bddbe8a96caaef16469c2a092d",
+                "reference": "f291ed25eb1435bddbe8a96caaef16469c2a092d",
                 "shasum": ""
             },
             "require": {
@@ -1669,7 +1669,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2016-07-17 14:02:08"
+            "time": "2016-09-02 02:12:52"
         },
         {
             "name": "twig/twig",
@@ -1792,7 +1792,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.0.10"
+        "php": ">=7.0.09"
     },
     "platform-dev": []
 }
