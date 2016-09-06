@@ -924,7 +924,9 @@
                 parse_str(substr($aServer['QUERY_STRING'], 1), $aGet);
             }
 
+            Log::startChildRequest();
             $oResponse = self::index(ServerRequestFactory::fromGlobals($aServer, $aGet, $aPostParams));
+            Log::endChildRequest();
 
             if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
                 Log::d('API.ENDPOINT.RESPONSE', array(
