@@ -368,8 +368,6 @@
                 case self::FORMAT_EMPTY:
                     $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
             }
-
-            exit(0);
         }
 
         /**
