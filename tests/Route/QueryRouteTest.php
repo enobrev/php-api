@@ -32,7 +32,7 @@
         private $oUser2;
 
         public static function setUpBeforeClass() {
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1', 'v2']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1', 'v2']);
             Response::init(self::DOMAIN);
 
             Route::addTableRoute('all/users',                Table\Users::class,     'get');
@@ -43,10 +43,12 @@
             // dbg(Route::_getCachedQueryRoutes());
 
             // Open Up DefaultRole for Tests
+            /*
             $oRest         = new Rest(new Request(new ServerRequest));
             $oDefaultRole  = new \ReflectionProperty(Rest::class, 'DefaultRole');
             $oDefaultRole->setAccessible(true);
             $oDefaultRole->setValue($oRest, Role\VIEWER);
+            */
         }
 
         public function setUp() {

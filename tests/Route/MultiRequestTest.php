@@ -3,6 +3,7 @@
 
     require __DIR__ . '/../../vendor/autoload.php';
 
+    use Enobrev\API\Rest;
     use PHPUnit_Framework_TestCase as TestCase;
 
     use PDO;
@@ -39,7 +40,7 @@
         private $oAddress3;
 
         public static function setUpBeforeClass() {
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', ['v1']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
         }
 

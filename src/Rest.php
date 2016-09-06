@@ -1,7 +1,7 @@
 <?php
     namespace Enobrev\API;
 
-    class BasicRest implements RestfulInterface {
+    class Rest extends Base implements RestfulInterface {
         use Restful;
 
         public function options() {

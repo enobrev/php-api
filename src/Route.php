@@ -42,7 +42,7 @@
         private static $sNamespaceTable = null;
 
         /** @var string */
-        private static $sRestClass = BasicRest::class;
+        private static $sRestClass = Rest::class;
 
         /**
          * @param string $sPathAPI
@@ -51,7 +51,7 @@
          * @param string $sRestClass
          * @param array  $aVersions
          */
-        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, string $sRestClass = BasicRest::class, array $aVersions = ['v1']) {
+        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, string $sRestClass = Rest::class, array $aVersions = ['v1']) {
             self::$sPathAPI        = rtrim($sPathAPI, '/') . '/';
             self::$sNamespaceAPI   = trim($sNamespaceAPI, '\\');
             self::$sNamespaceTable = trim($sNamespaceTable, '\\');

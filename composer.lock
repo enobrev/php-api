@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "749f7b9359d605fb0b570b421f3854256c3921e1"
+                "reference": "651a6dbe2a2144a2d267df283440d55f611dbdfd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/749f7b9359d605fb0b570b421f3854256c3921e1",
-                "reference": "749f7b9359d605fb0b570b421f3854256c3921e1",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/651a6dbe2a2144a2d267df283440d55f611dbdfd",
+                "reference": "651a6dbe2a2144a2d267df283440d55f611dbdfd",
                 "shasum": ""
             },
             "require": {
@@ -26,7 +26,6 @@
             },
             "require-dev": {
                 "enobrev/tools": "dev-master",
-                "monolog/monolog": "^1.17",
                 "nategood/commando": "^0.2.8",
                 "phpunit/phpunit": "^5.1",
                 "phpunit/phpunit-mock-objects": "^3.0",
@@ -66,7 +65,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-06 16:48:11"
+            "time": "2016-09-06 19:00:04"
         },
         {
             "name": "enobrev/tools",
@@ -74,12 +73,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/tools.git",
-                "reference": "ad7130642389aea0257e1df49922c28d57368c07"
+                "reference": "ab4309a1aa8c1a0fde1141aa36f0c5f6a70da95a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/tools/zipball/ad7130642389aea0257e1df49922c28d57368c07",
-                "reference": "ad7130642389aea0257e1df49922c28d57368c07",
+                "url": "https://api.github.com/repos/enobrev/tools/zipball/ab4309a1aa8c1a0fde1141aa36f0c5f6a70da95a",
+                "reference": "ab4309a1aa8c1a0fde1141aa36f0c5f6a70da95a",
                 "shasum": ""
             },
             "require": {
@@ -112,7 +111,7 @@
                 "source": "https://github.com/enobrev/tools/tree/master",
                 "issues": "https://github.com/enobrev/tools/issues"
             },
-            "time": "2016-09-01 17:14:44"
+            "time": "2016-09-06 18:48:40"
         },
         {
             "name": "monolog/monolog",
