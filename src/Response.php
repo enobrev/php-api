@@ -289,6 +289,14 @@
             }
         }
 
+        /**
+         * Overrides all default output and replaces output object with $oOutput
+         * @param array|stdClass $oOutput
+         */
+        public function overrideOutput($oOutput) {
+            $this->oOutput = $oOutput;
+        }
+
         public function emptyResponse() {
             $this->setFormat(self::FORMAT_EMPTY);
             $this->respond();
