@@ -203,7 +203,7 @@
             foreach($aAttributes as $sField => $sValue) {
                 $oField = $this->Data->$sField;
                 if ($oField instanceof ORM\Field) {
-                    $aOverrides[$sField] = $sValue;
+                    $aOverridePrimaries[$sField] = $sValue;
                 }
             }
 
