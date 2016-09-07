@@ -1,8 +1,9 @@
 CREATE TABLE "addresses" (
-  "address_id" INTEGER PRIMARY KEY ,
+  "address_id" INTEGER ,
   "user_id" char(32) DEFAULT NULL,
   "address_line_1" varchar(100) DEFAULT NULL,
-  "address_city" varchar(50) DEFAULT NULL
+  "address_city" varchar(50) DEFAULT NULL,
+  PRIMARY KEY ("address_id")
 );
 CREATE TABLE "users" (
   "user_id" char(32) NOT NULL,

@@ -159,7 +159,7 @@
                 "boolean": 1
             },
             "m2m": false,
-            "has_owner": false,
+            "has_owner": true,
             "has_date": true,
             "fields": [
                 {
@@ -319,7 +319,7 @@
                 "php_type": "string"
             },
             "date_updated": false,
-            "interfaces": "ModifiedDateColumn"
+            "interfaces": "OwnerColumn, ModifiedDateColumn"
         }
     }
 }

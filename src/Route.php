@@ -641,6 +641,14 @@
                         }
                     }
                 }
+
+                if (isset($oRequest->GET['sync'])) {
+                    if ($oTable instanceof ORM\ModifiedDateColumn) {
+                        $oQuery->also(
+                            SQL::gte($oTable->getModifiedDateField(), $oRequest->GET['sync'])
+                        );
+                    }
+                }
             }
 
             return $oQuery;

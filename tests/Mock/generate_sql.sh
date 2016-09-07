@@ -16,3 +16,7 @@ fi
 ./mysql2sqlite.sh -h localhost -u dev -p --no-data --databases dev_api_mock > sqlite.sql
 sed -i '/CREATE DATABASE/d' ./sqlite.sql
 sed -i '/CONSTRAINT/d' ./sqlite.sql
+sed -i '/PRAGMA/d' ./sqlite.sql
+sed -i '/TRANSACTION/d' ./sqlite.sql
+sed -i '/CREATE INDEX/d' ./sqlite.sql
+sed -i 's/"address_id" int(10)  NOT NULL/"address_id" INTEGER/' ./sqlite.sql
