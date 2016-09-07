@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "5203082da405d9954c5133f73d7b72bd266dba2b"
+                "reference": "1ead4cbddbfce569e366b2bde42eb962aff27c44"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/5203082da405d9954c5133f73d7b72bd266dba2b",
-                "reference": "5203082da405d9954c5133f73d7b72bd266dba2b",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/1ead4cbddbfce569e366b2bde42eb962aff27c44",
+                "reference": "1ead4cbddbfce569e366b2bde42eb962aff27c44",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-07 16:55:18"
+            "time": "2016-09-07 17:01:27"
         },
         {
             "name": "enobrev/tools",

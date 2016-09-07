@@ -24,20 +24,11 @@
         /** @var PDO */
         private $oPDO;
 
-        /** @var  Table\User */
-        private $oUser1;
+        /** @var  Table\User[] */
+        private $aUsers;
 
-        /** @var  Table\User */
-        private $oUser2;
-
-        /** @var  Table\Address */
-        private $oAddress1;
-
-        /** @var  Table\Address */
-        private $oAddress2;
-
-        /** @var  Table\Address */
-        private $oAddress3;
+        /** @var  Table\Address[] */
+        private $aAddresses;
 
         public static function setUpBeforeClass() {
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
@@ -58,35 +49,43 @@
                 Db::getInstance()->query($sCreate);
             }
 
-            $this->oUser1 = new Table\User;
-            $this->oUser1->user_name->setValue('Test');
-            $this->oUser1->user_email->setValue('test@example.com');
-            $this->oUser1->user_happy->setValue(false);
-            $this->oUser1->insert();
+            $this->aUsers[] = Table\User::createFromArray([
+                'user_name'         => 'Test',
+                'user_email'        => 'test@example.com',
+                'user_happy'        => false
+            ]);
 
-            $this->oUser2 = new Table\User;
-            $this->oUser2->user_name->setValue('Test2');
-            $this->oUser2->user_email->setValue('test2@example.com');
-            $this->oUser2->user_happy->setValue(true);
-            $this->oUser2->insert();
+            $this->aUsers[] = Table\User::createFromArray([
+                'user_name'         => 'Test2',
+                'user_email'        => 'test2@example.com',
+                'user_happy'        => true
+            ]);
 
-            $this->oAddress1 = new Table\Address;
-            $this->oAddress1->user_id->setValue($this->oUser1);
-            $this->oAddress1->address_line_1->setValue('123 Main Street');
-            $this->oAddress1->address_city->setValue('Chicago');
-            $this->oAddress1->insert();
-            
-            $this->oAddress2 = new Table\Address;
-            $this->oAddress2->user_id->setValue($this->oUser1);
-            $this->oAddress2->address_line_1->setValue('234 Main Street');
-            $this->oAddress2->address_city->setValue('Brooklyn');
-            $this->oAddress2->insert();
+            foreach($this->aUsers as &$oUser) {
+                $oUser->insert();
+            }
 
-            $this->oAddress3 = new Table\Address;
-            $this->oAddress3->user_id->setValue($this->oUser2);
-            $this->oAddress3->address_line_1->setValue('345 Main Street');
-            $this->oAddress3->address_city->setValue('Austin');
-            $this->oAddress3->insert();
+            $this->aAddresses[] = Table\Address::createFromArray([
+                'user_id'               => $this->aUsers[0]->user_id,
+                'address_line_1'        => '123 Main Street',
+                'address_city'          => 'Chicago'
+            ]);
+
+            $this->aAddresses[] = Table\Address::createFromArray([
+                'user_id'               => $this->aUsers[0]->user_id,
+                'address_line_1'        => '234 Main Street',
+                'address_city'          => 'Brooklyn'
+            ]);
+
+            $this->aAddresses[] = Table\Address::createFromArray([
+                'user_id'               => $this->aUsers[1]->user_id,
+                'address_line_1'        => '345 Main Street',
+                'address_city'          => 'Austin'
+            ]);
+
+            foreach($this->aAddresses as &$oAddress) {
+                $oAddress->insert();
+            }
         }
 
         public function tearDown() {
@@ -102,7 +101,7 @@
             $oServerRequest = $oServerRequest->withParsedBody(
                 [
                     '__query' => [
-                        'users/' . $this->oUser1->user_id->getValue(),
+                        'users/' . $this->aUsers[0]->user_id->getValue(),
                         'users/{users.id}/addresses'
                     ]
                 ]
@@ -114,32 +113,32 @@
 
             $this->assertObjectHasAttribute('data', $oOutput);
             $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertArrayHasKey($this->oUser1->user_id->getValue(), $oOutput->data->users);
+            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
 
-            $aUser = $oOutput->data->users[$this->oUser1->user_id->getValue()];
+            $aUser = $oOutput->data->users[$this->aUsers[0]->user_id->getValue()];
 
-            $this->assertEquals($this->oUser1->user_id->getValue(),         $aUser['id']);
-            $this->assertEquals($this->oUser1->user_name->getValue(),       $aUser['name']);
-            $this->assertEquals($this->oUser1->user_email->getValue(),      $aUser['email']);
-            $this->assertEquals($this->oUser1->user_happy->getValue(),      $aUser['happy']);
-            $this->assertEquals((string) $this->oUser1->user_date_added,    $aUser['date_added']);
+            $this->assertEquals($this->aUsers[0]->user_id->getValue(),         $aUser['id']);
+            $this->assertEquals($this->aUsers[0]->user_name->getValue(),       $aUser['name']);
+            $this->assertEquals($this->aUsers[0]->user_email->getValue(),      $aUser['email']);
+            $this->assertEquals($this->aUsers[0]->user_happy->getValue(),      $aUser['happy']);
+            $this->assertEquals((string) $this->aUsers[0]->user_date_added,    $aUser['date_added']);
 
             $this->assertObjectHasAttribute('addresses', $oOutput->data);
-            $this->assertArrayHasKey($this->oAddress1->address_id->getValue(), $oOutput->data->addresses);
-            $this->assertArrayHasKey($this->oAddress2->address_id->getValue(), $oOutput->data->addresses);
+            $this->assertArrayHasKey($this->aAddresses[0]->address_id->getValue(), $oOutput->data->addresses);
+            $this->assertArrayHasKey($this->aAddresses[1]->address_id->getValue(), $oOutput->data->addresses);
 
-            $aAddress1 = $oOutput->data->addresses[$this->oAddress1->address_id->getValue()];
+            $aAddress1 = $oOutput->data->addresses[$this->aAddresses[0]->address_id->getValue()];
 
-            $this->assertEquals($this->oAddress1->address_id->getValue(),       $aAddress1['id']);
-            $this->assertEquals($this->oAddress1->user_id->getValue(),          $aAddress1['user_id']);
-            $this->assertEquals($this->oAddress1->address_line_1->getValue(),   $aAddress1['line_1']);
-            $this->assertEquals($this->oAddress1->address_city->getValue(),     $aAddress1['city']);
+            $this->assertEquals($this->aAddresses[0]->address_id->getValue(),       $aAddress1['id']);
+            $this->assertEquals($this->aAddresses[0]->user_id->getValue(),          $aAddress1['user_id']);
+            $this->assertEquals($this->aAddresses[0]->address_line_1->getValue(),   $aAddress1['line_1']);
+            $this->assertEquals($this->aAddresses[0]->address_city->getValue(),     $aAddress1['city']);
 
-            $aAddress2 = $oOutput->data->addresses[$this->oAddress2->address_id->getValue()];
+            $aAddress2 = $oOutput->data->addresses[$this->aAddresses[1]->address_id->getValue()];
 
-            $this->assertEquals($this->oAddress2->address_id->getValue(),       $aAddress2['id']);
-            $this->assertEquals($this->oAddress2->user_id->getValue(),          $aAddress2['user_id']);
-            $this->assertEquals($this->oAddress2->address_line_1->getValue(),   $aAddress2['line_1']);
-            $this->assertEquals($this->oAddress2->address_city->getValue(),     $aAddress2['city']);
+            $this->assertEquals($this->aAddresses[1]->address_id->getValue(),       $aAddress2['id']);
+            $this->assertEquals($this->aAddresses[1]->user_id->getValue(),          $aAddress2['user_id']);
+            $this->assertEquals($this->aAddresses[1]->address_line_1->getValue(),   $aAddress2['line_1']);
+            $this->assertEquals($this->aAddresses[1]->address_city->getValue(),     $aAddress2['city']);
         }
     }

@@ -25,11 +25,8 @@
         /** @var PDO */
         private $oPDO;
 
-        /** @var  Table\User */
-        private $oUser1;
-
-        /** @var  Table\User */
-        private $oUser2;
+        /** @var  Table\User[] */
+        private $aUsers;
 
         public static function setUpBeforeClass() {
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1', 'v2']);
@@ -39,16 +36,6 @@
             Route::addTableRoute('all/addresses',            Table\Addresses::class, 'get');
 
             Route::addEndpointRoute('user/{id}/city/{city}', Test::class,            'detailedMethod');
-
-            // dbg(Route::_getCachedQueryRoutes());
-
-            // Open Up DefaultRole for Tests
-            /*
-            $oRest         = new Rest(new Request(new ServerRequest));
-            $oDefaultRole  = new \ReflectionProperty(Rest::class, 'DefaultRole');
-            $oDefaultRole->setAccessible(true);
-            $oDefaultRole->setValue($oRest, Role\VIEWER);
-            */
         }
 
         public function setUp() {
@@ -65,17 +52,21 @@
                 Db::getInstance()->query($sCreate);
             }
 
-            $this->oUser1 = new Table\User;
-            $this->oUser1->user_name->setValue('Test');
-            $this->oUser1->user_email->setValue('test@example.com');
-            $this->oUser1->user_happy->setValue(false);
-            $this->oUser1->insert();
+            $this->aUsers[] = Table\User::createFromArray([
+                'user_name'         => 'Test',
+                'user_email'        => 'test@example.com',
+                'user_happy'        => false
+            ]);
 
-            $this->oUser2 = new Table\User;
-            $this->oUser2->user_name->setValue('Test2');
-            $this->oUser2->user_email->setValue('test2@example.com');
-            $this->oUser2->user_happy->setValue(true);
-            $this->oUser2->insert();
+            $this->aUsers[] = Table\User::createFromArray([
+                'user_name'         => 'Test2',
+                'user_email'        => 'test2@example.com',
+                'user_happy'        => true
+            ]);
+
+            foreach($this->aUsers as &$oUser) {
+                $oUser->insert();
+            }
         }
 
         public function tearDown() {
@@ -95,22 +86,22 @@
 
             $this->assertObjectHasAttribute('data', $oOutput);
             $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertArrayHasKey($this->oUser1->user_id->getValue(), $oOutput->data->users);
+            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
 
-            $aUser = $oOutput->data->users[$this->oUser1->user_id->getValue()];
+            $aUser = $oOutput->data->users[$this->aUsers[0]->user_id->getValue()];
 
-            $this->assertEquals($this->oUser1->user_id->getValue(),         $aUser['id']);
-            $this->assertEquals($this->oUser1->user_name->getValue(),       $aUser['name']);
-            $this->assertEquals($this->oUser1->user_email->getValue(),      $aUser['email']);
-            $this->assertEquals($this->oUser1->user_happy->getValue(),      $aUser['happy']);
-            $this->assertEquals((string) $this->oUser1->user_date_added,    $aUser['date_added']);
+            $this->assertEquals($this->aUsers[0]->user_id->getValue(),         $aUser['id']);
+            $this->assertEquals($this->aUsers[0]->user_name->getValue(),       $aUser['name']);
+            $this->assertEquals($this->aUsers[0]->user_email->getValue(),      $aUser['email']);
+            $this->assertEquals($this->aUsers[0]->user_happy->getValue(),      $aUser['happy']);
+            $this->assertEquals((string) $this->aUsers[0]->user_date_added,    $aUser['date_added']);
         }
 
         public function testDetailedMethod() {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/user/' . $this->oUser1->user_id->getValue() . '/city/Chicago'));
+            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/user/' . $this->aUsers[0]->user_id->getValue() . '/city/Chicago'));
 
             $oRequest  = new Request($oServerRequest);
             $oResponse = Route::_getResponse($oRequest);
@@ -120,7 +111,7 @@
             $this->assertObjectHasAttribute('users', $oOutput->data);
             $this->assertArrayHasKey('id',   $oOutput->data->users);
             $this->assertArrayHasKey('city', $oOutput->data->users);
-            $this->assertEquals($this->oUser1->user_id->getValue(), $oOutput->data->users['id']);
+            $this->assertEquals($this->aUsers[0]->user_id->getValue(), $oOutput->data->users['id']);
             $this->assertEquals('Chicago',                          $oOutput->data->users['city']);
         }
     }

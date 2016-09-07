@@ -24,20 +24,11 @@
         /** @var PDO */
         private $oPDO;
 
-        /** @var  Table\User */
-        private $oUser1;
+        /** @var  Table\User[] */
+        private $aUsers;
 
-        /** @var  Table\User */
-        private $oUser2;
-
-        /** @var  Table\Address */
-        private $oAddress1;
-
-        /** @var  Table\Address */
-        private $oAddress2;
-
-        /** @var  Table\Address */
-        private $oAddress3;
+        /** @var  Table\Address[] */
+        private $aAddresses;
 
         public static function setUpBeforeClass() {
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
@@ -58,35 +49,43 @@
                 Db::getInstance()->query($sCreate);
             }
 
-            $this->oUser1 = new Table\User;
-            $this->oUser1->user_name->setValue('Test');
-            $this->oUser1->user_email->setValue('test@example.com');
-            $this->oUser1->user_happy->setValue(false);
-            $this->oUser1->insert();
+            $this->aUsers[] = Table\User::createFromArray([
+                'user_name'         => 'Test',
+                'user_email'        => 'test@example.com',
+                'user_happy'        => false
+            ]);
 
-            $this->oUser2 = new Table\User;
-            $this->oUser2->user_name->setValue('Test2');
-            $this->oUser2->user_email->setValue('test2@example.com');
-            $this->oUser2->user_happy->setValue(true);
-            $this->oUser2->insert();
+            $this->aUsers[] = Table\User::createFromArray([
+                'user_name'         => 'Test2',
+                'user_email'        => 'test2@example.com',
+                'user_happy'        => true
+            ]);
 
-            $this->oAddress1 = new Table\Address;
-            $this->oAddress1->user_id->setValue($this->oUser1);
-            $this->oAddress1->address_line_1->setValue('123 Main Street');
-            $this->oAddress1->address_city->setValue('Chicago');
-            $this->oAddress1->insert();
-            
-            $this->oAddress2 = new Table\Address;
-            $this->oAddress2->user_id->setValue($this->oUser1);
-            $this->oAddress2->address_line_1->setValue('234 Main Street');
-            $this->oAddress2->address_city->setValue('Brooklyn');
-            $this->oAddress2->insert();
+            foreach($this->aUsers as &$oUser) {
+                $oUser->insert();
+            }
 
-            $this->oAddress3 = new Table\Address;
-            $this->oAddress3->user_id->setValue($this->oUser2);
-            $this->oAddress3->address_line_1->setValue('345 Main Street');
-            $this->oAddress3->address_city->setValue('Austin');
-            $this->oAddress3->insert();
+            $this->aAddresses[] = Table\Address::createFromArray([
+                'user_id'               => $this->aUsers[0]->user_id,
+                'address_line_1'        => '123 Main Street',
+                'address_city'          => 'Chicago'
+            ]);
+
+            $this->aAddresses[] = Table\Address::createFromArray([
+                'user_id'               => $this->aUsers[0]->user_id,
+                'address_line_1'        => '234 Main Street',
+                'address_city'          => 'Brooklyn'
+            ]);
+
+            $this->aAddresses[] = Table\Address::createFromArray([
+                'user_id'               => $this->aUsers[1]->user_id,
+                'address_line_1'        => '345 Main Street',
+                'address_city'          => 'Austin'
+            ]);
+
+            foreach($this->aAddresses as &$oAddress) {
+                $oAddress->insert();
+            }
         }
 
         public function tearDown() {
@@ -98,7 +97,7 @@
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users/' . $this->oUser1->user_id->getValue()));
+            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users/' . $this->aUsers[0]->user_id->getValue()));
 
             $oRequest = new Request($oServerRequest);
             $oRest    = Route::_getRestClass($oRequest);
@@ -106,14 +105,14 @@
             Route::_setRestDataFromPath($oRest, $oRequest);
 
             $this->assertInstanceOf(Table\User::class, $oRest->getData());
-            $this->assertEquals($this->oUser1->toArray(), $oRest->getData()->toArray());
+            $this->assertEquals($this->aUsers[0]->toArray(), $oRest->getData()->toArray());
         }
 
         public function testExistingTableAddress() {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/addresses/' . $this->oAddress1->address_id->getValue()));
+            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/addresses/' . $this->aAddresses[0]->address_id->getValue()));
 
             $oRequest = new Request($oServerRequest);
             $oRest    = Route::_getRestClass($oRequest);
@@ -121,7 +120,7 @@
             Route::_setRestDataFromPath($oRest, $oRequest);
 
             $this->assertInstanceOf(Table\Address::class, $oRest->getData());
-            $this->assertEquals($this->oAddress1->toArray(), $oRest->getData()->toArray());
+            $this->assertEquals($this->aAddresses[0]->toArray(), $oRest->getData()->toArray());
         }
 
         public function testExistingTableUsers() {
@@ -138,8 +137,8 @@
             $oData = $oRest->getData();
             $this->assertInstanceOf(Table\Users::class, $oData);
             $this->assertCount(2, $oData);
-            $this->assertEquals($this->oUser1, $oData[0]);
-            $this->assertEquals($this->oUser2, $oData[1]);
+            $this->assertEquals($this->aUsers[0], $oData[0]);
+            $this->assertEquals($this->aUsers[1], $oData[1]);
         }
 
         public function testExistingTableAddresses() {
@@ -156,6 +155,6 @@
 
             $oData = $oRest->getData();
             $this->assertInstanceOf(Table\Address::class, $oData);
-            $this->assertEquals($this->oAddress2->toArray(), $oData->toArray());
+            $this->assertEquals($this->aAddresses[1]->toArray(), $oData->toArray());
         }
     }
