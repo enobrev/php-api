@@ -53,12 +53,17 @@
 
         public function setUp() {
             $sDatabase = file_get_contents(__DIR__ . '/../Mock/sqlite.sql');
+            $aDatabase = explode(';', $sDatabase);
+            $aDatabase = array_filter($aDatabase);
 
             $this->oPDO = Db::defaultSQLiteMemory();
             $this->oPDO->exec("DROP TABLE IF EXISTS users");
             $this->oPDO->exec("DROP TABLE IF EXISTS addresses");
-            $this->oPDO->exec($sDatabase);
             Db::getInstance($this->oPDO);
+
+            foreach($aDatabase as $sCreate) {
+                Db::getInstance()->query($sCreate);
+            }
 
             $this->oUser1 = new Table\User;
             $this->oUser1->user_name->setValue('Test');

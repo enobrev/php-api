@@ -8,6 +8,4 @@
     class Address extends Rest {
         /** @var Table\Address|Table\Address */
         protected $Data;
-
-        protected $DefaultRole = Role\VIEWER;
     }

@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "69961dca9d2dfd08255e573ac7bbb08ccd73a6a0"
+                "reference": "6c0c73c5a090de75304ed852f8b09ccf4eb436bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/69961dca9d2dfd08255e573ac7bbb08ccd73a6a0",
-                "reference": "69961dca9d2dfd08255e573ac7bbb08ccd73a6a0",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/6c0c73c5a090de75304ed852f8b09ccf4eb436bf",
+                "reference": "6c0c73c5a090de75304ed852f8b09ccf4eb436bf",
                 "shasum": ""
             },
             "require": {
@@ -65,7 +65,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-06 23:20:26"
+            "time": "2016-09-07 03:13:40"
         },
         {
             "name": "enobrev/tools",
@@ -73,12 +73,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/tools.git",
-                "reference": "635ad54e72d12df99af26a1fa19da1ef029bfe88"
+                "reference": "26f9ce39a8787b2ef53cfde7cef99b51fae8533a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/tools/zipball/635ad54e72d12df99af26a1fa19da1ef029bfe88",
-                "reference": "635ad54e72d12df99af26a1fa19da1ef029bfe88",
+                "url": "https://api.github.com/repos/enobrev/tools/zipball/26f9ce39a8787b2ef53cfde7cef99b51fae8533a",
+                "reference": "26f9ce39a8787b2ef53cfde7cef99b51fae8533a",
                 "shasum": ""
             },
             "require": {
@@ -92,6 +92,7 @@
                 "files": [
                     "src/ErrorsToExceptions.php",
                     "src/Arrays.php",
+                    "src/DateTime.php",
                     "src/Debugging.php",
                     "src/Headers.php",
                     "src/Strings.php"
@@ -111,7 +112,7 @@
                 "source": "https://github.com/enobrev/tools/tree/master",
                 "issues": "https://github.com/enobrev/tools/issues"
             },
-            "time": "2016-09-06 23:20:13"
+            "time": "2016-09-07 00:04:31"
         },
         {
             "name": "monolog/monolog",

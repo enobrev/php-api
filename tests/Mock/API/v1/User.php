@@ -8,6 +8,4 @@
     class User extends Rest  {
         /** @var Table\User|Table\User */
         protected $Data;
-
-        protected $DefaultRole = Role\VIEWER;
     }
