@@ -408,7 +408,7 @@
                         if ($iRows == 1) {
                             Log::d('Route._getResultsFromPath.FoundOne');
 
-                            $oRest->setData($oResults->fetchObject(get_class($oTable)));
+                            $oRest->setData($oTable->createFromPDOStatement($oResults));
                         } else if ($iRows > 1) {
                             Log::d('Route._getResultsFromPath.FoundMultiple');
 
