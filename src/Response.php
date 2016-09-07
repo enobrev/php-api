@@ -339,34 +339,29 @@
 
             $oEmitter = new ZendResponse\SapiEmitter();
 
-            switch($this->sFormat) {
-                default:
-                case self::FORMAT_JSON:
-                    $oResponse = new ZendResponse\JsonResponse($this->oOutput, $this->iStatus, $this->aHeaders);
-                    $oEmitter->emit($oResponse);
-                    break;
+            if ($this->sFile) {
+                if (!isset($this->aHeaders['Content-Type'])) {
+                    throw new Exception\NoContentType('Missing Content Type');
+                }
 
-                case self::FORMAT_CSS:
-                    $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
-                    $oEmitter->emit($oResponse);
-                    break;
+                $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                $oEmitter->emit($oResponse);
+            } else {
+                switch($this->sFormat) {
+                    default:
+                    case self::FORMAT_JSON:
+                        $oResponse = new ZendResponse\JsonResponse($this->oOutput, $this->iStatus, $this->aHeaders);
+                        $oEmitter->emit($oResponse);
+                        break;
 
-                case self::FORMAT_TTF:
-                case self::FORMAT_WOFF:
-                case self::FORMAT_PNG:
-                case self::FORMAT_GIF:
-                case self::FORMAT_JPG:
-                case self::FORMAT_JPEG:
-                    if (!isset($this->aHeaders['Content-Type'])) {
-                        throw new Exception\NoContentType('Missing Content Type');
-                    }
+                    case self::FORMAT_CSS:
+                        $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
+                        $oEmitter->emit($oResponse);
+                        break;
 
-                    $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
-                    $oEmitter->emit($oResponse);
-                    break;
-
-                case self::FORMAT_EMPTY:
-                    $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                    case self::FORMAT_EMPTY:
+                        $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                }
             }
         }
 
