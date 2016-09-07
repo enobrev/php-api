@@ -1,7 +1,7 @@
 <?php
     namespace Enobrev\API\Mock\v2;
 
-    use function Enobrev\dbg;
+
 
     use Enobrev\API;
 

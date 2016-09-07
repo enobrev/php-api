@@ -9,7 +9,7 @@
 
     use Enobrev\API\Response;
     use Enobrev\API\Route;
-    use function Enobrev\dbg;
+
 
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;

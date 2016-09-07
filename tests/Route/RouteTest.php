@@ -7,7 +7,7 @@
     use PHPUnit_Framework_TestCase as TestCase;
 
     use Enobrev\API\Route;
-    use function Enobrev\dbg;
+
 
     class RouteTest extends TestCase {
         const DOMAIN = 'example.com';

@@ -55,7 +55,7 @@
             $oRequest = new Request($oServerRequest);
 
             $this->expectException(Exception\InvalidTable::class);
-            $oQuery = Route::_getQueryFromPath($oRequest);
+            Route::_getQueryFromPath($oRequest);
         }
 
         public function testWithStringId() {

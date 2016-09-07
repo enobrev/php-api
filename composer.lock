@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "6c0c73c5a090de75304ed852f8b09ccf4eb436bf"
+                "reference": "57bedc85d29af99e0e6f5664ebce152899c262ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/6c0c73c5a090de75304ed852f8b09ccf4eb436bf",
-                "reference": "6c0c73c5a090de75304ed852f8b09ccf4eb436bf",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/57bedc85d29af99e0e6f5664ebce152899c262ba",
+                "reference": "57bedc85d29af99e0e6f5664ebce152899c262ba",
                 "shasum": ""
             },
             "require": {
@@ -65,7 +65,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-07 03:13:40"
+            "time": "2016-09-07 04:17:48"
         },
         {
             "name": "enobrev/tools",
@@ -73,12 +73,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/tools.git",
-                "reference": "26f9ce39a8787b2ef53cfde7cef99b51fae8533a"
+                "reference": "217b86fd2f1f3d34b85cdf79622c1948abc4ec42"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/tools/zipball/26f9ce39a8787b2ef53cfde7cef99b51fae8533a",
-                "reference": "26f9ce39a8787b2ef53cfde7cef99b51fae8533a",
+                "url": "https://api.github.com/repos/enobrev/tools/zipball/217b86fd2f1f3d34b85cdf79622c1948abc4ec42",
+                "reference": "217b86fd2f1f3d34b85cdf79622c1948abc4ec42",
                 "shasum": ""
             },
             "require": {
@@ -112,7 +112,7 @@
                 "source": "https://github.com/enobrev/tools/tree/master",
                 "issues": "https://github.com/enobrev/tools/issues"
             },
-            "time": "2016-09-07 00:04:31"
+            "time": "2016-09-07 04:10:38"
         },
         {
             "name": "monolog/monolog",

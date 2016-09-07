@@ -12,7 +12,7 @@
     use Enobrev\API\Request;
     use Enobrev\API\Route;
     use Enobrev\ORM\Db;
-    use function Enobrev\dbg;
+
 
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;

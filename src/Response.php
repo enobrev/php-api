@@ -2,7 +2,7 @@
     namespace Enobrev\API;
 
     use DateTime;
-    use DateTimeZone;
+
     use stdClass;
 
     use Enobrev\API\HTTP;
