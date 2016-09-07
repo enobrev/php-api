@@ -106,7 +106,7 @@
             Route::_setRestDataFromPath($oRest, $oRequest);
 
             $this->assertInstanceOf(Table\User::class, $oRest->getData());
-            $this->assertEquals($this->oUser1, $oRest->getData());
+            $this->assertEquals($this->oUser1->toArray(), $oRest->getData()->toArray());
         }
 
         public function testExistingTableAddress() {
@@ -121,7 +121,7 @@
             Route::_setRestDataFromPath($oRest, $oRequest);
 
             $this->assertInstanceOf(Table\Address::class, $oRest->getData());
-            $this->assertEquals($this->oAddress1, $oRest->getData());
+            $this->assertEquals($this->oAddress1->toArray(), $oRest->getData()->toArray());
         }
 
         public function testExistingTableUsers() {
@@ -156,6 +156,6 @@
 
             $oData = $oRest->getData();
             $this->assertInstanceOf(Table\Address::class, $oData);
-            $this->assertEquals($this->oAddress2, $oData);
+            $this->assertEquals($this->oAddress2->toArray(), $oData->toArray());
         }
     }
