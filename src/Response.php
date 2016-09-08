@@ -315,16 +315,19 @@
          * @return bool
          */
         private function setOrigin() {
+            $sHeaders = 'Authorization, Content-Type, Accept-Encoding, User-Agent';
+            $sMethods = implode(', ', Method\_ALL);
+
             if (in_array('*', self::$aAllowedURIs)) {
                 $this->addHeader('Access-Control-Allow-Origin',      '*');
-                $this->addHeader('Access-Control-Allow-Headers',     'Authorization, Content-Type');
-                $this->addHeader('Access-Control-Allow-Methods',     implode(', ', Method\_ALL));
+                $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
+                $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
                 $this->addHeader('Access-Control-Allow-Credentials', 'true');
                 return true;
             } else if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], self::$aAllowedURIs)) {
                 $this->addHeader('Access-Control-Allow-Origin',      $_SERVER['HTTP_ORIGIN']);
-                $this->addHeader('Access-Control-Allow-Headers',     'Authorization, Content-Type');
-                $this->addHeader('Access-Control-Allow-Methods',     implode(', ', Method\_ALL));
+                $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
+                $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
                 $this->addHeader('Access-Control-Allow-Credentials', 'true');
                 return true;
             }
