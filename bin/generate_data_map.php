@@ -39,6 +39,10 @@
     $oTwig      = new Twig_Environment($oLoader, array('debug' => true));
     $oTemplate  = $oTwig->loadTemplate('template_data_map.twig');
 
+    if (!file_exists($sPath)) {
+        mkdir($sPath, 0777, true);
+    }
+
     $aDatabase  = json_decode(file_get_contents($sPathJsonSQL), true);
     $sOutput    = $sPath . 'DataMap.json';
 
