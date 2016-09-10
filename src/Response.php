@@ -316,7 +316,7 @@
          * @todo: Allow CORS headers to be overridden
          */
         private function setOrigin() {
-            $sHeaders = 'Authorization, Content-Type, Accept-Encoding, User-Agent';
+            $sHeaders = 'Authorization, Content-Type';
             $sMethods = implode(', ', Method\_ALL);
 
             if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], self::$aAllowedURIs)) {
