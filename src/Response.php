@@ -313,22 +313,23 @@
 
         /**
          * @return bool
+         * @todo: Allow CORS headers to be overridden
          */
         private function setOrigin() {
             $sHeaders = 'Authorization, Content-Type, Accept-Encoding, User-Agent';
             $sMethods = implode(', ', Method\_ALL);
 
-            if (in_array('*', self::$aAllowedURIs)) {
-                $this->addHeader('Access-Control-Allow-Origin',      '*');
-                $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
-                $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
-                $this->addHeader('Access-Control-Allow-Credentials', 'true');
-                return true;
-            } else if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], self::$aAllowedURIs)) {
+            if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], self::$aAllowedURIs)) {
                 $this->addHeader('Access-Control-Allow-Origin',      $_SERVER['HTTP_ORIGIN']);
                 $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
                 $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
                 $this->addHeader('Access-Control-Allow-Credentials', 'true');
+                return true;
+            } else if (in_array('*', self::$aAllowedURIs)) {
+                $this->addHeader('Access-Control-Allow-Origin',      '*');
+                $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
+                $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
+                $this->addHeader('Access-Control-Allow-Credentials', 'false');
                 return true;
             }
 
