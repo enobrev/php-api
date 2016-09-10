@@ -173,6 +173,7 @@
             }
 
             try {
+                /** @var Rest $oRest */
                 $oRest   = self::_getRestClass($oRequest);
 
                 Log::d('Route.query.rest', [
@@ -190,20 +191,20 @@
                     /** @var ORM\Tables|ORM\Table $oResults */
                     $aRoute = self::_matchQuery(self::$aCachedQueryRoutes, $oRequest);
                     if ($aRoute) {
-                        $sClass       = $aRoute['class'];
+                        $sClass = $aRoute['class'];
                         $sQueryMethod = $aRoute['method'];
 
                         Log::d('Route.query.cached', [
-                            'class'         => $sClass,
-                            'method'        => $sQueryMethod,
-                            'path'          => $oRequest->Path,
-                            'headers'       => $oRequest->OriginalRequest->getHeaders(),
-                            'attributes'    => $oRequest->OriginalRequest->getAttributes()
+                            'class'      => $sClass,
+                            'method'     => $sQueryMethod,
+                            'path'       => $oRequest->Path,
+                            'headers'    => $oRequest->OriginalRequest->getHeaders(),
+                            'attributes' => $oRequest->OriginalRequest->getAttributes()
                         ]);
 
                         if (method_exists($sClass, $sQueryMethod)) {
                             // If Class is a Table, then use Rest and setData from that Method, otherwise, just run the Method
-                            switch($aRoute['type']) {
+                            switch ($aRoute['type']) {
                                 case self::QUERY_ROUTE_TABLE:
                                     $oResults = $sClass::$sQueryMethod($aRoute['params']);
 
@@ -220,12 +221,27 @@
                                     /** @var Base $oClass */
                                     $oClass = new $sClass($oRequest);
                                     $oClass->$sQueryMethod();
+
                                     return $oClass->Response;
                                     break;
                             }
                         } else {
                             $oRest->Response->setStatus(HTTP\SERVICE_UNAVAILABLE);
                             $oRest->Response->setFormat(Response::FORMAT_EMPTY);
+                        }
+                    } else if ($oRest->Request->pathIsRoot()) {
+                        Log::d('Route.root', [
+                            'path'          => $oRequest->Path,
+                            'method'        => $sMethod,
+                            'headers'       => $oRequest->OriginalRequest->getHeaders(),
+                            'attributes'    => $oRequest->OriginalRequest->getAttributes(),
+                            'query'         => $oRequest->GET
+                        ]);
+
+                        if (method_exists($oRest, 'index')) {
+                            $oRest->index();
+                        } else {
+                            $oRest->Response->statusNoContent();
                         }
                     } else {
                         self::_setRestDataFromPath($oRest, $oRequest);
