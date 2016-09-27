@@ -123,4 +123,18 @@
 
             return $oDatum->$sPrivateField instanceof ORM\Field ? $oDatum->$sPrivateField : null;
         }
+
+        /**
+         * @param ORM\Table $oDatum
+         * @param string    $sPrivateField
+         * @return null|string
+         */
+        public static function getPublicName(ORM\Table $oDatum, string $sPrivateField) {
+            if ($oDatum->$sPrivateField instanceof ORM\Field) {
+                $aMap = array_flip(self::getMap($oDatum->getTitle()));
+                return $aMap[$sPrivateField] ?? null;
+            }
+
+            return null;
+        }
     }

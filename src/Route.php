@@ -8,6 +8,7 @@
     use Enobrev\SQL;
     use Enobrev\SQLBuilder;
 
+    use function Enobrev\dbg;
 
     use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
@@ -52,11 +53,12 @@
          * @param array  $aVersions
          */
         public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, string $sRestClass = Rest::class, array $aVersions = ['v1']) {
-            self::$sPathAPI        = rtrim($sPathAPI, '/') . '/';
-            self::$sNamespaceAPI   = trim($sNamespaceAPI, '\\');
-            self::$sNamespaceTable = trim($sNamespaceTable, '\\');
-            self::$aVersions       = $aVersions;
-            self::$sRestClass      = $sRestClass;
+            self::$sPathAPI         = rtrim($sPathAPI, '/') . '/';
+            self::$sNamespaceAPI    = trim($sNamespaceAPI, '\\');
+            self::$sNamespaceTable  = trim($sNamespaceTable, '\\');
+            self::$aVersions        = $aVersions;
+            self::$sRestClass       = $sRestClass;
+            self::$bReturnResponses = false;
 
             self::_generateRoutes();
         }
@@ -161,9 +163,13 @@
          * @return Response
          */
         public static function _getResponse(Request $oRequest) {
-            if (!self::$bReturnResponses && $oRequest->pathIsRoot() && !$oRequest->isOptions()) {
-                if ($oResponse = self::_attemptMultiRequest($oRequest)) {
-                    return $oResponse;
+            if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
+                self::_acceptSyncData($oRequest);
+
+                if (!self::$bReturnResponses) {
+                    if ($oResponse = self::_attemptMultiRequest($oRequest)) {
+                        return $oResponse;
+                    }
                 }
             }
 
@@ -883,7 +889,7 @@
                 return;
             }
 
-            Log::d('Route.attemptMultiRequest', [
+            Log::d('Route._attemptMultiRequest', [
                 'path'          => $oRequest->Path,
                 'headers'       => $oRequest->OriginalRequest->getHeaders(),
                 'attributes'    => $oRequest->OriginalRequest->getAttributes()
@@ -915,6 +921,56 @@
                 $oResponse->add(self::$aData);
 
                 return $oResponse;
+            }
+
+            self::$bReturnResponses = false;
+        }
+
+        public static function _acceptSyncData(Request $oRequest) {
+
+            Log::d('Route._acceptSyncData', [
+                'path'    => $oRequest->Path,
+                'headers' => $oRequest->OriginalRequest->getHeaders(),
+                'data'    => $oRequest->POST
+            ]);
+
+            if (count($oRequest->POST)) {
+                $aSyncedTables = [];
+                foreach($oRequest->POST as $sTable => $aRecords) {
+                    $sClassName = DataMap::getClassName($sTable);
+                    if (!$sClassName) {
+                        continue;
+                    }
+
+                    $sClass = self::_getNamespacedTableClassName($sClassName);
+
+                    /** @var ORM\Table $oTable */
+                    $oTable = new $sClass;
+                    if ($oTable instanceof ORM\Table === false) {
+                        continue;
+                    }
+
+                    $bNumericRecords = array_keys($aRecords) === range(0, count($aRecords) - 1); // http://stackoverflow.com/a/173479/14651
+                    $aPrimaries      = $oTable->getPrimary();
+                    $sPrimary        = !$bNumericRecords && count($aPrimaries) == 1 ? $aPrimaries[0]->sColumn : null;
+
+                    foreach($aRecords as $mPrimaryKey => $aRecord) {
+                        if ($sPrimary) {
+                            $sField = DataMap::getPublicName($oTable, $sPrimary);
+                            if ($sField) {
+                                $aRecord[$sField] = $mPrimaryKey;
+                            }
+                        }
+
+                        $oTable::createAndUpdateFromMap($aRecord, DataMap::getResponseMap($sTable, $oTable));
+                    }
+                }
+
+                Log::d('Route._acceptSyncData.done', [
+                    'path'    => $oRequest->Path,
+                    'headers' => $oRequest->OriginalRequest->getHeaders(),
+                    'data'    => $oRequest->POST
+                ]);
             }
         }
 
