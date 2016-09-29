@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "7f8c18938ef076ff9869d422edc6000dc763737e"
+                "reference": "4f8458434a345e8af2b55a6256a06184d394da95"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/7f8c18938ef076ff9869d422edc6000dc763737e",
-                "reference": "7f8c18938ef076ff9869d422edc6000dc763737e",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/4f8458434a345e8af2b55a6256a06184d394da95",
+                "reference": "4f8458434a345e8af2b55a6256a06184d394da95",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-09-10 05:32:15"
+            "time": "2016-09-27 11:39:17"
         },
         {
             "name": "enobrev/tools",
@@ -337,22 +337,30 @@
         },
         {
             "name": "psr/log",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "fe0936ee26643249e916849d48e3a51d5f5e278b"
+                "reference": "5277094ed527a1c4477177d102fe4c53551953e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/fe0936ee26643249e916849d48e3a51d5f5e278b",
-                "reference": "fe0936ee26643249e916849d48e3a51d5f5e278b",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/5277094ed527a1c4477177d102fe4c53551953e0",
+                "reference": "5277094ed527a1c4477177d102fe4c53551953e0",
                 "shasum": ""
             },
+            "require": {
+                "php": ">=5.3.0"
+            },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
             "autoload": {
-                "psr-0": {
-                    "Psr\\Log\\": ""
+                "psr-4": {
+                    "Psr\\Log\\": "Psr/Log/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -366,25 +374,26 @@
                 }
             ],
             "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
             "keywords": [
                 "log",
                 "psr",
                 "psr-3"
             ],
-            "time": "2012-12-21 11:40:51"
+            "time": "2016-09-19 16:02:08"
         },
         {
             "name": "twig/twig",
-            "version": "v1.24.2",
+            "version": "v1.25.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "33093f6e310e6976baeac7b14f3a6ec02f2d79b7"
+                "reference": "f16a634ab08d87e520da5671ec52153d627f10f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/33093f6e310e6976baeac7b14f3a6ec02f2d79b7",
-                "reference": "33093f6e310e6976baeac7b14f3a6ec02f2d79b7",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/f16a634ab08d87e520da5671ec52153d627f10f6",
+                "reference": "f16a634ab08d87e520da5671ec52153d627f10f6",
                 "shasum": ""
             },
             "require": {
@@ -397,7 +406,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.24-dev"
+                    "dev-master": "1.25-dev"
                 }
             },
             "autoload": {
@@ -432,7 +441,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2016-09-01 17:50:53"
+            "time": "2016-09-21 23:05:12"
         },
         {
             "name": "zendframework/zend-diactoros",
@@ -542,16 +551,16 @@
         },
         {
             "name": "myclabs/deep-copy",
-            "version": "1.5.2",
+            "version": "1.5.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "da8529775f14f4fdae33f916eb0cf65f6afbddbc"
+                "reference": "ea74994a3dc7f8d2f65a06009348f2d63c81e61f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/da8529775f14f4fdae33f916eb0cf65f6afbddbc",
-                "reference": "da8529775f14f4fdae33f916eb0cf65f6afbddbc",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/ea74994a3dc7f8d2f65a06009348f2d63c81e61f",
+                "reference": "ea74994a3dc7f8d2f65a06009348f2d63c81e61f",
                 "shasum": ""
             },
             "require": {
@@ -580,7 +589,7 @@
                 "object",
                 "object graph"
             ],
-            "time": "2016-09-06 16:07:05"
+            "time": "2016-09-16 13:37:59"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -1036,24 +1045,24 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "5.5.4",
+            "version": "5.5.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "3e6e88e56c912133de6e99b87728cca7ed70c5f5"
+                "reference": "a57126dc681b08289fef6ac96a48e30656f84350"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/3e6e88e56c912133de6e99b87728cca7ed70c5f5",
-                "reference": "3e6e88e56c912133de6e99b87728cca7ed70c5f5",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a57126dc681b08289fef6ac96a48e30656f84350",
+                "reference": "a57126dc681b08289fef6ac96a48e30656f84350",
                 "shasum": ""
             },
             "require": {
                 "ext-dom": "*",
                 "ext-json": "*",
-                "ext-pcre": "*",
-                "ext-reflection": "*",
-                "ext-spl": "*",
+                "ext-libxml": "*",
+                "ext-mbstring": "*",
+                "ext-xml": "*",
                 "myclabs/deep-copy": "~1.3",
                 "php": "^5.6 || ^7.0",
                 "phpspec/prophecy": "^1.3.1",
@@ -1075,7 +1084,12 @@
             "conflict": {
                 "phpdocumentor/reflection-docblock": "3.0.2"
             },
+            "require-dev": {
+                "ext-pdo": "*"
+            },
             "suggest": {
+                "ext-tidy": "*",
+                "ext-xdebug": "*",
                 "phpunit/php-invoker": "~1.1"
             },
             "bin": [
@@ -1110,7 +1124,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2016-08-26 07:11:44"
+            "time": "2016-09-21 14:40:13"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
