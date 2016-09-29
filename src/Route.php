@@ -1084,6 +1084,10 @@
         public static function _fillPostTemplateFromData(array $aPost) {
             if (count($aPost)) {
                 foreach($aPost as $sParam => $mValue) {
+                    if (is_array($mValue)) {
+                        continue;
+                    }
+                    
                     $mTemplateValue = self::_getTemplateValue($mValue);
                     if ($mTemplateValue !== self::NO_VALUE) {
                         $aPost[$sParam] = $mTemplateValue;
