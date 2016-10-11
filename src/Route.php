@@ -1087,7 +1087,7 @@
                     if (is_array($mValue)) {
                         continue;
                     }
-                    
+
                     $mTemplateValue = self::_getTemplateValue($mValue);
                     if ($mTemplateValue !== self::NO_VALUE) {
                         $aPost[$sParam] = $mTemplateValue;

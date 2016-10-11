@@ -38,8 +38,7 @@
         },
         "files": [
             "src/Constants/HTTP.php",
-            "src/Constants/Method.php",
-            "src/Constants/Role.php"
+            "src/Constants/Method.php"
         ]
     },
     "autoload-dev": {
