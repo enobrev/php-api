@@ -26,6 +26,7 @@
         const FORMAT_WOFF      = 'woff';
         const FORMAT_CSS       = 'css';
         const FORMAT_JSON      = 'json';
+        const FORMAT_CSV       = 'csv';
         const FORMAT_EMPTY     = 'empty';
 
         const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
