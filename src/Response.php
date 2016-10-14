@@ -373,6 +373,7 @@
                         break;
 
                     case self::FORMAT_EMPTY:
+                    case self::FORMAT_CSV:
                         $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
                 }
             }
