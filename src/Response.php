@@ -368,12 +368,12 @@
                         break;
 
                     case self::FORMAT_CSS:
+                    case self::FORMAT_CSV:
                         $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
                         $oEmitter->emit($oResponse);
                         break;
 
                     case self::FORMAT_EMPTY:
-                    case self::FORMAT_CSV:
                         $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
                 }
             }
