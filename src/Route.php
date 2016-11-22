@@ -902,14 +902,8 @@
                 $aQuery = is_array($oRequest->POST['__query']) ? $oRequest->POST['__query'] : json_decode($oRequest->POST['__query']);
 
                 if (array_is_multi($aQuery)) {
-                    foreach($aQuery as $sEndpoint => $aPost) {
-                        if (array_is_multi($aPost)) {
-                            foreach($aPost as $aEach) {
-                                self::_attemptRequest($sEndpoint, $aEach);
-                            }
-                        } else {
-                            self::_attemptRequest($sEndpoint, $aPost);
-                        }
+                    foreach ($aQuery as $sEndpoint => $aPost) {
+                        self::_attemptRequest($sEndpoint, $aPost);
                     }
                 } else {
                     while (count($aQuery) > 0) {
