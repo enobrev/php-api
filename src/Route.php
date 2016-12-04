@@ -1096,8 +1096,7 @@
 
         public static function _getTemplateValue($sTemplate) {
             if (strpos($sTemplate, '{') === 0) {
-                $sMatch = strstr($sTemplate, '?', true); // kill params
-                $sMatch = trim($sMatch, "{}");
+                $sMatch = trim($sTemplate, "{}");
                 $aMatch = explode('.', $sMatch);
                 if (count($aMatch) == 2) {
                     $sTable = $aMatch[0];
