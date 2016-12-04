@@ -52,7 +52,7 @@
          * @param string $sRestClass
          * @param array  $aVersions
          */
-        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, string $sRestClass = Rest::class, array $aVersions = ['v1']) {
+        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, $sRestClass = Rest::class, array $aVersions = ['v1']) {
             self::$sPathAPI         = rtrim($sPathAPI, '/') . '/';
             self::$sNamespaceAPI    = trim($sNamespaceAPI, '\\');
             self::$sNamespaceTable  = trim($sNamespaceTable, '\\');
@@ -1096,7 +1096,8 @@
 
         public static function _getTemplateValue($sTemplate) {
             if (strpos($sTemplate, '{') === 0) {
-                $sMatch = trim($sTemplate, "{}");
+                $sMatch = strstr($sTemplate, '?', true); // kill params
+                $sMatch = trim($sMatch, "{}");
                 $aMatch = explode('.', $sMatch);
                 if (count($aMatch) == 2) {
                     $sTable = $aMatch[0];
