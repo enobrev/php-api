@@ -206,7 +206,7 @@
             } else if ($sVar instanceof Field) {
                 $this->set($sVar->sColumn, $sVar->getValue());
             } else if (is_array($sVar)) {
-                foreach($sVar as $sKey => $sValue) {
+                foreach ($sVar as $sKey => $sValue) {
                     if ($sValue instanceof Field) {
                         if (preg_match('/[a-zA-Z]/', $sKey)) { // Associative key - replacing field names
                             $this->set($sKey, $sValue);
@@ -216,6 +216,11 @@
                     } else {
                         $this->add($sKey, $sValue);
                     }
+                }
+            } else if ($mValue instanceof Table) {
+                $aFields = $mValue->getFields();
+                foreach($aFields as $oField) {
+                    $this->set($sVar . '.' . $oField->sColumn, $oField);
                 }
             } else if (is_array($mValue)) {
                 foreach($mValue as $sKey => $sValue) {
