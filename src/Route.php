@@ -164,10 +164,20 @@
          */
         public static function _getResponse(Request $oRequest) {
             if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
-                self::_acceptSyncData($oRequest);
-
                 if (!self::$bReturnResponses) {
-                    if ($oResponse = self::_attemptMultiRequest($oRequest)) {
+                    $oResponse = self::_acceptSyncData($oRequest);
+                    Log::d('Route.query._getResponse.sync', [
+                        'response' => get_class($oResponse)
+                    ]);
+
+                    $oResponse = self::_attemptMultiRequest($oRequest, $oResponse);
+
+                    Log::d('Route.query._getResponse.sync_and_query', [
+                        'response' => get_class($oResponse)
+                    ]);
+
+                    if ($oResponse) {
+                        Log::d('Route.query._getResponse.sync_and_query.respond');
                         return $oResponse;
                     }
                 }
@@ -884,7 +894,7 @@
          * @param Request $oRequest
          * @return Response|void
          */
-        public static function _attemptMultiRequest(Request $oRequest) {
+        public static function _attemptMultiRequest(Request $oRequest, Response $oSyncResponse = null) {
             if (self::$bReturnResponses) {
                 return;
             }
@@ -897,7 +907,10 @@
 
             self::$bReturnResponses = true;
 
-            self::$aData['__requests'] = [];
+            if (!isset(self::$aData['__requests'])) {
+                self::$aData['__requests'] = [];
+            }
+
             if (isset($oRequest->POST['__query'])) {
                 $aQuery = is_array($oRequest->POST['__query']) ? $oRequest->POST['__query'] : json_decode($oRequest->POST['__query']);
 
@@ -911,60 +924,57 @@
                     }
                 }
 
-                $oResponse = new Response($oRequest);
+                Log::d('Route._attemptMultiRequest.done', [
+                    'path'       => $oRequest->Path,
+                    'headers'    => $oRequest->OriginalRequest->getHeaders(),
+                    'attributes' => $oRequest->OriginalRequest->getAttributes()
+                ]);
+
+                $oResponse = $oSyncResponse ? $oSyncResponse : new Response($oRequest);
                 $oResponse->add(self::$aData);
 
                 return $oResponse;
+            } else if ($oSyncResponse) {
+                return $oSyncResponse;
             }
 
             self::$bReturnResponses = false;
         }
 
         public static function _acceptSyncData(Request $oRequest) {
-
             Log::d('Route._acceptSyncData', [
                 'path'    => $oRequest->Path,
                 'headers' => $oRequest->OriginalRequest->getHeaders(),
                 'data'    => $oRequest->POST
             ]);
 
+
             if (count($oRequest->POST)) {
-                $aSyncedTables = [];
+                self::$aData['__requests'] = [];
+                self::$bReturnResponses = true;
+
                 foreach($oRequest->POST as $sTable => $aRecords) {
-                    $sClassName = DataMap::getClassName($sTable);
-                    if (!$sClassName) {
+                    if (substr($sTable, 0, 1) == '_') {
                         continue;
                     }
 
-                    $sClass = self::_getNamespacedTableClassName($sClassName);
-
-                    /** @var ORM\Table $oTable */
-                    $oTable = new $sClass;
-                    if ($oTable instanceof ORM\Table === false) {
-                        continue;
-                    }
-
-                    $bNumericRecords = array_keys($aRecords) === range(0, count($aRecords) - 1); // http://stackoverflow.com/a/173479/14651
-                    $aPrimaries      = $oTable->getPrimary();
-                    $sPrimary        = !$bNumericRecords && count($aPrimaries) == 1 ? $aPrimaries[0]->sColumn : null;
-
-                    foreach($aRecords as $mPrimaryKey => $aRecord) {
-                        if ($sPrimary) {
-                            $sField = DataMap::getPublicName($oTable, $sPrimary);
-                            if ($sField) {
-                                $aRecord[$sField] = $mPrimaryKey;
-                            }
-                        }
-
-                        $oTable::createAndUpdateFromMap($aRecord, DataMap::getResponseMap($sTable, $oTable));
+                    foreach($aRecords as $sPrimary => $aRecord) {
+                        self::_attemptRequest("$sTable/$sPrimary", $aRecord);
                     }
                 }
+
+                self::$bReturnResponses = false;
 
                 Log::d('Route._acceptSyncData.done', [
                     'path'    => $oRequest->Path,
                     'headers' => $oRequest->OriginalRequest->getHeaders(),
                     'data'    => $oRequest->POST
                 ]);
+
+                $oResponse = new Response($oRequest);
+                $oResponse->add(self::$aData);
+
+                return $oResponse;
             }
         }
 
