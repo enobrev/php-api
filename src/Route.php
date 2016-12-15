@@ -1067,11 +1067,14 @@
          * @throws \Exception
          */
         public static function _fillEndpointTemplateFromData($sEndpoint) {
-            $aEndpoint  = explode('/', $sEndpoint);
-            foreach($aEndpoint as $sSegment) {
-                $mTemplateValue = self::_getTemplateValue($sSegment);
-                if ($mTemplateValue !== self::NO_VALUE) {
-                    $sEndpoint = str_replace($sSegment, $mTemplateValue, $sEndpoint);
+            $bMatched = preg_match_all('/{[^}]+}/', $sEndpoint, $aMatches);
+            if ($bMatched && count($aMatches) > 0) {
+                $aTemplates = $aMatches[0];
+                foreach ($aTemplates as $sTemplate) {
+                    $mTemplateValue = self::_getTemplateValue($sTemplate);
+                    if ($mTemplateValue !== self::NO_VALUE) {
+                        $sEndpoint = str_replace($sTemplate, $mTemplateValue, $sEndpoint);
+                    }
                 }
             }
 
