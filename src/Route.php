@@ -1053,7 +1053,7 @@
             } else if ($oResponse) {
                 // TODO: Report Errors
 
-                Log::e('API.ENDPOINT.RESPONSE', json_decode(json_encode($oResponse), true)); // FIXME: Inefficient and silly object to array conversion
+                Log::e('API.ENDPOINT.RESPONSE.ERROR', json_decode(json_encode($oResponse), true)); // FIXME: Inefficient and silly object to array conversion
             } else {
                 Log::e('API.ENDPOINT.RESPONSE.NONE');
             }
