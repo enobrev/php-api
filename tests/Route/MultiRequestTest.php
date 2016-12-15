@@ -3,7 +3,9 @@
 
     require __DIR__ . '/../../vendor/autoload.php';
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
+    use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
 
     use PDO;
@@ -12,6 +14,7 @@
     use Enobrev\API\Request;
     use Enobrev\API\Route;
     use Enobrev\ORM\Db;
+
 
 
     use Zend\Diactoros\ServerRequest;
@@ -31,6 +34,8 @@
         private $aAddresses;
 
         public static function setUpBeforeClass() {
+            Log::setName('TEST');
+            DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
         }
