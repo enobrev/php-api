@@ -251,7 +251,7 @@
                             'method'        => $sMethod,
                             'headers'       => $oRequest->OriginalRequest->getHeaders(),
                             'attributes'    => $oRequest->OriginalRequest->getAttributes(),
-                            'query'         => $oRequest->GET
+                            'query'         => json_encode($oRequest->GET)
                         ]);
 
                         if (method_exists($oRest, 'index')) {
@@ -266,8 +266,8 @@
                             'path'          => $oRequest->Path,
                             'method'        => $sMethod,
                             'headers'       => $oRequest->OriginalRequest->getHeaders(),
-                            'attributes'    => $oRequest->OriginalRequest->getAttributes(),
-                            'query'         => $oRequest->GET
+                            'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
+                            'query'         => json_encode($oRequest->GET)
                         ]);
 
                         if (!$oRest->hasData() && $oRequest->isPut()) { // Tried to PUT with an ID and no record was found
@@ -503,7 +503,7 @@
             }
 
             while (count($aPairs) > 0) {
-                Log::d('Route._getQueryFromPath.Pairs', $aPairs);
+                Log::d('Route._getQueryFromPath.Pairs', ['pairs' => json_encode($aPairs)]);
 
                 $aPart = array_shift($aPairs);
                 $sClassName = DataMap::getClassName($aPart[0]);
@@ -517,7 +517,7 @@
                 }
 
                 if (isset($aPart[1])) {
-                    Log::d('Route._getQueryFromPath.Pairs.PartWithValue', $aPart);
+                    Log::d('Route._getQueryFromPath.Pairs.PartWithValue', ['part' => json_encode($aPart)]);
                     $oReference = $oTable->getFieldThatReferencesTable($oWhereTable);
                     if ($oReference instanceof ORM\Field === false) {
                         throw new Exception\InvalidReference("Cannot Associate " . (new \ReflectionClass($oTable))->getShortName() . ' with ' . (new \ReflectionClass($oWhereTable))->getShortName());
@@ -945,7 +945,7 @@
             Log::d('Route._acceptSyncData', [
                 'path'    => $oRequest->Path,
                 'headers' => $oRequest->OriginalRequest->getHeaders(),
-                'data'    => $oRequest->POST
+                'data'    => json_encode($oRequest->POST)
             ]);
 
 
@@ -968,7 +968,7 @@
                 Log::d('Route._acceptSyncData.done', [
                     'path'    => $oRequest->Path,
                     'headers' => $oRequest->OriginalRequest->getHeaders(),
-                    'data'    => $oRequest->POST
+                    'data'    => json_encode($oRequest->POST)
                 ]);
 
                 $oResponse = new Response($oRequest);
@@ -1016,7 +1016,7 @@
                 Log::d('API.ENDPOINT.RESPONSE', array(
                     'status'  => $oResponse->status,
                     'headers' => $oResponse->headers,
-                    'body'    => $oResponse->data
+                    'body'    => json_encode($oResponse->data)
                 ));
 
                 $aResponseParsed = json_decode(json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
@@ -1052,8 +1052,11 @@
                 }
             } else if ($oResponse) {
                 // TODO: Report Errors
-
-                Log::e('API.ENDPOINT.RESPONSE.ERROR', json_decode(json_encode($oResponse), true)); // FIXME: Inefficient and silly object to array conversion
+                Log::e('API.ENDPOINT.RESPONSE.ERROR', [
+                    'status'  => $oResponse->status,
+                    'headers' => $oResponse->headers,
+                    'body'    => json_encode($oResponse->data)
+                ]);
             } else {
                 Log::e('API.ENDPOINT.RESPONSE.NONE');
             }

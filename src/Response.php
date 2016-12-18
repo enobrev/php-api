@@ -352,7 +352,7 @@
                 'ach'     => $bAccessControlHeaders,
                 'status'  => $this->iStatus,
                 'headers' => $this->aHeaders,
-                'body'    => json_decode(json_encode($this->oOutput), true)
+                'body'    => json_encode($this->oOutput)
             ));
 
             $oEmitter = new ZendResponse\SapiEmitter();
