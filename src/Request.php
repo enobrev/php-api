@@ -46,7 +46,13 @@
             }
 
             Log::d('API.REQUEST', [
-                'OriginalRequest' => $this->OriginalRequest,
+                'OriginalRequest' => json_encode([
+                    'uri'           => $this->OriginalRequest->getUri(),
+                    'attributes'    => $this->OriginalRequest->getAttributes(),
+                    'headers'       => $this->OriginalRequest->getHeaders(),
+                    'body.contents' => $this->OriginalRequest->getBody()->getContents(),
+                    'parsed_body'   => $this->OriginalRequest->getParsedBody()
+                ]),
                 'Path'            => $this->Path,
                 'Format'          => $this->Format,
                 'Method'          => $this->Method,
@@ -91,7 +97,10 @@
             $aHeader = $this->OriginalRequest->getHeader('Content-Type');
             if ($aHeader && $aHeader[0] == 'application/json') {
                 $sContents = $this->OriginalRequest->getBody()->getContents() ?: (string) $this->OriginalRequest->getBody();
-                $aPost     = array_merge($aPost, json_decode($sContents, true));
+                $aContents = json_decode($sContents, true);
+                if ($aContents && is_array($aContents)) {
+                    $aPost = array_merge($aPost, $aContents);
+                }
             }
 
             if (isset($aPost['__json'])) {

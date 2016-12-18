@@ -8,8 +8,6 @@
     use Enobrev\SQL;
     use Enobrev\SQLBuilder;
 
-    use function Enobrev\dbg;
-
     use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
     use FilesystemIterator;
@@ -689,7 +687,7 @@
         /**
          * @param array   $aRoute
          * @param Request $oRequest
-         * @return Response|void
+         * @return Response
          */
         public static function _endpoint(Array $aRoute, Request $oRequest) {
             Log::d('Route.endpoint', [
@@ -892,7 +890,7 @@
          *
          *
          * @param Request $oRequest
-         * @return Response|void
+         * @return Response
          */
         public static function _attemptMultiRequest(Request $oRequest, Response $oSyncResponse = null) {
             if (self::$bReturnResponses) {
@@ -959,6 +957,10 @@
                     }
 
                     foreach($aRecords as $sPrimary => $aRecord) {
+                        Log::d('Route._acceptSyncData.attempt', [
+                            'endpoint'  => "$sTable/$sPrimary",
+                            'POST'      => json_encode($aRecord)
+                        ]);
                         self::_attemptRequest("$sTable/$sPrimary", $aRecord);
                     }
                 }
@@ -976,6 +978,31 @@
 
                 return $oResponse;
             }
+        }
+
+        /**
+         * Replica of ServerRequestFactory, because we do NOT want ServerRequest::getBody()->getContents() to work, and the factory forces php://input for the request body
+         * @param array $aServer
+         * @param array $aGet
+         * @param array $aPostParams
+         * @return ServerRequest
+         */
+        private static function _serverRequestFactory(array $aServer, array $aGet, array $aPostParams) {
+            $aServer  = ServerRequestFactory::normalizeServer($aServer);
+            $aHeaders = ServerRequestFactory::marshalHeaders($aServer);
+
+            return new ServerRequest(
+                $aServer,
+                [],
+                ServerRequestFactory::marshalUriFromServer($aServer, $aHeaders),
+                ServerRequestFactory::get('REQUEST_METHOD', $aServer, 'GET'),
+                'php://memory',
+                $aHeaders,
+                $_COOKIE,
+                $aGet,
+                $aPostParams,
+                $aServer['SERVER_PROTOCOL'] ?? '1.1' // Wonk because the marshal method is private
+            );
         }
 
         /**
@@ -1009,7 +1036,7 @@
             }
 
             Log::startChildRequest();
-            $oResponse = self::index(ServerRequestFactory::fromGlobals($aServer, $aGet, $aPostParams));
+            $oResponse = self::index(self::_serverRequestFactory($aServer, $aGet, $aPostParams));
             Log::endChildRequest();
 
             if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
