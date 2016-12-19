@@ -348,12 +348,12 @@
         public function respond() {
             $bAccessControlHeaders = $this->setOrigin();
 
-            Log::d('API.RESPONSE', array(
+            Log::d('API.RESPONSE', [
                 'ach'     => $bAccessControlHeaders,
                 'status'  => $this->iStatus,
                 'headers' => $this->aHeaders,
                 'body'    => json_encode($this->oOutput)
-            ));
+            ]);
 
             $oEmitter = new ZendResponse\SapiEmitter();
 

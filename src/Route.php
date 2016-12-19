@@ -289,8 +289,9 @@
                     ],
                     'error' => [
                         'type'    => get_class($e),
+                        'code'    => $e->getCode(),
                         'message' => $e->getMessage(),
-                        'stack'   => $e->getTrace()
+                        'stack'   => json_encode($e->getTrace())
                     ]
                 ]);
 
@@ -1040,11 +1041,12 @@
             Log::endChildRequest();
 
             if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
-                Log::d('API.ENDPOINT.RESPONSE', array(
-                    'status'  => $oResponse->status,
-                    'headers' => $oResponse->headers,
-                    'body'    => json_encode($oResponse->data)
-                ));
+                Log::d('API.ENDPOINT.RESPONSE', [
+                    'endpoint' => $sEndpoint,
+                    'status'   => $oResponse->status,
+                    'headers'  => $oResponse->headers,
+                    'body'     => json_encode($oResponse->data)
+                ]);
 
                 $aResponseParsed = json_decode(json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
 
@@ -1080,9 +1082,10 @@
             } else if ($oResponse) {
                 // TODO: Report Errors
                 Log::e('API.ENDPOINT.RESPONSE.ERROR', [
-                    'status'  => $oResponse->status,
-                    'headers' => $oResponse->headers,
-                    'body'    => json_encode($oResponse->data)
+                    'endpoint' => $sEndpoint,
+                    'status'   => $oResponse->status,
+                    'headers'  => $oResponse->headers,
+                    'body'     => json_encode($oResponse->data)
                 ]);
             } else {
                 Log::e('API.ENDPOINT.RESPONSE.NONE');

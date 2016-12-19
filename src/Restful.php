@@ -140,9 +140,9 @@
                 'this'          => get_class($this),
                 'data'          => get_class($this->Data),
                 'attributes'    => $this->Request->OriginalRequest->getAttributes(),
-                'post'          => $this->Request->POST,
-                'mapped'        => DataMap::getResponseMap($this->sPath, $this->Data),
-                'overrides'     => $aOverrides
+                'post'          => json_encode($this->Request->POST),
+                'mapped'        => json_encode(DataMap::getResponseMap($this->sPath, $this->Data)),
+                'overrides'     => json_encode($aOverrides)
             ]);
 
             /** @var ORM\Table $oTable */
@@ -176,10 +176,12 @@
             $aOverridePrimaries = $this->overridePrimaries($aOverridePrimaries);
 
             Log::d('Rest.put', [
-                get_class($this->Data),
-                $this->Request->PUT,
-                DataMap::getResponseMap($this->sPath, $this->Data),
-                $aOverridePrimaries
+                'this'       => get_class($this),
+                'data'       => get_class($this->Data),
+                'attributes' => $this->Request->OriginalRequest->getAttributes(),
+                'put'       => json_encode($this->Request->PUT),
+                'mapped'     => json_encode(DataMap::getResponseMap($this->sPath, $this->Data)),
+                'overrides'  => json_encode($aOverridePrimaries)
             ]);
 
             /** @var ORM\Table $oTable */
