@@ -45,7 +45,7 @@
                 case Method\PUT:   $this->PUT  = $this->handlePut();  break;
             }
 
-            Log::d('API.REQUEST', [
+            Log::i('API.Request.init', [
                 'OriginalRequest' => json_encode([
                     'uri'           => $this->OriginalRequest->getUri(),
                     'attributes'    => $this->OriginalRequest->getAttributes(),

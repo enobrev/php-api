@@ -348,7 +348,7 @@
         public function respond() {
             $bAccessControlHeaders = $this->setOrigin();
 
-            Log::d('API.RESPONSE', [
+            Log::i('API.Response.respond', [
                 'ach'     => $bAccessControlHeaders,
                 'status'  => $this->iStatus,
                 'headers' => $this->aHeaders,

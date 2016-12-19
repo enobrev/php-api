@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/orm.git",
-                "reference": "02af40a2b4f83eb229a32f395bf107ce52e12e6a"
+                "reference": "571a6d8d89b5440fb88b036531ee62c0a93f469b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/02af40a2b4f83eb229a32f395bf107ce52e12e6a",
-                "reference": "02af40a2b4f83eb229a32f395bf107ce52e12e6a",
+                "url": "https://api.github.com/repos/enobrev/orm/zipball/571a6d8d89b5440fb88b036531ee62c0a93f469b",
+                "reference": "571a6d8d89b5440fb88b036531ee62c0a93f469b",
                 "shasum": ""
             },
             "require": {
@@ -66,7 +66,7 @@
                 "source": "https://github.com/enobrev/orm/tree/master",
                 "issues": "https://github.com/enobrev/orm/issues"
             },
-            "time": "2016-12-19 15:46:06"
+            "time": "2016-12-19 18:17:47"
         },
         {
             "name": "enobrev/tools",
@@ -74,12 +74,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/tools.git",
-                "reference": "fe2a2395a32d940b702b7a7567f2594abbe4a4ec"
+                "reference": "78277f82a20c3a4dc8ac995f93ce7792f032e80d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/tools/zipball/fe2a2395a32d940b702b7a7567f2594abbe4a4ec",
-                "reference": "fe2a2395a32d940b702b7a7567f2594abbe4a4ec",
+                "url": "https://api.github.com/repos/enobrev/tools/zipball/78277f82a20c3a4dc8ac995f93ce7792f032e80d",
+                "reference": "78277f82a20c3a4dc8ac995f93ce7792f032e80d",
                 "shasum": ""
             },
             "require": {
@@ -116,7 +116,7 @@
                 "source": "https://github.com/enobrev/tools/tree/master",
                 "issues": "https://github.com/enobrev/tools/issues"
             },
-            "time": "2016-12-18 13:43:36"
+            "time": "2016-12-19 17:01:00"
         },
         {
             "name": "kevinlebrun/colors.php",

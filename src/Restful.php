@@ -136,7 +136,7 @@
                 }
             }
 
-            Log::d('Rest.post', [
+            Log::d('API.Rest.post', [
                 'this'          => get_class($this),
                 'data'          => get_class($this->Data),
                 'attributes'    => $this->Request->OriginalRequest->getAttributes(),
@@ -175,7 +175,7 @@
 
             $aOverridePrimaries = $this->overridePrimaries($aOverridePrimaries);
 
-            Log::d('Rest.put', [
+            Log::d('API.Rest.put', [
                 'this'       => get_class($this),
                 'data'       => get_class($this->Data),
                 'attributes' => $this->Request->OriginalRequest->getAttributes(),

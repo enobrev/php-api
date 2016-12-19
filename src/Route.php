@@ -72,10 +72,10 @@
             $oResponse      = self::_getResponse($oRequest);
 
             if ($bReturn) {
-                Log::d('Route.index.return');
+                Log::d('API.Route.index.return');
                 return $oResponse->getOutput();
             } else {
-                Log::d('Route.index.respond');
+                Log::d('API.Route.index.respond');
                 $oResponse->respond();
             }
         }
@@ -164,18 +164,18 @@
             if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
                 if (!self::$bReturnResponses) {
                     $oResponse = self::_acceptSyncData($oRequest);
-                    Log::d('Route.query._getResponse.sync', [
+                    Log::d('API.Route.query._getResponse.sync', [
                         'response' => get_class($oResponse)
                     ]);
 
                     $oResponse = self::_attemptMultiRequest($oRequest, $oResponse);
 
-                    Log::d('Route.query._getResponse.sync_and_query', [
+                    Log::d('API.Route.query._getResponse.sync_and_query', [
                         'response' => get_class($oResponse)
                     ]);
 
                     if ($oResponse) {
-                        Log::d('Route.query._getResponse.sync_and_query.respond');
+                        Log::d('API.Route.query._getResponse.sync_and_query.respond');
                         return $oResponse;
                     }
                 }
@@ -190,7 +190,7 @@
                 /** @var Rest $oRest */
                 $oRest   = self::_getRestClass($oRequest);
 
-                Log::d('Route.query.rest', [
+                Log::d('API.Route.query.rest', [
                     'class' => get_class($oRest)
                 ]);
 
@@ -208,7 +208,7 @@
                         $sClass = $aRoute['class'];
                         $sQueryMethod = $aRoute['method'];
 
-                        Log::d('Route.query.cached', [
+                        Log::d('API.Route.query.cached', [
                             'class'      => $sClass,
                             'method'     => $sQueryMethod,
                             'path'       => $oRequest->Path,
@@ -244,7 +244,7 @@
                             $oRest->Response->setFormat(Response::FORMAT_EMPTY);
                         }
                     } else if ($oRest->Request->pathIsRoot()) {
-                        Log::d('Route.root', [
+                        Log::d('API.Route.root', [
                             'path'          => $oRequest->Path,
                             'method'        => $sMethod,
                             'headers'       => $oRequest->OriginalRequest->getHeaders(),
@@ -260,7 +260,7 @@
                     } else {
                         self::_setRestDataFromPath($oRest, $oRequest);
 
-                        Log::d('Route.query.dynamic', [
+                        Log::d('API.Route.query.dynamic', [
                             'path'          => $oRequest->Path,
                             'method'        => $sMethod,
                             'headers'       => $oRequest->OriginalRequest->getHeaders(),
@@ -281,7 +281,7 @@
                 $oRest->Response->statusMethodNotAllowed();
                 return $oRest->Response;
             } catch (\Exception $e) {
-                Log::c('API.REQUEST.FAIL', [
+                Log::c('API.Route._getRequest.Error', [
                     'request' => [
                         'path'      => $oRequest->OriginalRequest->getUri()->getPath(),
                         'headers'   => $oRequest->OriginalRequest->getHeaders(),
@@ -399,7 +399,7 @@
                 $bHasClass = DataMap::getClassName($aLastPair[0]) !== null;
 
                 if ($oRequest->isPost() && !isset($aLastPair[1])) {
-                    Log::d('Route._getResultsFromPath.Post.NoId');
+                    Log::d('API.Route._getResultsFromPath.Post.NoId');
 
                     $oTable = self::_getPrimaryTableFromPath($oRequest);
 
@@ -437,11 +437,11 @@
                         $oTable = self::_getPrimaryTableFromPath($oRequest);
 
                         if ($iRows == 1) {
-                            Log::d('Route._getResultsFromPath.FoundOne');
+                            Log::d('API.Route._getResultsFromPath.FoundOne');
 
                             $oRest->setData($oTable->createFromPDOStatement($oResults));
                         } else if ($iRows > 1) {
-                            Log::d('Route._getResultsFromPath.FoundMultiple');
+                            Log::d('API.Route._getResultsFromPath.FoundMultiple');
 
                             $oTables = $oTable::getTables();
                             $oRest->setData(new $oTables($oResults->fetchAll(PDO::FETCH_CLASS, get_class($oTable))));
@@ -458,7 +458,7 @@
                                 }
                             }
                         } else if ($oRequest->isPost()) {
-                            Log::d('Route._getResultsFromPath.FoundNone.Post');
+                            Log::d('API.Route._getResultsFromPath.FoundNone.Post');
 
                             $aPrimary = $oTable->getPrimaryFieldNames();
                             if (count($aPrimary) == 1) {
@@ -487,7 +487,7 @@
         public static function _getQueryFromPath(Request &$oRequest) {
             $oTable    = self::_getPrimaryTableFromPath($oRequest);
 
-            Log::d('Route._getQueryFromPath', [
+            Log::d('API.Route._getQueryFromPath', [
                 'table_class'   => get_class($oTable),
                 'table'         => $oTable->getTitle()
             ]);
@@ -502,7 +502,7 @@
             }
 
             while (count($aPairs) > 0) {
-                Log::d('Route._getQueryFromPath.Pairs', ['pairs' => json_encode($aPairs)]);
+                Log::d('API.Route._getQueryFromPath.Pairs', ['pairs' => json_encode($aPairs)]);
 
                 $aPart = array_shift($aPairs);
                 $sClassName = DataMap::getClassName($aPart[0]);
@@ -516,7 +516,7 @@
                 }
 
                 if (isset($aPart[1])) {
-                    Log::d('Route._getQueryFromPath.Pairs.PartWithValue', ['part' => json_encode($aPart)]);
+                    Log::d('API.Route._getQueryFromPath.Pairs.PartWithValue', ['part' => json_encode($aPart)]);
                     $oReference = $oTable->getFieldThatReferencesTable($oWhereTable);
                     if ($oReference instanceof ORM\Field === false) {
                         throw new Exception\InvalidReference("Cannot Associate " . (new \ReflectionClass($oTable))->getShortName() . ' with ' . (new \ReflectionClass($oWhereTable))->getShortName());
@@ -525,7 +525,7 @@
                     $oQuery->eq_in($oReference, $aPart[1]);
                     $oRequest->updateParam($oReference->sColumn, $aPart[1]);
 
-                    Log::d('Route._getQueryFromPath.Pairs.AddingAttribute', [
+                    Log::d('API.Route._getQueryFromPath.Pairs.AddingAttribute', [
                         'field' => $oReference->sColumn,
                         'value' => $aPart[1]
                     ]);
@@ -533,9 +533,9 @@
             }
 
             if (isset($aLastPair[1])) {
-                Log::d('Route._getQueryFromPath.Querying.HasID');
+                Log::d('API.Route._getQueryFromPath.Querying.HasID');
             } else {
-                Log::d('Route._getQueryFromPath.Querying.NoID');
+                Log::d('API.Route._getQueryFromPath.Querying.NoID');
 
                 $iPer   = isset($oRequest->GET['per'])  ? $oRequest->GET['per']  : 1000;
                 $iPage  = isset($oRequest->GET['page']) ? $oRequest->GET['page'] : 1;
@@ -566,7 +566,7 @@
                             $oSearchField = DataMap::getField($oTable, $sSearchField);
 
                             if ($oSearchField instanceof ORM\Field) {
-                                Log::d('Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => ':']);
+                                Log::d('API.Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => ':']);
 
                                 if ($sSearchValue == 'null') {
                                     $aConditions[] = SQL::nul($oSearchField);
@@ -589,7 +589,7 @@
                             $oSearchField = DataMap::getField($oTable, $sSearchField);
 
                             if ($oSearchField instanceof ORM\Field) {
-                                Log::d('Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => '>']);
+                                Log::d('API.Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => '>']);
 
                                 if ($oSearchField instanceof ORM\Field\Number) {
                                     $aConditions[] = SQL::gt($oSearchField, $sSearchValue);
@@ -630,7 +630,7 @@
                                 $sSortTable = DataMap::getClassName($aSort[0]);
                                 $sSortField = $aSort[1];
 
-                                Log::d('Route._getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
+                                Log::d('API.Route._getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
 
                                 $sSortTableClass = self::_getNamespacedTableClassName($sSortTable);
 
@@ -691,7 +691,7 @@
          * @return Response
          */
         public static function _endpoint(Array $aRoute, Request $oRequest) {
-            Log::d('Route.endpoint', [
+            Log::d('API.Route.endpoint', [
                 'class'         => $aRoute['class'],
                 'path'          => $oRequest->Path,
                 'headers'       => $oRequest->OriginalRequest->getHeaders(),
@@ -708,17 +708,17 @@
                 }
 
                 if (method_exists($oClass, $sMethod)) {
-                    Log::d('Route.endpoint.response');
+                    Log::d('API.Route.endpoint.response');
                     $oClass->$sMethod();
                 } else {
-                    Log::w('Route.endpoint.methodNotFound');
+                    Log::w('API.Route.endpoint.methodNotFound');
                     $oClass->methodNotAllowed();
                 }
 
                 return $oClass->Response;
             } else {
                 // FIXME: return error;
-                Log::w('Route.endpoint.ClassNotFound');
+                Log::w('API.Route.endpoint.ClassNotFound');
             }
 
             return;
@@ -898,7 +898,7 @@
                 return;
             }
 
-            Log::d('Route._attemptMultiRequest', [
+            Log::d('API.Route._attemptMultiRequest', [
                 'path'          => $oRequest->Path,
                 'headers'       => $oRequest->OriginalRequest->getHeaders(),
                 'attributes'    => $oRequest->OriginalRequest->getAttributes()
@@ -923,7 +923,7 @@
                     }
                 }
 
-                Log::d('Route._attemptMultiRequest.done', [
+                Log::d('API.Route._attemptMultiRequest.done', [
                     'path'       => $oRequest->Path,
                     'headers'    => $oRequest->OriginalRequest->getHeaders(),
                     'attributes' => $oRequest->OriginalRequest->getAttributes()
@@ -941,7 +941,7 @@
         }
 
         public static function _acceptSyncData(Request $oRequest) {
-            Log::d('Route._acceptSyncData', [
+            Log::d('API.Route._acceptSyncData', [
                 'path'    => $oRequest->Path,
                 'headers' => $oRequest->OriginalRequest->getHeaders(),
                 'data'    => json_encode($oRequest->POST)
@@ -958,7 +958,7 @@
                     }
 
                     foreach($aRecords as $sPrimary => $aRecord) {
-                        Log::d('Route._acceptSyncData.attempt', [
+                        Log::d('API.Route._acceptSyncData.attempt', [
                             'endpoint'  => "$sTable/$sPrimary",
                             'POST'      => json_encode($aRecord)
                         ]);
@@ -968,7 +968,7 @@
 
                 self::$bReturnResponses = false;
 
-                Log::d('Route._acceptSyncData.done', [
+                Log::d('API.Route._acceptSyncData.done', [
                     'path'    => $oRequest->Path,
                     'headers' => $oRequest->OriginalRequest->getHeaders(),
                     'data'    => json_encode($oRequest->POST)
@@ -1015,7 +1015,7 @@
                 $sEndpoint   = self::_fillEndpointTemplateFromData($sEndpoint);
                 $aPostParams = self::_fillPostTemplateFromData($aPostParams);
             } catch (Exception\NoTemplateValues $e) {
-                Log::e('API.attemptRequest.skipped.missing.keys', [
+                Log::e('API.Route._attemptRequest.skipped.missing.keys', [
                     'endpoint' => $sEndpoint,
                     'params'   => $aPostParams
                 ]);
@@ -1036,12 +1036,18 @@
                 parse_str(substr($aServer['QUERY_STRING'], 1), $aGet);
             }
 
+            Log::i('API.Route._attemptRequest', [
+                'endpoint'  => $sEndpoint,
+                'get'       => json_encode($aGet),
+                'post'      => json_encode($aPostParams)
+            ]);
+
             Log::startChildRequest();
             $oResponse = self::index(self::_serverRequestFactory($aServer, $aGet, $aPostParams));
             Log::endChildRequest();
 
             if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
-                Log::d('API.ENDPOINT.RESPONSE', [
+                Log::i('API.Route._attemptRequest.Response', [
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
                     'headers'  => $oResponse->headers,
@@ -1081,14 +1087,14 @@
                 }
             } else if ($oResponse) {
                 // TODO: Report Errors
-                Log::e('API.ENDPOINT.RESPONSE.ERROR', [
+                Log::e('API.Route._attemptRequest.Error', [
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
                     'headers'  => $oResponse->headers,
                     'body'     => json_encode($oResponse->data)
                 ]);
             } else {
-                Log::e('API.ENDPOINT.RESPONSE.NONE');
+                Log::w('API.Route._attemptRequest.None');
             }
         }
 
