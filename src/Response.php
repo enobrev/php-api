@@ -82,6 +82,7 @@
             $this->oOutput->_request->attributes = $oRequest->OriginalRequest->getAttributes();
             $this->oOutput->_request->query      = $oRequest->OriginalRequest->getQueryParams();
             $this->oOutput->_request->data       = $oRequest->POST;
+            $this->oOutput->_request->logs       = Log::getRequestHashForOutput();
             $this->oOutput->_server = self::getServerObject();
             $this->iStatus = HTTP\OK;
         }
