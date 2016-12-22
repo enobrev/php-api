@@ -571,10 +571,9 @@
                                 if ($sSearchValue == 'null') {
                                     $aConditions[] = SQL::nul($oSearchField);
                                 } else if ($oSearchField instanceof ORM\Field\Number
-                                       ||  $oSearchField instanceof ORM\Field\Enum) {
+                                       ||  $oSearchField instanceof ORM\Field\Enum
+                                       ||  $oSearchField instanceof ORM\Field\Date) {
                                     $aConditions[] = SQL::eq($oSearchField, $sSearchValue);
-                                } else if ($oSearchField instanceof ORM\Field\Date) {
-                                    // TODO: handle dates
                                 } else {
                                     $aConditions[] = SQL::like($oSearchField, '%' . $sSearchValue . '%');
                                 }
@@ -589,12 +588,17 @@
                             $oSearchField = DataMap::getField($oTable, $sSearchField);
 
                             if ($oSearchField instanceof ORM\Field) {
-                                Log::d('API.Route._getQueryFromPath.Querying.Search', ['field' => $sSearchField, 'value' => $sSearchValue, 'operator' => '>']);
+                                Log::d('API.Route._getQueryFromPath.Querying.Search', [
+                                    'field'    => $oSearchField->sColumn,
+                                    'type'     => get_class($oSearchField),
+                                    'value'    => $sSearchValue,
+                                    'operator' => '>'
+                                ]);
 
-                                if ($oSearchField instanceof ORM\Field\Number) {
+                                if ($oSearchField instanceof ORM\Field\Number
+                                ||  $oSearchField instanceof ORM\Field\Date) {
+                                    Log::d('API.Route._getQueryFromPath.Querying.Search.Number');
                                     $aConditions[] = SQL::gt($oSearchField, $sSearchValue);
-                                } else if ($oSearchField instanceof ORM\Field\Date) {
-                                    // TODO: handle dates
                                 }
 
                                 continue;
@@ -602,6 +606,8 @@
 
                         }
 
+                        // TODO: I'm not sure why this is here.  I want to remove it but I don't want to break anything
+                        // TODO: ... It seems it should be part of a _like_ or something, though it's doing a like on multiple fields
                         foreach ($oTable->getFields() as $oField) {
                             if ($oField instanceof ORM\Field\Date) {
                                 // TODO: handle dates
