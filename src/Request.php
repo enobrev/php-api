@@ -73,12 +73,24 @@
             if ($aHeader && $aHeader[0] == 'application/x-www-form-urlencoded') {
                 $sContents = $this->OriginalRequest->getBody()->getContents() ?: (string) $this->OriginalRequest->getBody();
                 parse_str($sContents, $aPut);
+            } else if ($aHeader && $aHeader[0] == 'application/json') {
+                $sContents = $this->OriginalRequest->getBody()->getContents() ?: (string)$this->OriginalRequest->getBody();
+                $aContents = json_decode($sContents, true);
+                if ($aContents && is_array($aContents)) {
+                    $aPut = array_merge($aPut, $aContents);
+                }
             } else if ($aHeader && $aHeader[0]) {
+                Log::w('API.Request.handlePut.NotHandled');
+                /*
                 new Stream($aPut, $aHeader[0]);
                 $aPut = $aPut['post'] ?? [];
+                */
             } else {
+                Log::w('API.Request.handlePut.NotHandled');
+                /*
                 new Stream($aPut);
                 $aPut = $aPut['post'] ?? [];
+                */
             }
 
             if (isset($aPut['__json'])) {
