@@ -1082,13 +1082,15 @@
                     unset($aResponseParsed['counts']);
                 }
 
-                foreach($aResponseParsed as $sTable => $aRecords) {
-                    if (!isset(self::$aData[$sTable])) {
-                        self::$aData[$sTable] = [];
-                    }
+                if ($aResponseParsed) {
+                    foreach ($aResponseParsed as $sTable => $aRecords) {
+                        if (!isset(self::$aData[$sTable])) {
+                            self::$aData[$sTable] = [];
+                        }
 
-                    foreach($aRecords as $sId => $aRecord) {
-                        self::$aData[$sTable][$sId] = $aRecord;
+                        foreach ($aRecords as $sId => $aRecord) {
+                            self::$aData[$sTable][$sId] = $aRecord;
+                        }
                     }
                 }
             } else if ($oResponse) {
