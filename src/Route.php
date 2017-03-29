@@ -606,8 +606,7 @@
 
                         }
 
-                        // TODO: I'm not sure why this is here.  I want to remove it but I don't want to break anything
-                        // TODO: ... It seems it should be part of a _like_ or something, though it's doing a like on multiple fields
+                        // Search all Searchable fields - we should be checking if this is a general search (no colons or >'s or anything) and then only do this in that case
                         foreach ($oTable->getFields() as $oField) {
                             if ($oField instanceof ORM\Field\Date) {
                                 // TODO: handle dates

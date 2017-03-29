@@ -99,7 +99,7 @@
         /**
          * @param string $sPath
          * @param ORM\Table $oDatum
-         * @return array
+         * @return ORM\Field[]
          */
         public static function getResponseMap(string $sPath, ORM\Table $oDatum) {
             $aMap         = self::getMap($sPath);
