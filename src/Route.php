@@ -426,7 +426,7 @@
             $sRoute = trim($sRoute, '/');
 
             $aPossible = array_filter($aRoutes, function ($aRoute) use ($iSegments) {
-                return $aRoute['segments'] == $iSegments;
+                return $aRoute['segments'] == $iSegments || ($aRoute['type'] == self::QUERY_ROUTE_REST && $aRoute['segments'] == $iSegments - 1);
             });
 
             foreach ($aPossible as $sMatch => $aRoute) {
