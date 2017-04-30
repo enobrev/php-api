@@ -247,6 +247,7 @@
                                 case self::QUERY_ROUTE_REST:
                                     $oRequest->updateParams($aRoute['params']);
 
+                                    /** @var Rest $oClass */
                                     $oClass = new $sClass($oRequest);
                                     $oClass->setDataFromPath();
                                     $oClass->$sQueryMethod();
@@ -614,6 +615,10 @@
             self::$bReturnResponses = false;
         }
 
+        /**
+         * @param Request $oRequest
+         * @return Response
+         */
         public static function _acceptSyncData(Request $oRequest) {
             Log::d('API.Route._acceptSyncData', [
                 'path'    => $oRequest->Path,
