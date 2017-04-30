@@ -235,11 +235,20 @@
                                     break;
 
                                 case self::QUERY_ROUTE_ENDPOINT:
-                                case self::QUERY_ROUTE_REST:
                                     $oRequest->updateParams($aRoute['params']);
 
                                     /** @var Base $oClass */
                                     $oClass = new $sClass($oRequest);
+                                    $oClass->$sQueryMethod();
+
+                                    return $oClass->Response;
+                                    break;
+
+                                case self::QUERY_ROUTE_REST:
+                                    $oRequest->updateParams($aRoute['params']);
+
+                                    $oClass = new $sClass($oRequest);
+                                    $oClass->setDataFromPath();
                                     $oClass->$sQueryMethod();
 
                                     return $oClass->Response;
