@@ -78,6 +78,7 @@
 
         const QUERY_ROUTE_ENDPOINT = 'ENDPOINT';
         const QUERY_ROUTE_TABLE    = 'TABLE';
+        const QUERY_ROUTE_REST     = 'REST';
 
         /**
          * @param string $sRoute
@@ -95,6 +96,14 @@
          */
         public static function addTableRoute(string $sRoute, string $sClass, string $sMethod) {
             self::addQueryRoute(self::QUERY_ROUTE_TABLE, $sRoute, $sClass, $sMethod);
+        }
+
+        /**
+         * @param string $sRoute
+         * @param string $sClass
+         */
+        public static function addRestRoute(string $sRoute, string $sClass) {
+            self::addQueryRoute(self::QUERY_ROUTE_REST, $sRoute, $sClass, self::QUERY_ROUTE_REST);
         }
 
         /**
@@ -200,8 +209,8 @@
 
                     $aRoute = self::_matchQuery(self::$aCachedQueryRoutes, $oRequest);
                     if ($aRoute) {
-                        $sClass = $aRoute['class'];
-                        $sQueryMethod = $aRoute['method'];
+                        $sClass       = $aRoute['class'];
+                        $sQueryMethod = $aRoute['method'] == self::QUERY_ROUTE_REST ? $oRequest->Method : $aRoute['method'];
 
                         Log::d('API.Route.query.cached', [
                             'class'      => $sClass,
@@ -226,6 +235,7 @@
                                     break;
 
                                 case self::QUERY_ROUTE_ENDPOINT:
+                                case self::QUERY_ROUTE_REST:
                                     $oRequest->updateParams($aRoute['params']);
 
                                     /** @var Base $oClass */
@@ -544,9 +554,9 @@
         }
          *
          *
-         *
-         * @param Request $oRequest
-         * @return Response
+         * @param  Request       $oRequest
+         * @param  Response|null $oSyncResponse
+         * @return Response|void
          */
         public static function _attemptMultiRequest(Request $oRequest, Response $oSyncResponse = null) {
             if (self::$bReturnResponses) {

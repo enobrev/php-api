@@ -71,7 +71,11 @@
                 return;
             }
 
-            $this->Response->setHeadersFromTable($this->Data);
+            if ($this->Data instanceof ORM\Table) {
+                $this->Response->setHeadersFromTable($this->Data);
+                return;
+            }
+
             $this->Response->statusNoContent();
             return;
         }
