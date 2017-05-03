@@ -114,9 +114,13 @@
          * HTTP GET for Multiple Records
          */
         protected function gets() {
-            $this->Response->add($this->sPath, DataMap::getIndexedResponseMaps($this->sPath, $this->Data));
-            $this->Response->add('sorts.' . $this->sPath, $this->getSorts());
-            $this->Response->setLastModifiedFromTables($this->Data);
+            if ($this->Data->count() > 0) {
+                $this->Response->add($this->sPath, DataMap::getIndexedResponseMaps($this->sPath, $this->Data));
+                $this->Response->add('sorts.' . $this->sPath, $this->getSorts());
+                $this->Response->setLastModifiedFromTables($this->Data);
+            } else {
+                $this->Response->statusNotFound();
+            }
             return;
         }
 
