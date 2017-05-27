@@ -28,6 +28,7 @@
         const FORMAT_JSON      = 'json';
         const FORMAT_CSV       = 'csv';
         const FORMAT_EMPTY     = 'empty';
+        const FORMAT_HTML      = 'html';
 
         const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
         const HTTP_DATE_FORMAT = 'D, d M Y H:i:s T';
@@ -381,6 +382,11 @@
 
                     case self::FORMAT_EMPTY:
                         $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                        break;
+
+                    case self::FORMAT_HTML:
+                        $oEmitter->emit(new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders));
+                        break;
                 }
             }
         }
