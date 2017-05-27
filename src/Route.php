@@ -137,7 +137,7 @@
 
                 $sVersionedRoute = implode('/', $aParsed);
                 $sVersionedRoute = str_replace('*', '([^/]+)', $sVersionedRoute);
-                $sVersionedRoute = '~' . $sVersionedRoute . '~';
+                $sVersionedRoute = '~^' . $sVersionedRoute . '$~';
 
                 $aRoute['segments'] = count($aPath);
                 $aRoute['params']   = $aParams;
