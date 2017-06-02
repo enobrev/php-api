@@ -690,6 +690,9 @@
          * @param array $aPostParams
          */
         public static function _attemptRequest($sEndpoint, array $aPostParams = []) {
+            $sTimerName = 'Route._attemptRequest';
+            Log::startTimer($sTimerName);
+
             try {
                 $sEndpoint   = self::_fillEndpointTemplateFromData($sEndpoint);
                 $aPostParams = self::_fillPostTemplateFromData($aPostParams);
@@ -725,12 +728,15 @@
             $oResponse = self::index(self::_serverRequestFactory($aServer, $aGet, $aPostParams));
             Log::endChildRequest();
 
+            $nRequestTimer = Log::stopTimer($sTimerName);
+
             if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
                 Log::i('API.Route._attemptRequest.Response', [
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
                     'headers'  => $oResponse->headers,
-                    'body'     => json_encode($oResponse->data)
+                    'body'     => json_encode($oResponse->data),
+                    '--ms'     => $nRequestTimer
                 ]);
 
                 $aResponseParsed = json_decode(json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
@@ -772,10 +778,13 @@
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
                     'headers'  => $oResponse->headers,
-                    'body'     => json_encode($oResponse->data)
+                    'body'     => json_encode($oResponse->data),
+                    '--ms'     => $nRequestTimer
                 ]);
             } else {
-                Log::w('API.Route._attemptRequest.None');
+                Log::w('API.Route._attemptRequest.None', [
+                    '--ms' => $nRequestTimer
+                ]);
             }
         }
 
