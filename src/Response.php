@@ -395,11 +395,7 @@
          * @return stdClass
          */
         public function getOutput() {
-            $oOutput = new stdClass();
-            $oOutput->headers   = $this->aHeaders;
-            $oOutput->status    = $this->iStatus;
-            $oOutput->data      = $this->oOutput;
-            return $oOutput;
+            return $this->oOutput;
         }
 
         /**
