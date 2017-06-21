@@ -43,6 +43,9 @@
         /** @var  array */
         protected $aResponse;
 
+        /** @var  Request */
+        protected $Request;
+
         /** @var  string */
         protected $sTextOutput;
 
@@ -54,6 +57,9 @@
 
         /** @var  int */
         protected $iStatus;
+
+        /** @var  bool */
+        protected $bIncludeRequestInOutput;
 
         /** @var array */
         protected static $aAllowedURIs = ['*'];
@@ -75,17 +81,38 @@
             }
 
             $this->aHeaders = [];
+            $this->includeRequestInOutput(false);
+            $this->setRequest($oRequest);
             $this->setFormat($oRequest->Format);
-            $this->oOutput  = new stdClass();
-            $this->oOutput->_request = new stdClass();
-            $this->oOutput->_request->method     = $oRequest->OriginalRequest->getMethod();
-            $this->oOutput->_request->path       = $oRequest->OriginalRequest->getUri()->getPath();
-            $this->oOutput->_request->attributes = $oRequest->OriginalRequest->getAttributes();
-            $this->oOutput->_request->query      = $oRequest->OriginalRequest->getQueryParams();
-            $this->oOutput->_request->data       = $oRequest->POST;
-            $this->oOutput->_request->logs       = Log::getRequestHashForOutput();
-            $this->oOutput->_server = self::getServerObject();
-            $this->iStatus = HTTP\OK;
+            $this->setStatus(HTTP\OK);
+
+            $this->oOutput = new stdClass();
+
+        }
+
+        /**
+         * @param Request $oRequest
+         */
+        private function setRequest(Request $oRequest) {
+            $this->Request = $oRequest;
+        }
+
+        /**
+         * @return stdClass
+         */
+        private function getRequestOutput() {
+            $oRequest = new stdClass();
+            $oRequest->logs = Log::getRequestHashForOutput();
+
+            if ($this->bIncludeRequestInOutput) {
+                $oRequest->method       = $this->Request->OriginalRequest->getMethod();
+                $oRequest->path         = $this->Request->OriginalRequest->getUri()->getPath();
+                $oRequest->attributes   = $this->Request->OriginalRequest->getAttributes();
+                $oRequest->query        = $this->Request->OriginalRequest->getQueryParams();
+                $oRequest->data         = $this->Request->POST;
+            }
+
+            return $oRequest;
         }
 
         /**
@@ -97,6 +124,13 @@
             self::$sScheme      = $sScheme;
             self::$sDomain      = $sDomain;
             self::$aAllowedURIs = $aAllowedURIs;
+        }
+
+        /**
+         * @param bool $bIncludeRequestInOutput
+         */
+        public function includeRequestInOutput(bool $bIncludeRequestInOutput) {
+            $this->bIncludeRequestInOutput = $bIncludeRequestInOutput;
         }
 
         /**
@@ -349,12 +383,13 @@
          */
         public function respond() {
             $bAccessControlHeaders = $this->setOrigin();
+            $oOutput               = $this->getOutput();
 
             Log::i('API.Response.respond', [
                 'ach'     => $bAccessControlHeaders,
                 'status'  => $this->iStatus,
                 'headers' => $this->aHeaders,
-                'body'    => json_encode($this->oOutput)
+                'body'    => json_encode($oOutput)
             ]);
 
             $oEmitter = new ZendResponse\SapiEmitter();
@@ -370,7 +405,7 @@
                 switch($this->sFormat) {
                     default:
                     case self::FORMAT_JSON:
-                        $oResponse = new ZendResponse\JsonResponse($this->oOutput, $this->iStatus, $this->aHeaders);
+                        $oResponse = new ZendResponse\JsonResponse($oOutput, $this->iStatus, $this->aHeaders);
                         $oEmitter->emit($oResponse);
                         break;
 
@@ -395,7 +430,23 @@
          * @return stdClass
          */
         public function getOutput() {
-            return $this->oOutput;
+            $oOutput = $this->oOutput;
+            $oOutput->_server  = self::getServerObject();
+            $oOutput->_request = $this->getRequestOutput();
+
+            return $oOutput;
+        }
+
+        /**
+         * @return stdClass
+         */
+        public function toObject() {
+            $oOutput = new stdClass();
+            $oOutput->headers   = $this->aHeaders;
+            $oOutput->status    = $this->iStatus;
+            $oOutput->data      = $this->getOutput();
+
+            return $oOutput;
         }
 
         /**

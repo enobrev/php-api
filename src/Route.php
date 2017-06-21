@@ -69,7 +69,7 @@
 
             if ($bReturn) {
                 Log::d('API.Route.index.return');
-                return $oResponse->getOutput();
+                return $oResponse->toObject();
             } else {
                 Log::d('API.Route.index.respond');
                 $oResponse->respond();
