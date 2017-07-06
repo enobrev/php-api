@@ -358,6 +358,7 @@
             ]);
 
             $oQuery = SQLBuilder::select($oTable);
+            $oQuery->fields($oTable);
 
             $aPairs    = $this->Request->getPathPairs();
             $aLastPair = array_pop($aPairs);
