@@ -431,8 +431,11 @@
          */
         public function getOutput() {
             $oOutput = $this->oOutput;
-            $oOutput->_server  = self::getServerObject();
-            $oOutput->_request = $this->getRequestOutput();
+
+            if ($oOutput instanceof stdClass) {
+                $oOutput->_server = self::getServerObject();
+                $oOutput->_request = $this->getRequestOutput();
+            }
 
             return $oOutput;
         }
