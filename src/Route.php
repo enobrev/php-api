@@ -693,6 +693,10 @@
             $sTimerName = 'Route._attemptRequest';
             Log::startTimer($sTimerName);
 
+            Log::d('API.Route._attemptRequest.template', [
+                'endpoint' => $sEndpoint
+            ]);
+
             try {
                 $sEndpoint   = self::_fillEndpointTemplateFromData($sEndpoint);
                 $aPostParams = self::_fillPostTemplateFromData($aPostParams);
@@ -773,14 +777,23 @@
                     }
                 }
             } else if ($oResponse) {
-                // TODO: Report Errors
-                Log::e('API.Route._attemptRequest.Done', [
-                    'endpoint' => $sEndpoint,
-                    'status'   => $oResponse->status,
-                    'headers'  => $oResponse->headers,
-                    'body'     => json_encode($oResponse->data),
-                    '--ms'     => $nRequestTimer
-                ]);
+                if ($oResponse->status == HTTP\NOT_FOUND) {
+                    Log::w('API.Route._attemptRequest.Done', [
+                        'endpoint' => $sEndpoint,
+                        'status'   => $oResponse->status,
+                        'headers'  => $oResponse->headers,
+                        'body'     => json_encode($oResponse->data),
+                        '--ms'     => $nRequestTimer
+                    ]);
+                } else {
+                    Log::e('API.Route._attemptRequest.Done', [
+                        'endpoint' => $sEndpoint,
+                        'status'   => $oResponse->status,
+                        'headers'  => $oResponse->headers,
+                        'body'     => json_encode($oResponse->data),
+                        '--ms'     => $nRequestTimer
+                    ]);
+                }
             } else {
                 Log::w('API.Route._attemptRequest.Done', [
                     'endpoint' => $sEndpoint,
