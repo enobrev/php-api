@@ -731,7 +731,7 @@
             $nRequestTimer = Log::stopTimer($sTimerName);
 
             if ($oResponse && $oResponse->status == HTTP\OK) { //  || $oResponse->status == HTTP\NOT_FOUND // Return the 0-count
-                Log::i('API.Route._attemptRequest.Response', [
+                Log::i('API.Route._attemptRequest.Done', [
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
                     'headers'  => $oResponse->headers,
@@ -774,7 +774,7 @@
                 }
             } else if ($oResponse) {
                 // TODO: Report Errors
-                Log::e('API.Route._attemptRequest.Error', [
+                Log::e('API.Route._attemptRequest.Done', [
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
                     'headers'  => $oResponse->headers,
@@ -782,8 +782,9 @@
                     '--ms'     => $nRequestTimer
                 ]);
             } else {
-                Log::w('API.Route._attemptRequest.None', [
-                    '--ms' => $nRequestTimer
+                Log::w('API.Route._attemptRequest.Done', [
+                    'endpoint' => $sEndpoint,
+                    '--ms'     => $nRequestTimer
                 ]);
             }
         }
