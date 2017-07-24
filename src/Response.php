@@ -284,6 +284,7 @@
             $oServer->timezone      = $oNow->format('T');
             $oServer->timezone_gmt  = $oNow->format('P');
             $oServer->date          = $oNow->format(self::SYNC_DATE_FORMAT);
+            $oServer->date_w3c      = $oNow->format(DateTime::W3C);
             return $oServer;
         }
 
