@@ -225,9 +225,13 @@
         protected function overridePrimaries(array $aOverridePrimaries = []) {
             $aAttributes = $this->Request->OriginalRequest->getAttributes();
             foreach($aAttributes as $sField => $sValue) {
-                $oField = $this->Data->$sField;
-                if ($oField instanceof ORM\Field) {
-                    $aOverridePrimaries[$sField] = $sValue;
+                try {
+                    $oField = $this->Data->$sField;
+                    if ($oField instanceof ORM\Field) {
+                        $aOverridePrimaries[$sField] = $sValue;
+                    }
+                } catch (\Exception $e) {
+                    // Had a Problem grabbing a field - not the end of the world.
                 }
             }
 
