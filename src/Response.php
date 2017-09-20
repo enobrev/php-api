@@ -412,8 +412,11 @@
 
                     case self::FORMAT_CSS:
                     case self::FORMAT_CSV:
-                        $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
-                        $oEmitter->emit($oResponse);
+                        if ($this->sTextOutput) {
+                            $oEmitter->emit(new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders));
+                        } else {
+                            $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                        }
                         break;
 
                     case self::FORMAT_EMPTY:
@@ -421,7 +424,11 @@
                         break;
 
                     case self::FORMAT_HTML:
-                        $oEmitter->emit(new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders));
+                        if ($this->sTextOutput) {
+                            $oEmitter->emit(new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders));
+                        } else {
+                            $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                        }
                         break;
                 }
             }
