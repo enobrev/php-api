@@ -392,8 +392,8 @@
                 'request' => [
                     'method'     => $this->Request->OriginalRequest->getMethod(),
                     'path'       => $this->Request->OriginalRequest->getUri()->getPath(),
-                    'attributes' => $this->Request->OriginalRequest->getAttributes(),
-                    'query'      => $this->Request->OriginalRequest->getQueryParams(),
+                    'attributes' => json_encode($this->Request->OriginalRequest->getAttributes()),
+                    'query'      => json_encode($this->Request->OriginalRequest->getQueryParams()),
                     'data'       => json_encode($this->Request->POST)
                 ],
                 'headers'       => json_encode($this->aHeaders),
