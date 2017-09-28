@@ -216,8 +216,8 @@
                             'class'      => $sClass,
                             'method'     => $sQueryMethod,
                             'path'       => $oRequest->Path,
-                            'headers'    => $oRequest->OriginalRequest->getHeaders(),
-                            'attributes' => $oRequest->OriginalRequest->getAttributes()
+                            'headers'    => json_encode($oRequest->OriginalRequest->getHeaders()),
+                            'attributes' => json_encode($oRequest->OriginalRequest->getAttributes())
                         ]);
 
                         if (method_exists($sClass, $sQueryMethod)) {
@@ -263,8 +263,8 @@
                         Log::d('API.Route.root', [
                             'path'          => $oRequest->Path,
                             'method'        => $sMethod,
-                            'headers'       => $oRequest->OriginalRequest->getHeaders(),
-                            'attributes'    => $oRequest->OriginalRequest->getAttributes(),
+                            'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
+                            'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
                             'query'         => json_encode($oRequest->GET)
                         ]);
 
@@ -279,7 +279,7 @@
                         Log::d('API.Route.query.dynamic', [
                             'path'          => $oRequest->Path,
                             'method'        => $sMethod,
-                            'headers'       => $oRequest->OriginalRequest->getHeaders(),
+                            'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
                             'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
                             'query'         => json_encode($oRequest->GET)
                         ]);
@@ -300,7 +300,7 @@
                 Log::c('API.Route._getRequest.Error', [
                     'request' => [
                         'path'      => $oRequest->OriginalRequest->getUri()->getPath(),
-                        'headers'   => $oRequest->OriginalRequest->getHeaders(),
+                        'headers'   => json_encode($oRequest->OriginalRequest->getHeaders()),
                         'params'    => $oRequest->OriginalRequest->getParsedBody()
                     ],
                     'error' => [
@@ -369,8 +369,8 @@
             Log::d('API.Route.endpoint', [
                 'class'         => $aRoute['class'],
                 'path'          => $oRequest->Path,
-                'headers'       => $oRequest->OriginalRequest->getHeaders(),
-                'attributes'    => $oRequest->OriginalRequest->getAttributes()
+                'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
+                'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes())
             ]);
 
             /** @var Base $oClass */
@@ -575,8 +575,8 @@
 
             Log::d('API.Route._attemptMultiRequest', [
                 'path'          => $oRequest->Path,
-                'headers'       => $oRequest->OriginalRequest->getHeaders(),
-                'attributes'    => $oRequest->OriginalRequest->getAttributes()
+                'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
+                'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes())
             ]);
 
             self::$bReturnResponses = true;
@@ -600,8 +600,8 @@
 
                 Log::d('API.Route._attemptMultiRequest.done', [
                     'path'       => $oRequest->Path,
-                    'headers'    => $oRequest->OriginalRequest->getHeaders(),
-                    'attributes' => $oRequest->OriginalRequest->getAttributes()
+                    'headers'    => json_encode($oRequest->OriginalRequest->getHeaders()),
+                    'attributes' => json_encode($oRequest->OriginalRequest->getAttributes())
                 ]);
 
                 $oResponse = $oSyncResponse ? $oSyncResponse : new Response($oRequest);
@@ -622,7 +622,7 @@
         public static function _acceptSyncData(Request $oRequest) {
             Log::d('API.Route._acceptSyncData', [
                 'path'    => $oRequest->Path,
-                'headers' => $oRequest->OriginalRequest->getHeaders(),
+                'headers' => json_encode($oRequest->OriginalRequest->getHeaders()),
                 'data'    => json_encode($oRequest->POST)
             ]);
 
@@ -649,7 +649,7 @@
 
                 Log::d('API.Route._acceptSyncData.done', [
                     'path'    => $oRequest->Path,
-                    'headers' => $oRequest->OriginalRequest->getHeaders(),
+                    'headers' => json_encode($oRequest->OriginalRequest->getHeaders()),
                     'data'    => json_encode($oRequest->POST)
                 ]);
 
@@ -738,7 +738,7 @@
                 Log::i('API.Route._attemptRequest.Done', [
                     'endpoint' => $sEndpoint,
                     'status'   => $oResponse->status,
-                    'headers'  => $oResponse->headers,
+                    'headers'  => json_encode($oResponse->headers),
                     'body'     => json_encode($oResponse->data),
                     '--ms'     => $nRequestTimer
                 ]);
@@ -781,7 +781,7 @@
                     Log::w('API.Route._attemptRequest.Done', [
                         'endpoint' => $sEndpoint,
                         'status'   => $oResponse->status,
-                        'headers'  => $oResponse->headers,
+                        'headers'  => json_encode($oResponse->headers),
                         'body'     => json_encode($oResponse->data),
                         '--ms'     => $nRequestTimer
                     ]);
@@ -789,7 +789,7 @@
                     Log::e('API.Route._attemptRequest.Done', [
                         'endpoint' => $sEndpoint,
                         'status'   => $oResponse->status,
-                        'headers'  => $oResponse->headers,
+                        'headers'  => json_encode($oResponse->headers),
                         'body'     => json_encode($oResponse->data),
                         '--ms'     => $nRequestTimer
                     ]);

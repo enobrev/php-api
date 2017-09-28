@@ -389,12 +389,14 @@
             Log::i('API.Response.respond', [
                 'ach'           => $bAccessControlHeaders,
                 'status'        => $this->iStatus,
-                'headers'       => $this->aHeaders,
-                'method'        => $this->Request->OriginalRequest->getMethod(),
-                'path'          => $this->Request->OriginalRequest->getUri()->getPath(),
-                'attributes'    => $this->Request->OriginalRequest->getAttributes(),
-                'query'         => $this->Request->OriginalRequest->getQueryParams(),
-                'data'          => $this->Request->POST,
+                'request' => [
+                    'method'     => $this->Request->OriginalRequest->getMethod(),
+                    'path'       => $this->Request->OriginalRequest->getUri()->getPath(),
+                    'attributes' => $this->Request->OriginalRequest->getAttributes(),
+                    'query'      => $this->Request->OriginalRequest->getQueryParams(),
+                    'data'       => json_encode($this->Request->POST)
+                ],
+                'headers'       => json_encode($this->aHeaders),
                 'body'          => json_encode($oOutput)
             ]);
 
