@@ -119,7 +119,7 @@
                 $this->Response->add('sorts.' . $this->sPath, $this->getSorts());
                 $this->Response->setLastModifiedFromTables($this->Data);
             } else {
-                $this->Response->statusNotFound();
+                $this->Response->statusNoContent();
             }
             return;
         }
