@@ -506,6 +506,11 @@
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
+        public function statusInternalServerError() {
+            $this->setStatus(HTTP\INTERNAL_SERVER_ERROR);
+            //$this->setFormat(self::FORMAT_EMPTY);
+        }
+
         public function statusUnauthorized() {
             $this->setStatus(HTTP\UNAUTHORIZED);
             //$this->setFormat(self::FORMAT_EMPTY);
