@@ -297,13 +297,14 @@
                 $oRest->Response->statusMethodNotAllowed();
                 return $oRest->Response;
             } catch (\Exception $e) {
+                Log::setProcessIsError(true);
                 Log::c('API.Route._getRequest.Error', [
                     'request' => [
                         'path'      => $oRequest->OriginalRequest->getUri()->getPath(),
                         'headers'   => json_encode($oRequest->OriginalRequest->getHeaders()),
                         'params'    => $oRequest->OriginalRequest->getParsedBody()
                     ],
-                    'error' => [
+                    '#error' => [
                         'type'    => get_class($e),
                         'code'    => $e->getCode(),
                         'message' => $e->getMessage(),
@@ -363,9 +364,9 @@
         /**
          * @param array   $aRoute
          * @param Request $oRequest
-         * @return Response
+         * @return Response|null
          */
-        public static function _endpoint(Array $aRoute, Request $oRequest) {
+        public static function _endpoint(Array $aRoute, Request $oRequest) : ?Response {
             Log::d('API.Route.endpoint', [
                 'class'         => $aRoute['class'],
                 'path'          => $oRequest->Path,
@@ -396,7 +397,7 @@
                 Log::w('API.Route.endpoint.ClassNotFound');
             }
 
-            return;
+            return null;
         }
 
         /**
@@ -786,6 +787,7 @@
                         '--ms'     => $nRequestTimer
                     ]);
                 } else {
+                    Log::setProcessIsError(true);
                     Log::e('API.Route._attemptRequest.Done', [
                         'endpoint' => $sEndpoint,
                         'status'   => $oResponse->status,

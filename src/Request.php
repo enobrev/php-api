@@ -46,19 +46,19 @@
             }
 
             Log::i('API.Request.init', [
-                'OriginalRequest' => json_encode([
-                    'uri'           => $this->OriginalRequest->getUri(),
-                    'attributes'    => $this->OriginalRequest->getAttributes(),
-                    'headers'       => $this->OriginalRequest->getHeaders(),
-                    'body.contents' => $this->OriginalRequest->getBody()->getContents(),
-                    'parsed_body'   => $this->OriginalRequest->getParsedBody()
-                ]),
-                'Path'            => $this->Path,
-                'Format'          => $this->Format,
-                'Method'          => $this->Method,
-                'GET'             => json_encode($this->GET  ?? []),
-                'POST'            => json_encode($this->POST ?? []),
-                'PUT'             => json_encode($this->PUT ?? [])
+                '#request' => [
+                    'uri'        => $this->OriginalRequest->getUri(),
+                    'method'     => $this->Method,
+                    'path'       => implode('/', $this->Path),
+                    'format'     => $this->Format,
+                    'attributes' => json_encode($this->OriginalRequest->getAttributes()),
+                    'query'      => json_encode($this->OriginalRequest->getQueryParams()),
+                    'data'       => [
+                        'GET'  => json_encode($this->GET ?? []),
+                        'POST' => json_encode($this->POST ?? []),
+                        'PUT'  => json_encode($this->PUT ?? [])
+                    ]
+                ]
             ]);
         }
 

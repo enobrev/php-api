@@ -387,17 +387,10 @@
             $oOutput               = $this->getOutput();
 
             Log::i('API.Response.respond', [
-                'ach'           => $bAccessControlHeaders,
-                'status'        => $this->iStatus,
-                'request' => [
-                    'method'     => $this->Request->OriginalRequest->getMethod(),
-                    'path'       => $this->Request->OriginalRequest->getUri()->getPath(),
-                    'attributes' => json_encode($this->Request->OriginalRequest->getAttributes()),
-                    'query'      => json_encode($this->Request->OriginalRequest->getQueryParams()),
-                    'data'       => json_encode($this->Request->POST)
-                ],
-                'headers'       => json_encode($this->aHeaders),
-                'body'          => json_encode($oOutput)
+                '#ach'     => $bAccessControlHeaders,
+                '#status'  => $this->iStatus,
+                '#headers' => json_encode($this->aHeaders),
+                'body'     => json_encode($oOutput)
             ]);
 
             $oEmitter = new ZendResponse\SapiEmitter();
