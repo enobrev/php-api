@@ -65,6 +65,21 @@
         }
 
         /**
+         * @param $oClass
+         * @return string
+         */
+        public static function getClassPath($oClass) {
+            $aMap     = self::getMap('_CLASSES_');
+            $aFlipped = array_flip($aMap);
+
+            $sClass   = get_class($oClass);
+            $aClass   = explode('::', $sClass);
+            $sClass   = array_pop($aClass);
+
+            return $aFlipped[$sClass] ?? null;
+        }
+
+        /**
          * @param string $sDataFile
          */
         public static function setDataFile(string $sDataFile) {

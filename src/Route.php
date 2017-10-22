@@ -260,6 +260,9 @@
                         }
                     } else if ($oRest->Request->pathIsRoot()) {
                         Log::d('API.Route.root', [
+                            '#request' => [
+                                'path_normalized' => '/'
+                            ],
                             'path'          => $oRequest->Path,
                             'method'        => $sMethod,
                             'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
@@ -276,7 +279,10 @@
                         $oRest->setDataFromPath();
 
                         Log::d('API.Route.query.dynamic', [
-                            'path'          => $oRequest->Path,
+                            '#request' => [
+                                'path_normalized' => DataMap::getClassPath($oRest)
+                            ],
+                            'path'          => implode('/', $oRequest->Path),
                             'method'        => $sMethod,
                             'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
                             'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
