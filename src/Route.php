@@ -280,7 +280,7 @@
 
                         Log::d('API.Route.query.dynamic', [
                             '#request' => [
-                                'path_normalized' => DataMap::getClassPath($oRest)
+                                'path_normalized' => $oRest->getPath()
                             ],
                             'path'          => implode('/', $oRequest->Path),
                             'method'        => $sMethod,

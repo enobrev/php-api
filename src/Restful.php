@@ -26,6 +26,13 @@
         protected $sPath;
 
         /**
+         * @return string
+         */
+        public function getPath() {
+            return $this->sPath;
+        }
+
+        /**
          * @param string $sNamespaceTable
          */
         public static function init(string $sNamespaceTable) {
