@@ -110,9 +110,9 @@
                 return;
             }
 
-            $this->Response->add($this->sDataPath, DataMap::getIndexedResponseMap($this->sDataPath, $this->Data));
-            $this->Response->add('counts.' . $this->sDataPath, 1);
-            $this->Response->add('sorts.' .  $this->sDataPath, [$this->Data->getPrimary()[0]->getValue()]);
+            $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMap($this->getDataPath(), $this->Data));
+            $this->Response->add('counts.' . $this->getDataPath(), 1);
+            $this->Response->add('sorts.' .  $this->getDataPath(), [$this->Data->getPrimary()[0]->getValue()]);
             $this->Response->setHeadersFromTable($this->Data);
             return;
         }
@@ -122,8 +122,8 @@
          */
         protected function gets() {
             if ($this->Data->count() > 0) {
-                $this->Response->add($this->sDataPath, DataMap::getIndexedResponseMaps($this->sDataPath, $this->Data));
-                $this->Response->add('sorts.' . $this->sDataPath, $this->getSorts());
+                $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMaps($this->getDataPath(), $this->Data));
+                $this->Response->add('sorts.' . $this->getDataPath(), $this->getSorts());
                 $this->Response->setLastModifiedFromTables($this->Data);
             } else {
                 $this->Response->statusNoContent();
@@ -170,7 +170,7 @@
                 'data'          => get_class($this->Data),
                 'attributes'    => $this->Request->OriginalRequest->getAttributes(),
                 'post'          => json_encode($this->Request->POST),
-                'mapped'        => json_encode(DataMap::getResponseMap($this->sDataPath, $this->Data)),
+                'mapped'        => json_encode(DataMap::getResponseMap($this->getDataPath(), $this->Data)),
                 'overrides'     => json_encode($aOverrides)
             ]);
 
@@ -178,7 +178,7 @@
             $oTable = get_class($this->Data);
             $this->Data = $oTable::createAndUpdateFromMap(
                 $this->Request->POST,
-                DataMap::getResponseMap($this->sDataPath, $this->Data),
+                DataMap::getResponseMap($this->getDataPath(), $this->Data),
                 $aOverrides
             );
 
@@ -209,7 +209,7 @@
                 'data'       => get_class($this->Data),
                 'attributes' => $this->Request->OriginalRequest->getAttributes(),
                 'put'        => json_encode($this->Request->PUT),
-                'mapped'     => json_encode(DataMap::getResponseMap($this->sDataPath, $this->Data)),
+                'mapped'     => json_encode(DataMap::getResponseMap($this->getDataPath(), $this->Data)),
                 'overrides'  => json_encode($aOverridePrimaries)
             ]);
 
@@ -217,7 +217,7 @@
             $oTable = get_class($this->Data);
             $this->Data = $oTable::createAndUpdateFromMap(
                 $this->Request->PUT,
-                DataMap::getResponseMap($this->sDataPath, $this->Data),
+                DataMap::getResponseMap($this->getDataPath(), $this->Data),
                 $aOverridePrimaries
             );
 
