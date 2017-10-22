@@ -410,6 +410,12 @@
             $sRoute = trim($sRoute, '/');
 
             if (isset($aRoutes[$sRoute])) {
+                Log::d('API.Route._matchRoute', [
+                    '#request' => [
+                        'path_normalized' => $sRoute
+                    ]
+                ]);
+
                 return $aRoutes[$sRoute];
             }
 
@@ -696,7 +702,7 @@
 
             Log::d('API.Route._attemptRequest.template', [
                 '#request' => [
-                    'path_normalized' => $sEndpoint
+                    'path_normalized' => trim($sEndpoint, '/')
                 ]
             ]);
 
