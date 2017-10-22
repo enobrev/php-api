@@ -196,7 +196,10 @@
                 $oRest   = self::_getRestClass($oRequest);
 
                 Log::d('API.Route.query.rest', [
-                    'class' => get_class($oRest)
+                    'class' => get_class($oRest),
+                    '#request' => [
+                        'path_normalized' => $oRest->getDataPath()
+                    ]
                 ]);
 
                 if ($oRequest->isOptions()) {
@@ -279,9 +282,6 @@
                         $oRest->setDataFromPath();
 
                         Log::d('API.Route.query.dynamic', [
-                            '#request' => [
-                                'path_normalized' => $oRest->getDataPath()
-                            ],
                             'path'          => implode('/', $oRequest->Path),
                             'method'        => $sMethod,
                             'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
