@@ -206,7 +206,6 @@
 
                 $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
                 if (method_exists($oRest, $sMethod)) {
-
                     $aRoute = self::_matchQuery(self::$aCachedQueryRoutes, $oRequest);
                     if ($aRoute) {
                         $sClass       = $aRoute['class'];
@@ -444,6 +443,12 @@
                             continue;
                         }
                     }
+
+                    Log::d('API.Route._matchQuery', [
+                        '#request' => [
+                            'path_normalized' => $sRoute
+                        ]
+                    ]);
 
                     $aRoute['params'] = array_intersect_key($aMatches, array_flip($aRoute['params']));
                     return $aRoute;
