@@ -23,13 +23,13 @@
         protected $Data;
 
         /** @var  string */
-        protected $sPath;
+        protected $sDataPath;
 
         /**
          * @return string
          */
-        public function getPath() {
-            return $this->sPath;
+        public function getDataPath() {
+            return $this->sDataPath;
         }
 
         /**
@@ -46,9 +46,9 @@
          */
         public function setData($oData) {
             if ($oData instanceof ORM\Table) {
-                $this->sPath = $oData->getTitle();
+                $this->sDataPath = $oData->getTitle();
             } else if ($oData instanceof ORM\Tables) {
-                $this->sPath = $oData->getTable()->getTitle();
+                $this->sDataPath = $oData->getTable()->getTitle();
             }
 
             $this->Data  = $oData;
@@ -110,9 +110,9 @@
                 return;
             }
 
-            $this->Response->add($this->sPath, DataMap::getIndexedResponseMap($this->sPath, $this->Data));
-            $this->Response->add('counts.' . $this->sPath, 1);
-            $this->Response->add('sorts.' .  $this->sPath, [$this->Data->getPrimary()[0]->getValue()]);
+            $this->Response->add($this->sDataPath, DataMap::getIndexedResponseMap($this->sDataPath, $this->Data));
+            $this->Response->add('counts.' . $this->sDataPath, 1);
+            $this->Response->add('sorts.' .  $this->sDataPath, [$this->Data->getPrimary()[0]->getValue()]);
             $this->Response->setHeadersFromTable($this->Data);
             return;
         }
@@ -122,8 +122,8 @@
          */
         protected function gets() {
             if ($this->Data->count() > 0) {
-                $this->Response->add($this->sPath, DataMap::getIndexedResponseMaps($this->sPath, $this->Data));
-                $this->Response->add('sorts.' . $this->sPath, $this->getSorts());
+                $this->Response->add($this->sDataPath, DataMap::getIndexedResponseMaps($this->sDataPath, $this->Data));
+                $this->Response->add('sorts.' . $this->sDataPath, $this->getSorts());
                 $this->Response->setLastModifiedFromTables($this->Data);
             } else {
                 $this->Response->statusNoContent();
@@ -170,7 +170,7 @@
                 'data'          => get_class($this->Data),
                 'attributes'    => $this->Request->OriginalRequest->getAttributes(),
                 'post'          => json_encode($this->Request->POST),
-                'mapped'        => json_encode(DataMap::getResponseMap($this->sPath, $this->Data)),
+                'mapped'        => json_encode(DataMap::getResponseMap($this->sDataPath, $this->Data)),
                 'overrides'     => json_encode($aOverrides)
             ]);
 
@@ -178,7 +178,7 @@
             $oTable = get_class($this->Data);
             $this->Data = $oTable::createAndUpdateFromMap(
                 $this->Request->POST,
-                DataMap::getResponseMap($this->sPath, $this->Data),
+                DataMap::getResponseMap($this->sDataPath, $this->Data),
                 $aOverrides
             );
 
@@ -209,7 +209,7 @@
                 'data'       => get_class($this->Data),
                 'attributes' => $this->Request->OriginalRequest->getAttributes(),
                 'put'        => json_encode($this->Request->PUT),
-                'mapped'     => json_encode(DataMap::getResponseMap($this->sPath, $this->Data)),
+                'mapped'     => json_encode(DataMap::getResponseMap($this->sDataPath, $this->Data)),
                 'overrides'  => json_encode($aOverridePrimaries)
             ]);
 
@@ -217,7 +217,7 @@
             $oTable = get_class($this->Data);
             $this->Data = $oTable::createAndUpdateFromMap(
                 $this->Request->PUT,
-                DataMap::getResponseMap($this->sPath, $this->Data),
+                DataMap::getResponseMap($this->sDataPath, $this->Data),
                 $aOverridePrimaries
             );
 
