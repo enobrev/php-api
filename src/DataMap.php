@@ -73,7 +73,7 @@
             $aFlipped = array_flip($aMap);
 
             $sClass   = get_class($oClass);
-            $aClass   = explode('::', $sClass);
+            $aClass   = explode('\\', $sClass);
             $sClass   = array_pop($aClass);
 
             return $aFlipped[$sClass] ?? null;
