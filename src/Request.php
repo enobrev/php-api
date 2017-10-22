@@ -47,7 +47,6 @@
 
             Log::i('API.Request.init', [
                 '#request' => [
-                    'uri'        => $this->OriginalRequest->getUri(),
                     'method'     => $this->Method,
                     'path'       => implode('/', $this->Path),
                     'format'     => $this->Format,

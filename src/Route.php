@@ -695,7 +695,9 @@
             Log::startTimer($sTimerName);
 
             Log::d('API.Route._attemptRequest.template', [
-                'endpoint' => $sEndpoint
+                '#request' => [
+                    'path_normalized' => $sEndpoint
+                ]
             ]);
 
             try {
