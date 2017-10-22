@@ -646,12 +646,7 @@
          * @return Response
          */
         public static function _acceptSyncData(Request $oRequest) {
-            Log::d('API.Route._acceptSyncData', [
-                'path'    => $oRequest->Path,
-                'headers' => json_encode($oRequest->OriginalRequest->getHeaders()),
-                'data'    => json_encode($oRequest->POST)
-            ]);
-
+            Log::d('API.Route._acceptSyncData');
 
             if (count($oRequest->POST)) {
                 self::$aData['__requests'] = [];
@@ -673,11 +668,7 @@
 
                 self::$bReturnResponses = false;
 
-                Log::d('API.Route._acceptSyncData.done', [
-                    'path'    => $oRequest->Path,
-                    'headers' => json_encode($oRequest->OriginalRequest->getHeaders()),
-                    'data'    => json_encode($oRequest->POST)
-                ]);
+                Log::d('API.Route._acceptSyncData.done');
 
                 $oResponse = new Response($oRequest);
                 $oResponse->add(self::$aData);
