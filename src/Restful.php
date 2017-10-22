@@ -360,7 +360,7 @@
          * @throws Exception\InvalidTable
          * @throws \Enobrev\API\Exception
          */
-        private function _getQueryFromPath() {
+        public function _getQueryFromPath() {
             $oTable    = $this->_getPrimaryTableFromPath();
 
             Log::d('API.Restful._getQueryFromPath', [
@@ -369,7 +369,6 @@
             ]);
 
             $oQuery = SQLBuilder::select($oTable);
-            $oQuery->fields($oTable);
 
             $aPairs    = $this->Request->getPathPairs();
             $aLastPair = array_pop($aPairs);
@@ -527,6 +526,7 @@
                                     // The SortBy Field is in a table that references our Primary Table
                                     // Join from the Referenced Primary Table Field to the Sort Table Referencing Field
                                     $sReferenceField = $oSortReference->referenceField();
+                                    $oQuery->fields($oTable); // Setting Primary Table fields to ensure joined fields aren't the only ones returned
                                     $oQuery->join($oTable->$sReferenceField, $oSortReference);
                                 } else {
                                     $oSortReference = $oTable->getFieldThatReferencesTable($oSortTable);
@@ -538,6 +538,7 @@
                                     // The SortBy Field is in a table that our Primary Table references
                                     // Join from the Referencing Primary Table Field to the Referenced Sort Table Field Base Table Field
                                     $sReferenceField = $oSortReference->referenceField();
+                                    $oQuery->fields($oTable); // Setting Primary Table fields to ensure joined fields aren't the only ones returned
                                     $oQuery->join($oSortReference, $oSortTable->$sReferenceField);
                                 }
 
@@ -572,7 +573,7 @@
          * @return string
          * @throws Exception\Response
          */
-        private static function _getNamespacedTableClassName(string $sTableClass) {
+        public static function _getNamespacedTableClassName(string $sTableClass) {
             if (self::$sNamespaceTable === null) {
                 throw new Exception\Response('API Route Not Initialized');
             }
@@ -584,7 +585,7 @@
          * @return ORM\Table
          * @throws Exception\InvalidTable
          */
-        private function _getPrimaryTableFromPath() {
+        public function _getPrimaryTableFromPath() {
             $aPairs = $this->Request->getPathPairs();
 
             if (count($aPairs) > 0) {

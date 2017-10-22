@@ -10,7 +10,7 @@
     use Zend\Diactoros\Stream;
     use Zend\Diactoros\Uri;
 
-    Log::setName('RequestTest');
+    Log::setService('RequestTest');
 
     class RequestTest extends TestCase {
         public function testGet() {

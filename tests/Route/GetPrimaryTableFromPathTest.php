@@ -3,7 +3,9 @@
 
     require __DIR__ . '/../../vendor/autoload.php';
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
+    use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
 
     use Enobrev\API\Exception;
@@ -20,8 +22,10 @@
         const DOMAIN = 'example.com';
 
         public static function setUpBeforeClass() {
+            Log::setService('TEST');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
+            DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
         public function test_getPrimaryTableFromPath() {
@@ -31,7 +35,8 @@
             $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users'));
 
             $oRequest = new Request($oServerRequest);
-            $oTable   = Route::_getPrimaryTableFromPath($oRequest);
+            $oRest    = new Rest($oRequest);
+            $oTable   = $oRest->_getPrimaryTableFromPath();
 
             $this->assertInstanceOf(User::class, $oTable);
         }
@@ -45,6 +50,8 @@
             $oRequest = new Request($oServerRequest);
 
             $this->expectException(Exception\InvalidTable::class);
-            Route::_getPrimaryTableFromPath($oRequest);
+
+            $oRest = new Rest($oRequest);
+            $oRest->_getPrimaryTableFromPath();
         }
     }

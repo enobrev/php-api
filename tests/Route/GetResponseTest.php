@@ -3,7 +3,10 @@
 
     require __DIR__ . '/../../vendor/autoload.php';
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
+    use function Enobrev\dbg;
+    use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
 
     use PDO;
@@ -31,8 +34,10 @@
         private $aAddresses;
 
         public static function setUpBeforeClass() {
+            Log::setService('TEST');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
+            DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
         public function setUp() {
@@ -103,11 +108,10 @@
             $oResponse = Route::_getResponse($oRequest);
             $oOutput   = $oResponse->getOutput();
 
-            $this->assertObjectHasAttribute('data', $oOutput);
-            $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
+            $this->assertObjectHasAttribute('users', $oOutput);
+            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->users);
 
-            $aUser = $oOutput->data->users[$this->aUsers[0]->user_id->getValue()];
+            $aUser = $oOutput->users[$this->aUsers[0]->user_id->getValue()];
 
             $this->assertEquals($this->aUsers[0]->user_id->getValue(),         $aUser['id']);
             $this->assertEquals($this->aUsers[0]->user_name->getValue(),       $aUser['name']);
@@ -126,11 +130,10 @@
             $oResponse = Route::_getResponse($oRequest);
             $oOutput   = $oResponse->getOutput();
 
-            $this->assertObjectHasAttribute('data', $oOutput);
-            $this->assertObjectHasAttribute('addresses', $oOutput->data);
-            $this->assertArrayHasKey($this->aAddresses[0]->address_id->getValue(), $oOutput->data->addresses);
+            $this->assertObjectHasAttribute('addresses', $oOutput);
+            $this->assertArrayHasKey($this->aAddresses[0]->address_id->getValue(), $oOutput->addresses);
 
-            $aAddress = $oOutput->data->addresses[$this->aAddresses[0]->address_id->getValue()];
+            $aAddress = $oOutput->addresses[$this->aAddresses[0]->address_id->getValue()];
 
             $this->assertEquals($this->aAddresses[0]->address_id->getValue(),       $aAddress['id']);
             $this->assertEquals($this->aAddresses[0]->user_id->getValue(),          $aAddress['user_id']);

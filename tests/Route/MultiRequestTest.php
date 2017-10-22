@@ -5,6 +5,7 @@
 
     use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
+    use function Enobrev\dbg;
     use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
 
@@ -14,8 +15,6 @@
     use Enobrev\API\Request;
     use Enobrev\API\Route;
     use Enobrev\ORM\Db;
-
-
 
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;
@@ -34,7 +33,7 @@
         private $aAddresses;
 
         public static function setUpBeforeClass() {
-            Log::setName('TEST');
+            Log::setService('TEST');
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
@@ -116,11 +115,10 @@
             $oResponse = Route::_getResponse($oRequest);
             $oOutput   = $oResponse->getOutput();
 
-            $this->assertObjectHasAttribute('data', $oOutput);
-            $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
+            $this->assertObjectHasAttribute('users', $oOutput);
+            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->users);
 
-            $aUser = $oOutput->data->users[$this->aUsers[0]->user_id->getValue()];
+            $aUser = $oOutput->users[$this->aUsers[0]->user_id->getValue()];
 
             $this->assertEquals($this->aUsers[0]->user_id->getValue(),         $aUser['id']);
             $this->assertEquals($this->aUsers[0]->user_name->getValue(),       $aUser['name']);
@@ -128,18 +126,18 @@
             $this->assertEquals($this->aUsers[0]->user_happy->getValue(),      $aUser['happy']);
             $this->assertEquals((string) $this->aUsers[0]->user_date_added,    $aUser['date_added']);
 
-            $this->assertObjectHasAttribute('addresses', $oOutput->data);
-            $this->assertArrayHasKey($this->aAddresses[0]->address_id->getValue(), $oOutput->data->addresses);
-            $this->assertArrayHasKey($this->aAddresses[1]->address_id->getValue(), $oOutput->data->addresses);
+            $this->assertObjectHasAttribute('addresses', $oOutput);
+            $this->assertArrayHasKey($this->aAddresses[0]->address_id->getValue(), $oOutput->addresses);
+            $this->assertArrayHasKey($this->aAddresses[1]->address_id->getValue(), $oOutput->addresses);
 
-            $aAddress1 = $oOutput->data->addresses[$this->aAddresses[0]->address_id->getValue()];
+            $aAddress1 = $oOutput->addresses[$this->aAddresses[0]->address_id->getValue()];
 
             $this->assertEquals($this->aAddresses[0]->address_id->getValue(),       $aAddress1['id']);
             $this->assertEquals($this->aAddresses[0]->user_id->getValue(),          $aAddress1['user_id']);
             $this->assertEquals($this->aAddresses[0]->address_line_1->getValue(),   $aAddress1['line_1']);
             $this->assertEquals($this->aAddresses[0]->address_city->getValue(),     $aAddress1['city']);
 
-            $aAddress2 = $oOutput->data->addresses[$this->aAddresses[1]->address_id->getValue()];
+            $aAddress2 = $oOutput->addresses[$this->aAddresses[1]->address_id->getValue()];
 
             $this->assertEquals($this->aAddresses[1]->address_id->getValue(),       $aAddress2['id']);
             $this->assertEquals($this->aAddresses[1]->user_id->getValue(),          $aAddress2['user_id']);

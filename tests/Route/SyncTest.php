@@ -29,7 +29,7 @@
         private $aUsers;
 
         public static function setUpBeforeClass() {
-            Log::setName('SyncTest');
+            Log::setService('SyncTest');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
@@ -112,16 +112,15 @@
             $oResponse = Route::_getResponse($oRequest);
             $oOutput   = $oResponse->getOutput();
 
-            $this->assertObjectHasAttribute('data', $oOutput);
-            $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertArrayNotHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayNotHasKey($this->aUsers[1]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayNotHasKey($this->aUsers[2]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey($this->aUsers[3]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey($this->aUsers[4]->user_id->getValue(), $oOutput->data->users);
+            $this->assertObjectHasAttribute('users', $oOutput);
+            $this->assertArrayNotHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayNotHasKey($this->aUsers[1]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayNotHasKey($this->aUsers[2]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayHasKey($this->aUsers[3]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayHasKey($this->aUsers[4]->user_id->getValue(), $oOutput->users);
 
             $iIndex = 3;
-            $aUser = $oOutput->data->users[$this->aUsers[$iIndex]->user_id->getValue()];
+            $aUser = $oOutput->users[$this->aUsers[$iIndex]->user_id->getValue()];
 
             $this->assertEquals($this->aUsers[$iIndex]->user_id->getValue(),         $aUser['id']);
             $this->assertEquals($this->aUsers[$iIndex]->user_name->getValue(),       $aUser['name']);
@@ -129,7 +128,7 @@
             $this->assertEquals($this->aUsers[$iIndex]->user_happy->getValue(),      $aUser['happy']);
 
             $iIndex = 4;
-            $aUser = $oOutput->data->users[$this->aUsers[$iIndex]->user_id->getValue()];
+            $aUser = $oOutput->users[$this->aUsers[$iIndex]->user_id->getValue()];
 
             $this->assertEquals($this->aUsers[$iIndex]->user_id->getValue(),         $aUser['id']);
             $this->assertEquals($this->aUsers[$iIndex]->user_name->getValue(),       $aUser['name']);
@@ -147,13 +146,12 @@
             $oResponse = Route::_getResponse($oRequest);
             $oOutput   = $oResponse->getOutput();
 
-            $this->assertObjectHasAttribute('data', $oOutput);
-            $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey($this->aUsers[1]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey($this->aUsers[2]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey($this->aUsers[3]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey($this->aUsers[4]->user_id->getValue(), $oOutput->data->users);
+            $this->assertObjectHasAttribute('users', $oOutput);
+            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayHasKey($this->aUsers[1]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayHasKey($this->aUsers[2]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayHasKey($this->aUsers[3]->user_id->getValue(), $oOutput->users);
+            $this->assertArrayHasKey($this->aUsers[4]->user_id->getValue(), $oOutput->users);
         }
 
         public function testSyncPost() {
@@ -187,23 +185,22 @@
             $oResponse = Route::_getResponse($oRequest);
             $oOutput   = $oResponse->getOutput();
 
-            $this->assertObjectHasAttribute('data', $oOutput);
-            $this->assertObjectHasAttribute('users', $oOutput->data);
-            $this->assertObjectHasAttribute('addresses', $oOutput->data);
-            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(), $oOutput->data->users);
-            $this->assertArrayHasKey(1,                                     $oOutput->data->addresses);
+            $this->assertObjectHasAttribute('users',            $oOutput);
+            $this->assertObjectHasAttribute('addresses',        $oOutput);
+            $this->assertArrayHasKey($this->aUsers[0]->user_id->getValue(),  $oOutput->users);
+            $this->assertArrayHasKey(1,                                 $oOutput->addresses);
 
             $iIndex = 0;
-            $aUser = $oOutput->data->users[$this->aUsers[$iIndex]->user_id->getValue()];
+            $aUser = $oOutput->users[$this->aUsers[$iIndex]->user_id->getValue()];
 
-            $this->assertEquals($this->aUsers[$iIndex]->user_id->getValue(),         $aUser['id']);
-            $this->assertEquals($this->aUsers[$iIndex]->user_name->getValue(),       $aUser['name']);
-            $this->assertEquals('test@testington.com',                               $aUser['email']);
-            $this->assertEquals(1,                                                   $aUser['happy']);
+            $this->assertEquals($this->aUsers[$iIndex]->user_id->getValue(),     $aUser['id']);
+            $this->assertEquals($this->aUsers[$iIndex]->user_name->getValue(),   $aUser['name']);
+            $this->assertEquals('test@testington.com',                  $aUser['email']);
+            $this->assertEquals(1,                                      $aUser['happy']);
 
-            $aAddress = $oOutput->data->addresses[1];
+            $aAddress = $oOutput->addresses[1];
             $this->assertEquals(1,                                      $aAddress['id']);
-            $this->assertEquals($this->aUsers[0]->user_id->getValue(),  $aAddress['user_id']);
+            $this->assertEquals($this->aUsers[0]->user_id->getValue(),           $aAddress['user_id']);
             $this->assertEquals('Testing',                              $aAddress['line_1']);
             $this->assertEquals('Venice',                               $aAddress['city']);
 

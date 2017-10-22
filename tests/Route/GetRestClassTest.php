@@ -3,7 +3,9 @@
 
     require __DIR__ . '/../../vendor/autoload.php';
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
+    use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
 
     use Enobrev\API\Response;
@@ -18,12 +20,14 @@
         const DOMAIN = 'example.com';
 
         public static function setUpBeforeClass() {
+            Log::setService('TEST');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
+            DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
         public function testInit() {
-            $this->assertEquals('Enobrev\\API\\Mock\\Table\\test', Route::_getNamespacedTableClassName('test'));
+            $this->assertEquals('Enobrev\\API\\Mock\\Table\\test', Rest::_getNamespacedTableClassName('test'));
             $this->assertEquals('Enobrev\\API\\Mock\\v1\\test', Route::_getNamespacedAPIClassName('v1', 'test'));
         }
 

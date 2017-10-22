@@ -3,7 +3,10 @@
 
     require __DIR__ . '/../../vendor/autoload.php';
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
+    use Enobrev\API\Restful;
+    use Enobrev\Log;
     use PHPUnit_Framework_TestCase as TestCase;
 
     use PDO;
@@ -31,6 +34,8 @@
         private $aAddresses;
 
         public static function setUpBeforeClass() {
+            Log::setService('TEST');
+            DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
             Response::init(self::DOMAIN);
         }
@@ -102,7 +107,8 @@
             $oRequest = new Request($oServerRequest);
             $oRest    = Route::_getRestClass($oRequest);
 
-            Route::_setRestDataFromPath($oRest, $oRequest);
+            /** @var Restful $oRest */
+            $oRest->setDataFromPath();
 
             $this->assertInstanceOf(Table\User::class, $oRest->getData());
             $this->assertEquals($this->aUsers[0]->toArray(), $oRest->getData()->toArray());
@@ -117,7 +123,8 @@
             $oRequest = new Request($oServerRequest);
             $oRest    = Route::_getRestClass($oRequest);
 
-            Route::_setRestDataFromPath($oRest, $oRequest);
+            /** @var Restful $oRest */
+            $oRest->setDataFromPath();
 
             $this->assertInstanceOf(Table\Address::class, $oRest->getData());
             $this->assertEquals($this->aAddresses[0]->toArray(), $oRest->getData()->toArray());
@@ -132,7 +139,8 @@
             $oRequest = new Request($oServerRequest);
             $oRest    = Route::_getRestClass($oRequest);
 
-            Route::_setRestDataFromPath($oRest, $oRequest);
+            /** @var Restful $oRest */
+            $oRest->setDataFromPath();
 
             $oData = $oRest->getData();
             $this->assertInstanceOf(Table\Users::class, $oData);
@@ -151,7 +159,8 @@
             $oRequest = new Request($oServerRequest);
             $oRest    = Route::_getRestClass($oRequest);
 
-            Route::_setRestDataFromPath($oRest, $oRequest);
+            /** @var Restful $oRest */
+            $oRest->setDataFromPath();
 
             $oData = $oRest->getData();
             $this->assertInstanceOf(Table\Address::class, $oData);

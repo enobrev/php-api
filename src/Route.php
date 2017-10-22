@@ -2,6 +2,7 @@
     namespace Enobrev\API;
 
     use Enobrev\API\Exception;
+    use function Enobrev\dbg;
     use Enobrev\Log;
 
     use RecursiveIteratorIterator;
@@ -54,12 +55,16 @@
             self::$sRestClass       = $sRestClass;
             self::$bReturnResponses = false;
 
+            /** @var Restful $sRest */
+            $sRest = self::$sRestClass;
+            $sRest::init(self::$sNamespaceTable);
+
             self::_generateRoutes();
         }
 
         /**
          * @param ServerRequest $oServerRequest
-         * @return \stdClass|void
+         * @return \stdClass|null
          */
         public static function index(ServerRequest $oServerRequest = null) {
             $bReturn        = self::$bReturnResponses; // Set this before _getResponse overrides it
@@ -196,10 +201,7 @@
                 $oRest   = self::_getRestClass($oRequest);
 
                 Log::d('API.Route.query.rest', [
-                    'class' => get_class($oRest),
-                    '#request' => [
-                        'path_normalized' => $oRest->getDataPath()
-                    ]
+                    'class' => get_class($oRest)
                 ]);
 
                 if ($oRequest->isOptions()) {
@@ -282,6 +284,9 @@
                         $oRest->setDataFromPath();
 
                         Log::d('API.Route.query.dynamic', [
+                            '#request' => [
+                                'path_normalized' => $oRest->getDataPath()
+                            ],
                             'path'          => implode('/', $oRequest->Path),
                             'method'        => $sMethod,
                             'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
@@ -347,6 +352,7 @@
                         return new $sRestClass($oRequest);
                     }
                 }
+
             }
 
             return new self::$sRestClass($oRequest);
@@ -358,7 +364,7 @@
          * @return string
          * @throws Exception\Response
          */
-        private static function _getNamespacedAPIClassName(string $sVersionPath, string $sAPIClass) {
+        public static function _getNamespacedAPIClassName(string $sVersionPath, string $sAPIClass) {
             if (self::$sNamespaceAPI === null) {
                 throw new Exception\Response('API Route Not Initialized');
             }
@@ -584,7 +590,7 @@
          *
          * @param  Request       $oRequest
          * @param  Response|null $oSyncResponse
-         * @return Response|void
+         * @return Response|null
          */
         public static function _attemptMultiRequest(Request $oRequest, Response $oSyncResponse = null) {
             if (self::$bReturnResponses) {
