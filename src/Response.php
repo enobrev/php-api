@@ -61,6 +61,9 @@
         /** @var  bool */
         protected $bIncludeRequestInOutput;
 
+        /** @var  bool */
+        private $bHasResponded = false;
+
         /** @var array */
         protected static $aAllowedURIs = ['*'];
 
@@ -383,6 +386,11 @@
          * @throws Exception\NoContentType
          */
         public function respond() {
+            if ($this->bHasResponded) {
+                Log::d('API.Response.respond.Duplicate');
+                return;
+            }
+
             $bAccessControlHeaders = $this->setOrigin();
             $oOutput               = $this->getOutput();
 
@@ -432,6 +440,8 @@
                         break;
                 }
             }
+
+            $this->bHasResponded = true;
         }
 
         /**
