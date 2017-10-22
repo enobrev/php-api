@@ -172,6 +172,12 @@
          */
         public static function _getResponse(Request $oRequest) {
             if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
+                Log::d('API.Route._getResponse.root', [
+                    '#request' => [
+                        'path_normalized' => '/'
+                    ]
+                ]);
+
                 if (!self::$bReturnResponses) {
                     $oResponse = self::_acceptSyncData($oRequest);
                     Log::d('API.Route.query._getResponse.sync', [
@@ -285,7 +291,7 @@
 
                         Log::d('API.Route.query.dynamic', [
                             '#request' => [
-                                'path_normalized' => $oRest->getDataPath()
+                                'path_normalized' => '/' . $oRest->getDataPath()
                             ],
                             'path'          => implode('/', $oRequest->Path),
                             'method'        => $sMethod,
@@ -423,7 +429,7 @@
             if (isset($aRoutes[$sRoute])) {
                 Log::d('API.Route._matchRoute', [
                     '#request' => [
-                        'path_normalized' => $sRoute
+                        'path_normalized' => '/' . $sRoute
                     ]
                 ]);
 
@@ -458,7 +464,7 @@
 
                     Log::d('API.Route._matchQuery', [
                         '#request' => [
-                            'path_normalized' => $sRoute
+                            'path_normalized' => '/' . $sRoute
                         ]
                     ]);
 
@@ -597,11 +603,7 @@
                 return;
             }
 
-            Log::d('API.Route._attemptMultiRequest', [
-                'path'          => $oRequest->Path,
-                'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
-                'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes())
-            ]);
+            Log::d('API.Route._attemptMultiRequest');
 
             self::$bReturnResponses = true;
 
@@ -716,12 +718,6 @@
         public static function _attemptRequest($sEndpoint, array $aPostParams = []) {
             $sTimerName = 'Route._attemptRequest';
             Log::startTimer($sTimerName);
-
-            Log::d('API.Route._attemptRequest.template', [
-                '#request' => [
-                    'path_normalized' => trim($sEndpoint, '/')
-                ]
-            ]);
 
             try {
                 $sEndpoint   = self::_fillEndpointTemplateFromData($sEndpoint);
