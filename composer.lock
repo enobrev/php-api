@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "2bc59b121607f8fd2a44a5b288848845",
-    "content-hash": "2e712b829183b14cb33b3734ce0fcb62",
+    "hash": "3b9a96ad806b8661719ebc437f6b0ad3",
+    "content-hash": "bb549c42b948dbf4fd22b99bb71b7321",
     "packages": [
         {
-            "name": "enobrev/orm",
+            "name": "enobrev/php-orm",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/enobrev/orm.git",
-                "reference": "779f648fc15c75018b30773bcc956a2a9fde4793"
+                "url": "https://github.com/enobrev/php-orm.git",
+                "reference": "2560b210ee95d71e3203e5d61caf0fbb6ae8f963"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/orm/zipball/779f648fc15c75018b30773bcc956a2a9fde4793",
-                "reference": "779f648fc15c75018b30773bcc956a2a9fde4793",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/2560b210ee95d71e3203e5d61caf0fbb6ae8f963",
+                "reference": "2560b210ee95d71e3203e5d61caf0fbb6ae8f963",
                 "shasum": ""
             },
             "require": {
@@ -27,7 +27,7 @@
                 "twig/twig": "^1.24"
             },
             "require-dev": {
-                "enobrev/tools": "dev-master",
+                "enobrev/php-tools": "dev-master",
                 "phpunit/phpunit": "^5.1",
                 "phpunit/phpunit-mock-objects": "^3.0"
             },
@@ -63,23 +63,23 @@
             ],
             "description": "Simple ORM",
             "support": {
-                "source": "https://github.com/enobrev/orm/tree/master",
-                "issues": "https://github.com/enobrev/orm/issues"
+                "source": "https://github.com/enobrev/php-orm/tree/master",
+                "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2017-10-22 01:42:06"
+            "time": "2017-10-24 08:46:02"
         },
         {
-            "name": "enobrev/tools",
+            "name": "enobrev/php-tools",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/enobrev/tools.git",
-                "reference": "0d21c74f527ebb427ba09d5b0cd2d92277ee3a1d"
+                "url": "https://github.com/enobrev/php-tools.git",
+                "reference": "5378e9d75a9d410c2ad3f9c21838b37f2f9ef91b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/tools/zipball/0d21c74f527ebb427ba09d5b0cd2d92277ee3a1d",
-                "reference": "0d21c74f527ebb427ba09d5b0cd2d92277ee3a1d",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/5378e9d75a9d410c2ad3f9c21838b37f2f9ef91b",
+                "reference": "5378e9d75a9d410c2ad3f9c21838b37f2f9ef91b",
                 "shasum": ""
             },
             "require": {
@@ -113,10 +113,10 @@
             ],
             "description": "General Tools",
             "support": {
-                "source": "https://github.com/enobrev/tools/tree/master",
-                "issues": "https://github.com/enobrev/tools/issues"
+                "source": "https://github.com/enobrev/php-tools/tree/master",
+                "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2017-10-22 01:35:41"
+            "time": "2017-10-24 08:44:52"
         },
         {
             "name": "kevinlebrun/colors.php",
@@ -1829,8 +1829,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "enobrev/tools": 20,
-        "enobrev/orm": 20
+        "enobrev/php-tools": 20,
+        "enobrev/php-orm": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

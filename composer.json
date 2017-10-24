@@ -1,5 +1,5 @@
 {
-    "name": "enobrev/api",
+    "name": "enobrev/php-api",
     "license": "MIT",
     "version": "0.9.0-dev",
     "description": "REST-Like API Library",
@@ -13,17 +13,17 @@
     "repositories": [
         {
             "type": "vcs",
-            "url":  "https://github.com/enobrev/orm"
+            "url":  "https://github.com/enobrev/php-orm"
         },
         {
             "type": "vcs",
-            "url":  "https://github.com/enobrev/tools"
+            "url":  "https://github.com/enobrev/php-tools"
         }
     ],
     "require": {
         "php": ">=7.0.09",
-        "enobrev/tools":  "dev-master",
-        "enobrev/orm":  "dev-master",
+        "enobrev/php-tools":  "dev-master",
+        "enobrev/php-orm":  "dev-master",
         "zendframework/zend-diactoros": "^1.3"
     },
     "require-dev": {
