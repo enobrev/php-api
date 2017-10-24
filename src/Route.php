@@ -657,6 +657,10 @@
                         continue;
                     }
 
+                    if (!DataMap::hasClassPath($sTable)) {
+                        continue;
+                    }
+
                     foreach($aRecords as $sPrimary => $aRecord) {
                         Log::d('API.Route._acceptSyncData.attempt', [
                             'endpoint'  => "$sTable/$sPrimary",
