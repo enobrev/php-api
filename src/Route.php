@@ -72,8 +72,15 @@
             $oResponse      = self::_getResponse($oRequest);
 
             if ($bReturn) {
-                Log::d('API.Route.index.return');
-                return $oResponse->toObject();
+                $oOutput = $oResponse->toObject();
+
+                Log::d('API.Route.index.return', [
+                    '#status'  => $oOutput->status,
+                    '#headers' => json_encode($oOutput->headers),
+                    'body'     => json_encode($oOutput->data)
+                ]);
+
+                return $oOutput;
             } else {
                 Log::d('API.Route.index.respond');
                 $oResponse->respond();
