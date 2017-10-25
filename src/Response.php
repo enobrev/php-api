@@ -505,31 +505,37 @@
         }
 
         public function statusBadRequest() {
+            Log::setProcessIsError(true);
             $this->setStatus(HTTP\BAD_REQUEST);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
         public function statusInternalServerError() {
+            Log::setProcessIsError(true);
             $this->setStatus(HTTP\INTERNAL_SERVER_ERROR);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
         public function statusUnauthorized() {
+            Log::setProcessIsError(true);
             $this->setStatus(HTTP\UNAUTHORIZED);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
         public function statusForbidden() {
+            Log::setProcessIsError(true);
             $this->setStatus(HTTP\FORBIDDEN);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
         public function statusNotFound() {
+            Log::setProcessIsError(true);
             $this->setStatus(HTTP\NOT_FOUND);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
         public function statusMethodNotAllowed() {
+            Log::setProcessIsError(true);
             $this->setStatus(HTTP\METHOD_NOT_ALLOWED);
             //$this->setFormat(self::FORMAT_EMPTY);
         }

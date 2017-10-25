@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API;
 
-    use Enobrev\API\Exception;
     use function Enobrev\dbg;
     use Enobrev\Log;
 
@@ -197,12 +196,12 @@
                 }
             }
 
-            $aRoute   = self::_matchRoute(self::$aCachedRoutes, $oRequest);
-            if ($aRoute) {
-                return self::_endpoint($aRoute, $oRequest);
-            }
-
             try {
+                $aRoute   = self::_matchRoute(self::$aCachedRoutes, $oRequest);
+                if ($aRoute) {
+                    return self::_endpoint($aRoute, $oRequest);
+                }
+
                 /** @var Rest $oRest */
                 $oRest   = self::_getRestClass($oRequest);
 
