@@ -401,44 +401,47 @@
                 'body'     => json_encode($oOutput)
             ]);
 
-            $oEmitter = new ZendResponse\SapiEmitter();
-
             if ($this->sFile) {
                 if (!isset($this->aHeaders['Content-Type'])) {
                     throw new Exception\NoContentType('Missing Content Type');
                 }
 
                 $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
-                $oEmitter->emit($oResponse);
             } else {
                 switch($this->sFormat) {
                     default:
                     case self::FORMAT_JSON:
                         $oResponse = new ZendResponse\JsonResponse($oOutput, $this->iStatus, $this->aHeaders);
-                        $oEmitter->emit($oResponse);
                         break;
 
                     case self::FORMAT_CSS:
                     case self::FORMAT_CSV:
                         if ($this->sTextOutput) {
-                            $oEmitter->emit(new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders));
+                            $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
                         } else {
-                            $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
                         }
                         break;
 
                     case self::FORMAT_EMPTY:
-                        $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                        $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
                         break;
 
                     case self::FORMAT_HTML:
                         if ($this->sTextOutput) {
-                            $oEmitter->emit(new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders));
+                            $oResponse = new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
                         } else {
-                            $oEmitter->emit(new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders));
+                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
                         }
                         break;
                 }
+            }
+
+            if ($oResponse) {
+                $oEmitter = new ZendResponse\SapiEmitter();
+                $oEmitter->emit($oResponse);
+
+                Log::justAddContext(['#size' => $oResponse->getBody()->getSize()]);
             }
 
             $this->bHasResponded = true;
