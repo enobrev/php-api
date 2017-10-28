@@ -75,6 +75,7 @@
                 $oOutput = $oResponse->toObject();
 
                 Log::d('API.Route.index.return', [
+                    '#size'    => strlen(json_encode($oOutput)),
                     '#status'  => $oOutput->status,
                     '#headers' => json_encode($oOutput->headers),
                     'body'     => json_encode($oOutput->data)
