@@ -887,8 +887,37 @@
                         $aValues = [];
                         foreach (self::$aData[$sTable] as $aTable) {
                             if (is_array($aTable) && array_key_exists($sField, $aTable)) {
-                                $aValues[] = $aTable[$sField];
-                            } else if (is_array(self::$aData[$sTable]) && isset(self::$aData[$sTable][$sField])) { // Single-Record response (like /me)
+                                if (is_array($aTable[$sField])) {
+                                    /*
+                                     Handles consolidated arrays of ids.  Example:
+
+                                        "table": {
+                                            "{id}": {
+                                                "column": [
+                                                    "id1"
+                                                ],
+                                                "column2": [
+                                                    "id2",
+                                                    "id3",
+                                                    "id4"
+                                                ]
+                                            }
+                                        }
+
+                                        - If you then query like so:
+
+                                        "/table/",
+                                        "/reference_table/{table.column}",
+                                        "/reference_table/{table.column2}"
+
+                                        table.column and table.column2 are arrays of Ids in this instance and need to be handled thusly
+                                    */
+                                    $aValues = array_merge($aValues, $aTable[$sField]);
+                                } else {
+                                    $aValues[] = $aTable[$sField];
+                                }
+                            } else if (is_array(self::$aData[$sTable]) && isset(self::$aData[$sTable][$sField])) {
+                                // Single-Record response (like /me)
                                 $aValues[] = self::$aData[$sTable][$sField];
                             } else {
                                 throw new Exception\InvalidSegmentVariable('Invalid Segment Variable ' . $sField . ' in ' . $sTemplate);
