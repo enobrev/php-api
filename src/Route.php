@@ -731,6 +731,13 @@
                 ]);
 
                 return;
+            } catch (Exception\InvalidSegmentVariable $e) {
+                Log::e('API.Route._attemptRequest.skipped.invalid.endpoint', [
+                    'endpoint' => $sEndpoint,
+                    'params'   => $aPostParams
+                ]);
+
+                return;
             }
 
             $iPosition   = strpos($sEndpoint, '?');
