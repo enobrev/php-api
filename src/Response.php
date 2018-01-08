@@ -279,6 +279,37 @@
         }
 
         /**
+         * @param string $sKey
+         */
+        public function remove(string $sKey) {
+            $aKey = explode('.', $sKey);
+            $sTopKey = array_shift($aKey);
+
+            if (!isset($this->oOutput->$sTopKey)) {
+                return;
+            }
+
+            if (count($aKey) === 0) {
+                unset($this->oOutput->$sTopKey);
+            }
+
+            $aTree = &$this->oOutput->$sTopKey;
+
+            while (count($aKey) > 1) {
+                $sKey = array_shift($aKey);
+
+                if (!isset($aTree[$sKey])) {
+                    return;
+                }
+
+                $aTree = &$aTree[$sKey];
+            }
+
+            $sKey = array_shift($aKey);
+            unset($aTree[$sKey]);
+        }
+
+        /**
          * @return stdClass
          */
         private static function getServerObject() {
