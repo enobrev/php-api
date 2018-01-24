@@ -26,7 +26,10 @@
             }
 
             if (self::$DATA === null) {
-                self::$DATA = json_decode(file_get_contents(self::$sDataFile), true);
+                $sContents = file_get_contents(self::$sDataFile);
+                if ($sContents) {
+                    self::$DATA = json_decode($sContents, true);
+                }
             }
 
             return self::$DATA;
@@ -82,16 +85,16 @@
         /**
          * @param string $sDataFile
          */
-        public static function setDataFile(string $sDataFile) {
+        public static function setDataFile(string $sDataFile):void {
             self::$sDataFile = $sDataFile;
         }
 
         /**
-         * @param string
+         * @param string $sPath
          * @param ArrayIterator|ORM\Table[]|ORM\Tables $oData
          * @return array
          */
-        public static function getIndexedResponseMaps($sPath, $oData) {
+        public static function getIndexedResponseMaps(string $sPath, $oData): array {
             $aResponse = [];
             foreach($oData as $oDatum) {
                 $aResponse += self::getIndexedResponseMap($sPath, $oDatum);
@@ -105,7 +108,7 @@
          * @param ORM\Table $oDatum
          * @return array
          */
-        public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum) {
+        public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum): array {
             return [
                 $oDatum->getPrimary()[0]->getValue() => self::getResponseMap($sPath, $oDatum)
             ];
@@ -116,7 +119,7 @@
          * @param ORM\Table $oDatum
          * @return ORM\Field[]
          */
-        public static function getResponseMap(string $sPath, ORM\Table $oDatum) {
+        public static function getResponseMap(string $sPath, ORM\Table $oDatum): array {
             $aMap         = self::getMap($sPath);
             $aResponseMap = [];
             foreach($aMap as $sPublicField => $sTableField) {

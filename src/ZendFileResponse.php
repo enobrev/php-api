@@ -19,6 +19,8 @@
          * @param \Psr\Http\Message\StreamInterface|resource|string $sFile
          * @param int $iStatus
          * @param array $aHeaders
+         * @psalm-suppress ImplicitToStringCast
+         * @psalm-suppress PossiblyInvalidArgument
          */
         public function __construct($sFile, $iStatus = 200, array $aHeaders = []) {
             $oBody = new Stream('php://temp', 'wb+');

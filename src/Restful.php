@@ -20,10 +20,10 @@
         public $Response;
 
         /** @var ORM\ModifiedDateColumn[]|ORM\ModifiedDateColumn|ORM\Table|ORM\Tables */
-        protected $Data;
+        protected $Data = null;
 
         /** @var  string */
-        protected $sDataPath;
+        protected $sDataPath = null;
 
         /**
          * @return string
@@ -35,7 +35,7 @@
         /**
          * @param string $sNamespaceTable
          */
-        public static function init(string $sNamespaceTable) {
+        public static function init(string $sNamespaceTable): void {
             self::$sNamespaceTable = trim($sNamespaceTable, '\\');
         }
 
@@ -44,7 +44,7 @@
          * @param ORM\Table|ORM\Tables $oData
          * @throws \Exception
          */
-        public function setData($oData) {
+        public function setData($oData): void {
             if ($oData instanceof ORM\Table) {
                 $this->sDataPath = $oData->getTitle();
             } else if ($oData instanceof ORM\Tables) {
@@ -57,7 +57,7 @@
         /**
          * @return bool
          */
-        public function hasData() {
+        public function hasData(): bool {
             return $this->Data instanceof ORM\Table
                 || $this->Data instanceof ORM\Tables;
         }
@@ -72,7 +72,7 @@
         /**
          * HTTP HEAD
          */
-        public function head() {
+        public function head(): void {
             if ($this->Data instanceof ORM\Tables) {
                 $this->heads();
                 return;
@@ -89,8 +89,9 @@
 
         /**
          * HTTP HEAD for Multiple Records
+         * @psalm-suppress PossiblyInvalidArgument
          */
-        protected function heads() {
+        protected function heads(): void {
             $this->Response->setLastModifiedFromTables($this->Data);
             $this->Response->statusNoContent();
             return;
@@ -99,7 +100,7 @@
         /**
          * HTTP GET
          */
-        public function get() {
+        public function get(): void {
             if ($this->Data instanceof ORM\Tables) {
                 $this->gets();
                 return;
@@ -119,8 +120,11 @@
 
         /**
          * HTTP GET for Multiple Records
+         * @psalm-suppress PossiblyInvalidMethodCall
+         * @psalm-suppress PossiblyUndefinedMethod
+         * @psalm-suppress PossiblyInvalidArgument
          */
-        protected function gets() {
+        protected function gets(): void {
             if ($this->Data->count() > 0) {
                 $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMaps($this->getDataPath(), $this->Data));
                 $this->Response->add('sorts.' . $this->getDataPath(), $this->getSorts());
@@ -133,8 +137,9 @@
 
         /**
          * @return array
+         * @psalm-suppress RawObjectIteration
          */
-        protected function getSorts() {
+        protected function getSorts(): array {
             $aSorts = [];
             /** @var ORM\Table $oTable */
             foreach($this->Data as $oTable) {
@@ -147,7 +152,7 @@
         /**
          * HTTP POST
          */
-        public function post() {
+        public function post(): void {
             if ($this->Data instanceof ORM\Table === false) {
                 $this->Response->statusBadRequest();
                 return;
@@ -188,7 +193,7 @@
         /**
          * HTTP PUT
          */
-        public function put() {
+        public function put(): void {
             if ($this->Data instanceof ORM\Table === false) {
                 $this->Response->statusNotFound();
                 return;
@@ -229,7 +234,7 @@
          * @param array $aOverridePrimaries
          * @return array
          */
-        protected function overridePrimaries(array $aOverridePrimaries = []) {
+        protected function overridePrimaries(array $aOverridePrimaries = []): array {
             $aAttributes = $this->Request->OriginalRequest->getAttributes();
             foreach($aAttributes as $sField => $sValue) {
                 try {
@@ -248,7 +253,7 @@
         /**
          * HTTP DELETE
          */
-        public function delete() {
+        public function delete(): void {
             if ($this->Data instanceof ORM\Table === false) {
                 $this->Response->statusNotFound();
                 return;
@@ -259,16 +264,21 @@
             return;
         }
 
-        protected function handleFiles() {
+        protected function handleFiles(): void {
 
         }
 
         /**
+         * @throws Exception
          * @throws Exception\InvalidReference
          * @throws Exception\InvalidTable
-         * @throws \Enobrev\API\Exception
+         * @throws Exception\Response
+         * @throws ORM\DbException
+         * @throws ORM\TableException
+         * @throws \Exception
+         * @psalm-suppress ImplicitToStringCast
          */
-        public function setDataFromPath() {
+        public function setDataFromPath(): void {
             $aPairs = $this->Request->getPathPairs();
 
             if (count($aPairs) > 0) {
@@ -328,6 +338,7 @@
                                 $oQuery->setType(SQLBuilder::TYPE_COUNT);
 
                                 if ($oResult = ORM\Db::getInstance()->namedQuery('getCountQueryFromPath', $oQuery)) {
+                                    /** @var int|bool $iCount */
                                     $iCount = $oResult->fetchColumn();
                                     if ($iCount !== false) {
                                         $this->Response->add('counts.' . $oTable->getTitle(), (int) $iCount);
@@ -355,10 +366,13 @@
         }
 
         /**
-         * @return SQL|SQLBuilder|string
+         * @throws Exception
          * @throws Exception\InvalidReference
          * @throws Exception\InvalidTable
-         * @throws \Enobrev\API\Exception
+         * @throws Exception\Response
+         * @throws ORM\ConditionsNonConditionException
+         * @return SQL|SQLBuilder|string
+         * @psalm-suppress InvalidArgument
          */
         public function _getQueryFromPath() {
             $oTable    = $this->_getPrimaryTableFromPath();
@@ -506,10 +520,10 @@
 
                     foreach($aSort as $sSort) {
                         if (strpos($sSort, '.')) {
-                            $aSort = explode('.', $sSort);
-                            if (count($aSort) == 2) {
-                                $sSortTable = DataMap::getClassName($aSort[0]);
-                                $sSortField = $aSort[1];
+                            $aSplit = explode('.', $sSort);
+                            if (count($aSplit) == 2) {
+                                $sSortTable = DataMap::getClassName($aSplit[0]);
+                                $sSortField = $aSplit[1];
 
                                 Log::d('API.Restful._getQueryFromPath.Querying.NoID.ForeignSort', ['table' => $sSortTable, 'field' => $sSortField]);
 
@@ -573,7 +587,7 @@
          * @return string
          * @throws Exception\Response
          */
-        public static function _getNamespacedTableClassName(string $sTableClass) {
+        public static function _getNamespacedTableClassName(string $sTableClass): string {
             if (self::$sNamespaceTable === null) {
                 throw new Exception\Response('API Route Not Initialized');
             }
@@ -584,8 +598,9 @@
         /**
          * @return ORM\Table
          * @throws Exception\InvalidTable
+         * @throws Exception\Response
          */
-        public function _getPrimaryTableFromPath() {
+        public function _getPrimaryTableFromPath(): ORM\Table {
             $aPairs = $this->Request->getPathPairs();
 
             if (count($aPairs) > 0) {
@@ -605,5 +620,7 @@
 
                 return $oTable;
             }
+
+            throw new Exception\InvalidTable('Primary Table Pair Not Found in Path');
         }
     }

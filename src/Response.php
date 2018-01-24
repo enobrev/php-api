@@ -35,31 +35,31 @@
 
 
         /** @var  string */
-        protected $sFormat;
+        protected $sFormat = null;
 
         /** @var  string */
-        protected $sFile;
+        protected $sFile = null;
 
         /** @var  array */
-        protected $aResponse;
+        protected $aResponse = [];
 
         /** @var  Request */
-        protected $Request;
+        protected $Request = null;
 
         /** @var  string */
-        protected $sTextOutput;
+        protected $sTextOutput = '';
 
         /** @var  stdClass */
-        protected $oOutput;
+        protected $oOutput = null;
 
         /** @var  array */
-        protected $aHeaders;
+        protected $aHeaders = [];
 
         /** @var  int */
-        protected $iStatus;
+        protected $iStatus = null;
 
         /** @var  bool */
-        protected $bIncludeRequestInOutput;
+        protected $bIncludeRequestInOutput = false;
 
         /** @var  bool */
         private $bHasResponded = false;
@@ -96,7 +96,7 @@
         /**
          * @param Request $oRequest
          */
-        private function setRequest(Request $oRequest) {
+        private function setRequest(Request $oRequest): void {
             $this->Request = $oRequest;
         }
 
@@ -123,7 +123,7 @@
          * @param string $sScheme
          * @param array  $aAllowedURIs
          */
-        public static function init(string $sDomain, string $sScheme = 'https://', array $aAllowedURIs = ['*']) {
+        public static function init(string $sDomain, string $sScheme = 'https://', array $aAllowedURIs = ['*']): void {
             self::$sScheme      = $sScheme;
             self::$sDomain      = $sDomain;
             self::$aAllowedURIs = $aAllowedURIs;
@@ -132,56 +132,56 @@
         /**
          * @param bool $bIncludeRequestInOutput
          */
-        public function includeRequestInOutput(bool $bIncludeRequestInOutput) {
+        public function includeRequestInOutput(bool $bIncludeRequestInOutput): void {
             $this->bIncludeRequestInOutput = $bIncludeRequestInOutput;
         }
 
         /**
          * @param string $sFormat
          */
-        public function setFormat(string $sFormat) {
+        public function setFormat(string $sFormat): void {
             $this->sFormat = $sFormat;
         }
 
         /**
          * @param string $sFile
          */
-        public function setFile(string $sFile) {
+        public function setFile(string $sFile): void {
             $this->sFile = $sFile;
         }
 
         /**
          * @param string $sText
          */
-        public function setText(string $sText) {
+        public function setText(string $sText): void {
             $this->sTextOutput = $sText;
         }
 
         /**
          * @param int $iContentLength
          */
-        public function setContentLength($iContentLength) {
+        public function setContentLength(int $iContentLength): void {
             $this->addHeader('Content-Length', $iContentLength);
         }
 
         /**
          * @param string $sContentType
          */
-        public function setContentType($sContentType) {
+        public function setContentType(string $sContentType): void {
             $this->addHeader('Content-Type', $sContentType);
         }
 
         /**
          * @param array $aAllow
          */
-        public function setAllow(Array $aAllow) {
+        public function setAllow(Array $aAllow): void {
             $this->addHeader('Allow', implode(',', $aAllow));
         }
 
         /**
          * @param string $sETag
          */
-        public function setEtag($sETag = null) {
+        public function setEtag($sETag = null): void {
             if ($sETag) {
                 $this->addHeader('ETag', $sETag);
             }
@@ -190,7 +190,7 @@
         /**
          * @param DateTime $oLastModified
          */
-        public function setLastModified(DateTime $oLastModified = null) {
+        public function setLastModified(DateTime $oLastModified = null): void {
             if ($oLastModified instanceof DateTime) {
                 $this->addHeader('Last-Modified', $oLastModified->format(self::HTTP_DATE_FORMAT));
             }
@@ -198,8 +198,9 @@
 
         /**
          * @param ModifiedDateColumn[]|Tables $oTables
+         * @psalm-suppress RawObjectIteration
          */
-        public function setLastModifiedFromTables($oTables) {
+        public function setLastModifiedFromTables($oTables): void {
             $oLatest = new DateTime();
             $oLatest->modify('-10 years');
             foreach($oTables as $oTable) {
@@ -217,7 +218,7 @@
         /**
          * @param Table $oTable
          */
-        public function setHeadersFromTable(Table $oTable) {
+        public function setHeadersFromTable(Table $oTable): void {
             $this->setEtag($oTable->toHash());
 
             if ($oTable instanceof ModifiedDateColumn) {
@@ -227,9 +228,9 @@
 
         /**
          * @param string $sHeader
-         * @param string $sValue
+         * @param mixed $sValue
          */
-        public function addHeader($sHeader, $sValue) {
+        public function addHeader($sHeader, $sValue): void {
             $this->aHeaders[$sHeader] = $sValue;
         }
 
@@ -237,7 +238,7 @@
          * @param mixed $sVar
          * @param mixed $mValue
          */
-        public function add($sVar, $mValue = NULL) {
+        public function add($sVar, $mValue = NULL): void {
             if ($sVar instanceof Table) {
                 $this->add($sVar->getTitle(), $sVar->toArray());
             } else if ($sVar instanceof Field\DateTime) {
@@ -281,7 +282,7 @@
         /**
          * @param string $sKey
          */
-        public function remove(string $sKey) {
+        public function remove(string $sKey): void {
             $aKey = explode('.', $sKey);
             $sTopKey = array_shift($aKey);
 
@@ -312,7 +313,7 @@
         /**
          * @return stdClass
          */
-        private static function getServerObject() {
+        private static function getServerObject(): stdClass {
             $oNow    = new \DateTime;
             $oServer = new stdClass;
             $oServer->timezone      = $oNow->format('T');
@@ -325,11 +326,12 @@
         /**
          * Turns a dot-separated var into a multidimensional array and merges it with prior data with
          * the same hierarchy
+         *
          * @param string|array|Field $sVar
          * @param mixed $mValue
          * @return void
          */
-        private function set($sVar, $mValue) {
+        private function set($sVar, $mValue): void {
             if ($mValue instanceof Field) {
                 $mValue = $mValue->getValue();
             }
@@ -340,6 +342,7 @@
                 $mValue = $mValue->format(DateTime::RFC3339);
             }
 
+            /** @psalm-suppress PossiblyInvalidArgument */
             $aKey  = explode('.', $sVar);
             $sKey  = $aKey[0];
             $aData = array_from_path($sVar, $mValue);
@@ -351,7 +354,7 @@
 
                 $aCleanData = array();
                 foreach($aData as $sDataKey => $sDataValue) {
-                    if ($aData === NULL) {
+                    if ($sDataValue === NULL) {
                         continue;
                     }
 
@@ -370,19 +373,23 @@
          * Overrides all default output and replaces output object with $oOutput
          * @param array|stdClass $oOutput
          */
-        public function overrideOutput($oOutput) {
+        public function overrideOutput($oOutput): void {
             $this->oOutput = $oOutput;
         }
 
-        public function emptyResponse() {
+        /**
+         * @throws Exception\NoContentType
+         */
+        public function emptyResponse(): void {
             $this->setFormat(self::FORMAT_EMPTY);
             $this->respond();
         }
 
         /**
          * @param array ...$aMethods
+         * @throws Exception\NoContentType
          */
-        public function respondWithOptions(...$aMethods) {
+        public function respondWithOptions(...$aMethods): void {
             $this->setAllow($aMethods);
             $this->statusNoContent();
             $this->respond();
@@ -392,7 +399,7 @@
          * @return bool
          * @todo: Allow CORS headers to be overridden
          */
-        private function setOrigin() {
+        private function setOrigin(): bool {
             $sHeaders = 'Authorization, Content-Type';
             $sMethods = implode(', ', Method\_ALL);
 
@@ -416,7 +423,7 @@
         /**
          * @throws Exception\NoContentType
          */
-        public function respond() {
+        public function respond(): void {
             if ($this->bHasResponded) {
                 Log::d('API.Response.respond.Duplicate');
                 return;
@@ -468,12 +475,10 @@
                 }
             }
 
-            if ($oResponse) {
-                $oEmitter = new ZendResponse\SapiEmitter();
-                $oEmitter->emit($oResponse);
+            $oEmitter = new ZendResponse\SapiEmitter();
+            $oEmitter->emit($oResponse);
 
-                Log::justAddContext(['#size' => $oResponse->getBody()->getSize()]);
-            }
+            Log::justAddContext(['#size' => $oResponse->getBody()->getSize()]);
 
             $this->bHasResponded = true;
         }
@@ -481,7 +486,7 @@
         /**
          * @return stdClass
          */
-        public function getOutput() {
+        public function getOutput(): stdClass {
             $oOutput = $this->oOutput;
 
             if ($oOutput instanceof stdClass) {
@@ -495,7 +500,7 @@
         /**
          * @return stdClass
          */
-        public function toObject() {
+        public function toObject(): stdClass {
             $oOutput = new stdClass();
             $oOutput->headers   = $this->aHeaders;
             $oOutput->status    = $this->iStatus;
@@ -509,7 +514,7 @@
          * @param string $sValue
          * @param int $iHours
          */
-        public function addCookie($sName, $sValue, $iHours = 1) {
+        public function addCookie($sName, $sValue, $iHours = 1): void {
             setcookie($sName, $sValue, time() + (3600 * $iHours), '/', self::$sDomain, self::$sScheme== 'https://', false);
         }
 
@@ -517,7 +522,7 @@
          * @param string $sUri
          * @param int $iStatus
          */
-        public function redirect($sUri, $iStatus = HTTP\FOUND) {
+        public function redirect($sUri, $iStatus = HTTP\FOUND): void {
             (new ZendResponse\SapiEmitter())->emit(new ZendResponse\RedirectResponse($sUri, $iStatus, $this->aHeaders));
             exit(0);
         }
@@ -529,46 +534,49 @@
             return $this->iStatus >= HTTP\BAD_REQUEST;
         }
 
-        public function setStatus($iStatus) {
+        /**
+         * @param int $iStatus
+         */
+        public function setStatus(int $iStatus): void {
             $this->iStatus = $iStatus;
         }
 
-        public function statusNoContent() {
+        public function statusNoContent(): void {
             $this->setStatus(HTTP\NO_CONTENT);
             $this->setFormat(self::FORMAT_EMPTY);
         }
 
-        public function statusBadRequest() {
+        public function statusBadRequest(): void {
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\BAD_REQUEST);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
-        public function statusInternalServerError() {
+        public function statusInternalServerError(): void {
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\INTERNAL_SERVER_ERROR);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
-        public function statusUnauthorized() {
+        public function statusUnauthorized(): void {
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\UNAUTHORIZED);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
-        public function statusForbidden() {
+        public function statusForbidden(): void {
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\FORBIDDEN);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
-        public function statusNotFound() {
+        public function statusNotFound(): void {
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\NOT_FOUND);
             //$this->setFormat(self::FORMAT_EMPTY);
         }
 
-        public function statusMethodNotAllowed() {
+        public function statusMethodNotAllowed(): void {
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\METHOD_NOT_ALLOWED);
             //$this->setFormat(self::FORMAT_EMPTY);

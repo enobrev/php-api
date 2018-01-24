@@ -4,7 +4,7 @@
     class Rest extends Base implements RestfulInterface {
         use Restful;
 
-        public function options() {
+        public function options(): void {
             // TODO: Implement options() method.
         }
     }

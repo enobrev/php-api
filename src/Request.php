@@ -16,19 +16,19 @@
         public $Format;
 
         /** @var  array */
-        public $Headers;
+        public $Headers = [];
 
         /** @var  string */
         public $Method = Method\GET;
 
         /** @var  array */
-        public $GET;
+        public $GET  = null;
 
         /** @var  array */
-        public $POST;
+        public $POST = null;
 
         /** @var  array */
-        public $PUT;
+        public $PUT  = null;
 
         public function __construct(ServerRequest $oRequest) {
             $this->OriginalRequest  = $oRequest;
@@ -53,9 +53,9 @@
                     'attributes' => json_encode($this->OriginalRequest->getAttributes()),
                     'query'      => json_encode($this->OriginalRequest->getQueryParams()),
                     'data'       => [
-                        'GET'  => json_encode($this->GET ?? []),
+                        'GET'  => json_encode($this->GET  ?? []),
                         'POST' => json_encode($this->POST ?? []),
-                        'PUT'  => json_encode($this->PUT ?? [])
+                        'PUT'  => json_encode($this->PUT  ?? [])
                     ]
                 ]
             ]);
@@ -134,10 +134,11 @@
 
         /**
          * @param string $sMethod
-         * @param array ...$aParams
-         * @throws \Exception
+         * @param array  ...$aParams
+         * @throws Exception\InvalidMethod
+         * @throws Exception\MissingRequiredParameter
          */
-        public function required($sMethod, ...$aParams) {
+        public function required(string $sMethod, ...$aParams): void {
             if (in_array($sMethod, Method\_ALL) === false) {
                 throw new Exception\InvalidMethod('Invalid Method');
             }
@@ -156,18 +157,18 @@
         }
 
         /**
-         * @param string, $sParam
+         * @param string     $sParam
          * @param mixed|null $sDefault
-         * @return mixed|null
+         * @return mixed
          */
-        public function param($sParam, $sDefault = null) {
+        public function param(string $sParam, $sDefault = null) {
             return $this->OriginalRequest->getAttribute($sParam, $sDefault);
         }
 
         /**
          * @param array $aParams
          */
-        public function updateParams(array $aParams) {
+        public function updateParams(array $aParams): void {
             foreach($aParams as $sKey => $sValue) {
                 $this->updateParam($sKey, $sValue);
             }
@@ -177,14 +178,14 @@
          * @param string $sKey
          * @param string $sValue
          */
-        public function updateParam($sKey, $sValue) {
+        public function updateParam($sKey, $sValue): void {
             $this->OriginalRequest = $this->OriginalRequest->withAttribute($sKey, $sValue);
         }
 
         /**
          * @return array
          */
-        public function getPathPairs() {
+        public function getPathPairs(): array {
             $aPath      = $this->Path;
             $sVersion   = array_shift($aPath); // not using version, but still need to shift
             return array_chunk($aPath, 2);
@@ -193,7 +194,7 @@
         /**
          * Adds Version to Beginning of Path Array if it's not already there
          */
-        private function ensurePathVersion() {
+        private function ensurePathVersion(): void {
             if (count($this->Path) == 0
             ||  Route::isVersion($this->Path[0]) === false) {
                 $sVersion = Route::defaultVersion();
@@ -207,7 +208,7 @@
         /**
          * @return array
          */
-        private function splitPath() {
+        private function splitPath(): array {
             $sPath = trim($this->OriginalRequest->getUri()->getPath(), '/');
             if (strlen($sPath) == 0) {
                 return [];
@@ -220,7 +221,7 @@
          * @param string $sFormat
          * @return string
          */
-        private function parseFormatFromPath(string $sFormat = Response::FORMAT_JSON) {
+        private function parseFormatFromPath(string $sFormat = Response::FORMAT_JSON): string {
             if (count($this->Path) > 0) {
                 $sLast = array_pop($this->Path);
                 if (strpos($sLast, '.') !== false) {

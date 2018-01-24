@@ -46,7 +46,7 @@
          * @param string $sRestClass
          * @param array  $aVersions
          */
-        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, $sRestClass = Rest::class, array $aVersions = ['v1']) {
+        public static function init(string $sPathAPI, string $sNamespaceAPI, string $sNamespaceTable, $sRestClass = Rest::class, array $aVersions = ['v1']): void {
             self::$sPathAPI         = rtrim($sPathAPI, '/') . '/';
             self::$sNamespaceAPI    = trim($sNamespaceAPI, '\\');
             self::$sNamespaceTable  = trim($sNamespaceTable, '\\');
@@ -64,6 +64,7 @@
         /**
          * @param ServerRequest $oServerRequest
          * @return \stdClass|null
+         * @throws Exception\NoContentType
          */
         public static function index(ServerRequest $oServerRequest = null) {
             $bReturn        = self::$bReturnResponses; // Set this before _getResponse overrides it
@@ -73,9 +74,11 @@
 
             if ($bReturn) {
                 $oOutput = $oResponse->toObject();
+                $sOutput = json_encode($oOutput);
+                $iOutput = $sOutput ? strlen($sOutput) : 0;
 
                 Log::d('API.Route.index.return', [
-                    '#size'    => strlen(json_encode($oOutput)),
+                    '#size'    => $iOutput,
                     '#status'  => $oOutput->status,
                     '#headers' => json_encode($oOutput->headers),
                     'body'     => json_encode($oOutput->data)
@@ -97,7 +100,7 @@
          * @param string $sClass
          * @param string $sMethod
          */
-        public static function addEndpointRoute(string $sRoute, string $sClass, string $sMethod) {
+        public static function addEndpointRoute(string $sRoute, string $sClass, string $sMethod): void {
             self::addQueryRoute(self::QUERY_ROUTE_ENDPOINT, $sRoute, $sClass, $sMethod);
         }
 
@@ -106,7 +109,7 @@
          * @param string $sClass
          * @param string $sMethod
          */
-        public static function addTableRoute(string $sRoute, string $sClass, string $sMethod) {
+        public static function addTableRoute(string $sRoute, string $sClass, string $sMethod): void {
             self::addQueryRoute(self::QUERY_ROUTE_TABLE, $sRoute, $sClass, $sMethod);
         }
 
@@ -114,7 +117,7 @@
          * @param string $sRoute
          * @param string $sClass
          */
-        public static function addRestRoute(string $sRoute, string $sClass) {
+        public static function addRestRoute(string $sRoute, string $sClass): void {
             self::addQueryRoute(self::QUERY_ROUTE_REST, $sRoute, $sClass, self::QUERY_ROUTE_REST);
         }
 
@@ -124,7 +127,7 @@
          * @param string $sClass
          * @param string $sMethod
          */
-        private static function addQueryRoute(string $sType, string $sRoute, string $sClass, string $sMethod) {
+        private static function addQueryRoute(string $sType, string $sRoute, string $sClass, string $sMethod): void {
             foreach (self::$aVersions as $sVersion) {
                 $aRoute = [
                     'type'   => $sType,
@@ -162,14 +165,14 @@
          * @param string $sVersion
          * @return bool
          */
-        public static function isVersion(string $sVersion) {
+        public static function isVersion(string $sVersion): bool {
             return in_array($sVersion, self::$aVersions);
         }
 
         /**
          * @return string
          */
-        public static function defaultVersion() {
+        public static function defaultVersion(): string {
             return self::$aVersions[0];
         }
 
@@ -177,7 +180,7 @@
          * @param Request $oRequest
          * @return Response
          */
-        public static function _getResponse(Request $oRequest) {
+        public static function _getResponse(Request $oRequest): Response {
             if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
                 Log::d('API.Route._getResponse.root', [
                     '#request' => [
@@ -187,19 +190,21 @@
 
                 if (!self::$bReturnResponses) {
                     $oResponse = self::_acceptSyncData($oRequest);
-                    Log::d('API.Route.query._getResponse.sync', [
-                        'response' => get_class($oResponse)
-                    ]);
-
-                    $oResponse = self::_attemptMultiRequest($oRequest, $oResponse);
-
-                    Log::d('API.Route.query._getResponse.sync_and_query', [
-                        'response' => get_class($oResponse)
-                    ]);
 
                     if ($oResponse) {
-                        Log::d('API.Route.query._getResponse.sync_and_query.respond');
-                        return $oResponse;
+                        Log::d('API.Route.query._getResponse.sync', [
+                            'response' => get_class($oResponse)
+                        ]);
+
+                        $oMultiResponse = self::_attemptMultiRequest($oRequest, $oResponse);
+
+                        if ($oMultiResponse) {
+                            Log::d('API.Route.query._getResponse.sync_and_query.respond', [
+                                'response' => get_class($oMultiResponse)
+                            ]);
+
+                            return $oMultiResponse;
+                        }
                     }
                 }
             }
@@ -318,6 +323,7 @@
                 }
 
                 $oRest->Response->statusMethodNotAllowed();
+
                 return $oRest->Response;
             } catch (\Exception $e) {
                 Log::setProcessIsError(true);
@@ -338,6 +344,7 @@
                 $oResponse = new Response($oRequest);
                 $oResponse->setStatus(HTTP\SERVICE_UNAVAILABLE);
                 $oResponse->setFormat(Response::FORMAT_EMPTY);
+
                 return $oResponse;
             }
         }
@@ -346,8 +353,9 @@
          * move down the path from right to left until we find the segment that represents a table
          * @param Request $oRequest
          * @return RestfulInterface
+         * @throws Exception\Response
          */
-        public static function _getRestClass(Request $oRequest) {
+        public static function _getRestClass(Request $oRequest): RestfulInterface {
             if (count($oRequest->Path) > 1) {
                 $aPath         = $oRequest->Path;
                 $sTopClass     = null;
@@ -377,7 +385,7 @@
          * @return string
          * @throws Exception\Response
          */
-        public static function _getNamespacedAPIClassName(string $sVersionPath, string $sAPIClass) {
+        public static function _getNamespacedAPIClassName(string $sVersionPath, string $sAPIClass): string {
             if (self::$sNamespaceAPI === null) {
                 throw new Exception\Response('API Route Not Initialized');
             }
@@ -388,9 +396,10 @@
         /**
          * @param array   $aRoute
          * @param Request $oRequest
-         * @return Response|null
+         * @return Response
+         * @throws Exception
          */
-        public static function _endpoint(Array $aRoute, Request $oRequest) : ?Response {
+        public static function _endpoint(Array $aRoute, Request $oRequest) : Response {
             Log::d('API.Route.endpoint', [
                 'class'         => $aRoute['class'],
                 'path'          => $oRequest->Path,
@@ -417,19 +426,18 @@
 
                 return $oClass->Response;
             } else {
-                // FIXME: return error;
                 Log::w('API.Route.endpoint.ClassNotFound');
-            }
 
-            return null;
+                throw new Exception('API Route Endpoint Class Was Not Found');
+            }
         }
 
         /**
          * @param array $aRoutes
          * @param Request $oRequest
-         * @return array|bool
+         * @return array|null
          */
-        public static function _matchRoute(Array $aRoutes, Request $oRequest) {
+        public static function _matchRoute(Array $aRoutes, Request $oRequest): ?array {
             $sRoute = implode('/', $oRequest->Path);
             $sRoute = trim($sRoute, '/');
 
@@ -443,7 +451,7 @@
                 return $aRoutes[$sRoute];
             }
 
-            return false;
+            return null;
         }
 
         /**
@@ -456,7 +464,7 @@
             $sRoute = implode('/', $oRequest->Path);
             $sRoute = trim($sRoute, '/');
 
-            $aPossible = array_filter($aRoutes, function ($aRoute) use ($iSegments) {
+            $aPossible = array_filter($aRoutes, function (array $aRoute) use ($iSegments): bool {
                 return $aRoute['segments'] == $iSegments || ($aRoute['type'] == self::QUERY_ROUTE_REST && $aRoute['segments'] == $iSegments - 1);
             });
 
@@ -490,7 +498,7 @@
          *
          * @todo Cache These for Production
          */
-        public static function _generateRoutes() {
+        public static function _generateRoutes():void {
             foreach (self::$aVersions as $sVersion) {
                 // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
                 // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
@@ -506,8 +514,8 @@
                     );
 
                     foreach($aFiles as $oFile) {
-                        $sFile = file_get_contents($oFile->getPathname());
-                        if (preg_match('/class\s+([^\s]+)\s+extends\s+(((\\\)?Enobrev\\\)?API\\\)?Base/', $sFile, $aMatches)) {
+                        $sContents = file_get_contents($oFile->getPathname());
+                        if (preg_match('/class\s+([^\s]+)\s+extends\s+(((\\\)?Enobrev\\\)?API\\\)?Base/', (string) $sContents, $aMatches)) {
                             $aPublicMethods     = [];
                             $sClass             = $aMatches[1];
                             $sClassPath         = self::_getNamespacedAPIClassName($sVersion, $sClass);
@@ -543,14 +551,15 @@
         /**
          * @return array
          */
-        public static function _getCachedRoutes() {
+        public static function _getCachedRoutes(): array {
             return self::$aCachedRoutes;
         }
 
-        public static function _getCachedQueryRoutes() {
+        public static function _getCachedQueryRoutes(): array {
             return self::$aCachedQueryRoutes;
         }
 
+        /** @var array  */
         private static $aData = [];
 
         /**
@@ -650,9 +659,9 @@
 
         /**
          * @param Request $oRequest
-         * @return Response
+         * @return Response|null
          */
-        public static function _acceptSyncData(Request $oRequest) {
+        public static function _acceptSyncData(Request $oRequest): ?Response {
             Log::d('API.Route._acceptSyncData');
 
             if (count($oRequest->POST)) {
@@ -686,6 +695,8 @@
 
                 return $oResponse;
             }
+
+            return null;
         }
 
         /**
@@ -715,9 +726,11 @@
 
         /**
          * @param string $sEndpoint
-         * @param array $aPostParams
+         * @param array  $aPostParams
+         * @throws Exception\NoContentType
+         * @throws \Exception
          */
-        public static function _attemptRequest($sEndpoint, array $aPostParams = []) {
+        public static function _attemptRequest(string $sEndpoint, array $aPostParams = []): void {
             $sTimerName = 'Route._attemptRequest';
             Log::startTimer($sTimerName);
 
@@ -774,7 +787,7 @@
                     '--ms'     => $nRequestTimer
                 ]);
 
-                $aResponseParsed = json_decode(json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
+                $aResponseParsed = json_decode((string) json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
 
                 self::$aData['__requests'][] = $aResponseParsed['_request'];
                 unset($aResponseParsed['_request']);
@@ -882,7 +895,13 @@
 
         const NO_VALUE = 'NO_VALUE';
 
-        public static function _getTemplateValue($sTemplate) {
+        /**
+         * @param string $sTemplate
+         * @return string
+         * @throws Exception\InvalidSegmentVariable
+         * @throws Exception\NoTemplateValues
+         */
+        public static function _getTemplateValue(string $sTemplate) {
             if (strpos($sTemplate, '{') === 0) {
                 $sMatch = trim($sTemplate, "{}");
                 $aMatch = explode('.', $sMatch);

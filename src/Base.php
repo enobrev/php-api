@@ -5,10 +5,10 @@
 
     abstract class Base {
         /** @var  Request */
-        public $Request;
+        public $Request = null;
 
         /** @var  Response */
-        public $Response;
+        public $Response = null;
 
         /** @var string */
         private static $sBaseURI = null;
@@ -16,7 +16,7 @@
         /**
          * @param string $sBaseURI
          */
-        public static function setBaseURI(string $sBaseURI) {
+        public static function setBaseURI(string $sBaseURI): void {
             self::$sBaseURI = $sBaseURI;
         }
 
@@ -55,24 +55,28 @@
             $this->initFromRoute();
         }
 
-        public function setRequest(Request $oRequest) {
+        public function setRequest(Request $oRequest): void {
             $this->Request = $oRequest;
         }
 
-        protected function initFromRoute() {
+        protected function initFromRoute(): void {
 
         }
 
         /**
-         * @param array ...$aSegments
+         * @param array[] ...$aSegments
          * @return string
          */
         protected static function joinPath(...$aSegments) {
-            return '/' . implode('/',
-                array_map(function ($sSegment) {
-                    return (string) $sSegment;
-                }, $aSegments)
-            );
+            /**
+             * @param mixed $sSegment
+             * @return string
+             */
+            $fStringify = function ($sSegment): string {
+                return (string) $sSegment;
+            };
+
+            return '/' . implode('/', array_map($fStringify, $aSegments));
         }
 
         /**
@@ -82,7 +86,7 @@
             return array_map('strtoupper', get_class_methods($this));
         }
 
-        public function options() {
+        public function options(): void {
             $this->Response->setAllow(
                 array_intersect(
                     $this->getMethodArray(),
@@ -93,7 +97,7 @@
             $this->Response->statusNoContent();
         }
 
-        public function methodNotAllowed() {
+        public function methodNotAllowed(): void {
             $this->Response->statusMethodNotAllowed();
         }
     }
