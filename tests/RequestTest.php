@@ -66,13 +66,13 @@
 
             $oRequest = new Request($oServerRequest);
 
-            $this->assertEquals('TEST', $oRequest->param('test'));
-            $this->assertEquals('TEST2', $oRequest->param('test2'));
+            $this->assertEquals('TEST', $oRequest->paramFromUriPath('test'));
+            $this->assertEquals('TEST2', $oRequest->paramFromUriPath('test2'));
 
             $oRequest->updateParams(['test' => 'TEST!!!', 'test2' => 'TEST2!!!']);
 
-            $this->assertEquals('TEST!!!', $oRequest->param('test'));
-            $this->assertEquals('TEST2!!!', $oRequest->param('test2'));
+            $this->assertEquals('TEST!!!', $oRequest->paramFromUriPath('test'));
+            $this->assertEquals('TEST2!!!', $oRequest->paramFromUriPath('test2'));
         }
 
         public function testPost() {

@@ -157,11 +157,39 @@
         }
 
         /**
+         * @param string $sParam
+         * @param null   $sDefault
+         * @return mixed|null
+         */
+        public function GETParam(string $sParam, $sDefault = null) {
+            return $this->param(Method\GET, $sParam, $sDefault);
+        }
+
+        /**
+         * @param string $sParam
+         * @param null   $sDefault
+         * @return mixed|null
+         */
+        public function POSTParam(string $sParam, $sDefault = null) {
+            return $this->param(Method\GET, $sParam, $sDefault);
+        }
+
+        /**
+         * @param string     $sMethod
+         * @param string     $sParam
+         * @param null|mixed $sDefault
+         * @return null|mixed
+         */
+        private function param(string $sMethod, string $sParam, $sDefault = null) {
+            return $this->$sMethod[$sParam] ?? $sDefault;
+        }
+
+        /**
          * @param string     $sParam
          * @param mixed|null $sDefault
          * @return mixed
          */
-        public function param(string $sParam, $sDefault = null) {
+        public function paramFromUriPath(string $sParam, $sDefault = null) {
             return $this->OriginalRequest->getAttribute($sParam, $sDefault);
         }
 
