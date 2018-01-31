@@ -6,7 +6,6 @@
     use stdClass;
 
     use Enobrev\API\HTTP;
-    use Enobrev\API\Exception;
     use Enobrev\ORM\ModifiedDateColumn;
     use Enobrev\ORM\Field;
     use Enobrev\ORM\Table;
@@ -33,6 +32,8 @@
         const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
         const HTTP_DATE_FORMAT = 'D, d M Y H:i:s T';
 
+        /** @var stdClass */
+        protected static $oGlobalServer;
 
         /** @var  string */
         protected $sFormat = null;
@@ -91,6 +92,9 @@
 
             $this->oOutput = new stdClass();
 
+            if (!self::$oGlobalServer) {
+                self::$oGlobalServer = new stdClass;
+            }
         }
 
         /**
@@ -311,16 +315,42 @@
         }
 
         /**
+         * This is a workaround to ensure we can set _server values from within multi-requests.  I don't like it, but it gets the job done.
+         * @param string $sKey
+         * @param mixed  $mValue
+         */
+        public static function setGlobalServerData(string $sKey, $mValue): void {
+            self::$oGlobalServer->$sKey = $mValue;
+        }
+
+        /**
          * @return stdClass
          */
-        private static function getServerObject(): stdClass {
-            $oNow    = new \DateTime;
-            $oServer = new stdClass;
-            $oServer->timezone      = $oNow->format('T');
-            $oServer->timezone_gmt  = $oNow->format('P');
-            $oServer->date          = $oNow->format(self::SYNC_DATE_FORMAT);
-            $oServer->date_w3c      = $oNow->format(DateTime::W3C);
-            return $oServer;
+        private function getServerDateInfo(): stdClass {
+            if (self::$oGlobalServer && property_exists(self::$oGlobalServer, 'date')) {
+                $oNow = self::$oGlobalServer->date;
+            } else {
+                $oNow = new \DateTime;
+            }
+
+            $oServerDate = new stdClass;
+            $oServerDate->timezone      = $oNow->format('T');
+            $oServerDate->timezone_gmt  = $oNow->format('P');
+            $oServerDate->date          = $oNow->format(self::SYNC_DATE_FORMAT);
+            $oServerDate->date_w3c      = $oNow->format(DateTime::W3C);
+
+            return $oServerDate;
+        }
+
+        /**
+         * @return stdClass
+         */
+        private function getServerOutput(): stdClass {
+            if (self::$oGlobalServer) {
+                return (object) array_merge((array) self::$oGlobalServer, (array) $this->getServerDateInfo());
+            }
+
+            return $this->getServerDateInfo();
         }
 
         /**
@@ -490,7 +520,7 @@
             $oOutput = $this->oOutput;
 
             if ($oOutput instanceof stdClass) {
-                $oOutput->_server = self::getServerObject();
+                $oOutput->_server  = $this->getServerOutput();
                 $oOutput->_request = $this->getRequestOutput();
             }
 
