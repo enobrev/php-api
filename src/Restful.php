@@ -350,11 +350,8 @@
                         } else if ($this->Request->isPost()) {
                             Log::d('API.Restful._getResultsFromPath.FoundNone.Post');
 
-                            $aPrimary = $oTable->getPrimaryFieldNames();
-                            if (count($aPrimary) == 1) {
-                                $sPrimary = array_shift($aPrimary);
-                                $oTable->$sPrimary->setValue($aLastPair[1]);
-                            }
+                            $sKey = $this->_getUrlKeyField($oTable)->sColumn;
+                            $oTable->$sKey->setValue($aLastPair[1]);
 
                             $this->setData($oTable);
                         }
