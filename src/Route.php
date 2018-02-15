@@ -130,9 +130,10 @@
         private static function addQueryRoute(string $sType, string $sRoute, string $sClass, string $sMethod): void {
             foreach (self::$aVersions as $sVersion) {
                 $aRoute = [
-                    'type'   => $sType,
-                    'class'  => $sClass,
-                    'method' => $sMethod
+                    'normalized' => $sRoute,
+                    'type'       => $sType,
+                    'class'      => $sClass,
+                    'method'     => $sMethod
                 ];
 
                 $sVersionedRoute  = $sVersion . '/' . trim($sRoute, '/');
@@ -441,17 +442,16 @@
             $sRoute = implode('/', $oRequest->Path);
             $sRoute = trim($sRoute, '/');
 
-            if (isset($aRoutes[$sRoute])) {
+            $aRoute = $aRoutes[$sRoute] ?? null;
+            if ($aRoute) {
                 Log::d('API.Route._matchRoute', [
                     '#request' => [
-                        'path_normalized' => '/' . $sRoute
+                        'path_normalized' => '/' . $aRoute['normalized']
                     ]
                 ]);
-
-                return $aRoutes[$sRoute];
             }
 
-            return null;
+            return $aRoute;
         }
 
         /**
@@ -479,7 +479,7 @@
 
                     Log::d('API.Route._matchQuery', [
                         '#request' => [
-                            'path_normalized' => '/' . $sRoute
+                            'path_normalized' => $aRoute['normalized']
                         ]
                     ]);
 
@@ -536,8 +536,9 @@
                                 }
 
                                 self::$aCachedRoutes[$sRoute] = [
-                                    'class'  => $sClassPath,
-                                    'method' => $sMethod
+                                    'normalized' => $sRoute,
+                                    'class'      => $sClassPath,
+                                    'method'     => $sMethod
                                 ];
 
 
