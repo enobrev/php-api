@@ -184,7 +184,8 @@
             $this->Data = $oTable::createAndUpdateFromMap(
                 $this->Request->POST,
                 DataMap::getResponseMap($this->getDataPath(), $this->Data),
-                $aOverrides
+                $aOverrides,
+                $this->_getUrlKeyField(new $oTable)->sColumn
             );
 
             $this->get();
@@ -223,7 +224,8 @@
             $this->Data = $oTable::createAndUpdateFromMap(
                 $this->Request->PUT,
                 DataMap::getResponseMap($this->getDataPath(), $this->Data),
-                $aOverridePrimaries
+                $aOverridePrimaries,
+                $this->_getUrlKeyField(new $oTable)->sColumn
             );
 
             $this->get();
