@@ -113,7 +113,7 @@
 
             $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMap($this->getDataPath(), $this->Data));
             $this->Response->add('counts.' . $this->getDataPath(), 1);
-            $this->Response->add('sorts.' .  $this->getDataPath(), [$this->Data->getPrimary()[0]->getValue()]);
+            $this->Response->add('sorts.' .  $this->getDataPath(), [$this->_getUrlKeyField($this->Data)->getValue()]);
             $this->Response->setHeadersFromTable($this->Data);
             return;
         }
@@ -143,7 +143,7 @@
             $aSorts = [];
             /** @var ORM\Table $oTable */
             foreach($this->Data as $oTable) {
-                $aSorts[] = $oTable->getPrimary()[0]->getValue();
+                $aSorts[] = $this->_getUrlKeyField($oTable)->getValue();
             }
 
             return $aSorts;
@@ -366,6 +366,14 @@
         }
 
         /**
+         * @param Table $oTable
+         * @return ORM\Field
+         */
+        protected function _getUrlKeyField(Table $oTable) {
+            return $oTable->getPrimary()[0];
+        }
+
+        /**
          * @throws Exception
          * @throws Exception\InvalidReference
          * @throws Exception\InvalidTable
@@ -384,11 +392,12 @@
 
             $oQuery = SQLBuilder::select($oTable);
 
-            $aPairs    = $this->Request->getPathPairs();
-            $aLastPair = array_pop($aPairs);
+            $oPrimaryField = $this->_getUrlKeyField($oTable);
+            $aPairs        = $this->Request->getPathPairs();
+            $aLastPair     = array_pop($aPairs);
             if (isset($aLastPair[1])) {
-                $oQuery->eq_in($oTable->getPrimary()[0], $aLastPair[1]);
-                $this->Request->updateParam($oTable->getPrimary()[0]->sColumn, $aLastPair[1]);
+                $oQuery->eq_in($oPrimaryField, $aLastPair[1]);
+                $this->Request->updateParam($oPrimaryField->sColumn, $aLastPair[1]);
             }
 
             while (count($aPairs) > 0) {
