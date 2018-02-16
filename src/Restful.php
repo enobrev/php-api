@@ -111,7 +111,7 @@
                 return;
             }
 
-            $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMap($this->getDataPath(), $this->Data));
+            $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMap($this->getDataPath(), $this->Data, $this->_getUrlKeyField($this->Data)->sColumn));
             $this->Response->add('counts.' . $this->getDataPath(), 1);
             $this->Response->add('sorts.' .  $this->getDataPath(), [$this->_getUrlKeyField($this->Data)->getValue()]);
             $this->Response->setHeadersFromTable($this->Data);
@@ -126,7 +126,7 @@
          */
         protected function gets(): void {
             if ($this->Data->count() > 0) {
-                $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMaps($this->getDataPath(), $this->Data));
+                $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMaps($this->getDataPath(), $this->Data, $this->_getUrlKeyField($this->Data[0])->sColumn));
                 $this->Response->add('sorts.' . $this->getDataPath(), $this->getSorts());
                 $this->Response->setLastModifiedFromTables($this->Data);
             } else {

@@ -90,14 +90,15 @@
         }
 
         /**
-         * @param string $sPath
+         * @param string                               $sPath
          * @param ArrayIterator|ORM\Table[]|ORM\Tables $oData
+         * @param string                               $sKeyField
          * @return array
          */
-        public static function getIndexedResponseMaps(string $sPath, $oData): array {
+        public static function getIndexedResponseMaps(string $sPath, $oData, string $sKeyField = null): array {
             $aResponse = [];
             foreach($oData as $oDatum) {
-                $aResponse += self::getIndexedResponseMap($sPath, $oDatum);
+                $aResponse += self::getIndexedResponseMap($sPath, $oDatum, $sKeyField);
             }
 
             return $aResponse;
@@ -106,11 +107,16 @@
         /**
          * @param string $sPath
          * @param ORM\Table $oDatum
+         * @param string    $sKeyField
          * @return array
          */
-        public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum): array {
+        public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum, string $sKeyField = null): array {
+            if (!$sKeyField) {
+                $sKeyField = $oDatum->getPrimary()[0]->sColumn;
+            }
+
             return [
-                $oDatum->getPrimary()[0]->getValue() => self::getResponseMap($sPath, $oDatum)
+                $oDatum->$sKeyField->getValue() => self::getResponseMap($sPath, $oDatum)
             ];
         }
 
