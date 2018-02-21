@@ -60,7 +60,7 @@
         protected $iStatus = null;
 
         /** @var  bool */
-        protected $bIncludeRequestInOutput = false;
+        protected $bIncludeRequestInOutput = true;
 
         /** @var  bool */
         private $bHasResponded = false;
@@ -85,7 +85,7 @@
             }
 
             $this->aHeaders = [];
-            $this->includeRequestInOutput(false);
+            $this->includeRequestInOutput(true);
             $this->setRequest($oRequest);
             $this->setFormat($oRequest->Format);
             $this->setStatus(HTTP\OK);
@@ -113,9 +113,10 @@
             $oRequest->logs->thread  = Log::getThreadHashForOutput();
             $oRequest->logs->request = Log::getRequestHashForOutput();
 
+            $oRequest->method = $this->Request->OriginalRequest->getMethod();
+            $oRequest->path   = $this->Request->OriginalRequest->getUri()->getPath();
+
             if ($this->bIncludeRequestInOutput) {
-                $oRequest->method       = $this->Request->OriginalRequest->getMethod();
-                $oRequest->path         = $this->Request->OriginalRequest->getUri()->getPath();
                 $oRequest->attributes   = $this->Request->OriginalRequest->getAttributes();
                 $oRequest->query        = $this->Request->OriginalRequest->getQueryParams();
                 $oRequest->data         = $this->Request->POST;
