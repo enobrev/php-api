@@ -109,7 +109,9 @@
          */
         private function getRequestOutput() {
             $oRequest = new stdClass();
-            $oRequest->logs = Log::getRequestHashForOutput();
+            $oRequest->logs = new stdClass();
+            $oRequest->logs->thread  = Log::getThreadHashForOutput();
+            $oRequest->logs->request = Log::getRequestHashForOutput();
 
             if ($this->bIncludeRequestInOutput) {
                 $oRequest->method       = $this->Request->OriginalRequest->getMethod();
