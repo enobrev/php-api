@@ -98,6 +98,14 @@
         }
 
         /**
+         * HTTP OPTIONS
+         * @throws Exception\NoContentType
+         */
+        public function options(): void {
+            $this->Response->respondWithOptions( ...Method\_ALL);
+        }
+
+        /**
          * HTTP GET
          */
         public function get(): void {
