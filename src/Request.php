@@ -171,7 +171,7 @@
          * @return mixed|null
          */
         public function POSTParam(string $sParam, $sDefault = null) {
-            return $this->param(Method\GET, $sParam, $sDefault);
+            return $this->param(Method\POST, $sParam, $sDefault);
         }
 
         /**
