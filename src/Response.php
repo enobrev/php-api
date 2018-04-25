@@ -365,6 +365,10 @@
          * @return void
          */
         private function set($sVar, $mValue): void {
+            if ($mValue instanceof Field\JSONText) {
+                $mValue = json_decode($mValue->getValue());
+            }
+
             if ($mValue instanceof Field) {
                 $mValue = $mValue->getValue();
             }

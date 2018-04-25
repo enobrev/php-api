@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "f3a72ea35800700971e389f2b43ccef962059b48"
+                "reference": "bb67282b4f6d1971c4684f8425d3963adad3c37d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/f3a72ea35800700971e389f2b43ccef962059b48",
-                "reference": "f3a72ea35800700971e389f2b43ccef962059b48",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/bb67282b4f6d1971c4684f8425d3963adad3c37d",
+                "reference": "bb67282b4f6d1971c4684f8425d3963adad3c37d",
                 "shasum": ""
             },
             "require": {
@@ -65,7 +65,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2018-04-07T08:08:11+00:00"
+            "time": "2018-04-25T13:52:39+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -73,12 +73,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "73bafc45a4b4c5ebf2b222960146d164715508b6"
+                "reference": "ac5d05e070ad9909930a9317f5cc532e084aec9b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/73bafc45a4b4c5ebf2b222960146d164715508b6",
-                "reference": "73bafc45a4b4c5ebf2b222960146d164715508b6",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/ac5d05e070ad9909930a9317f5cc532e084aec9b",
+                "reference": "ac5d05e070ad9909930a9317f5cc532e084aec9b",
                 "shasum": ""
             },
             "require": {
@@ -116,7 +116,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2018-04-07T08:03:14+00:00"
+            "time": "2018-04-25T13:52:52+00:00"
         },
         {
             "name": "kevinlebrun/colors.php",
