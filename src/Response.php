@@ -3,6 +3,7 @@
 
     use DateTime;
 
+    use Money\Money;
     use stdClass;
 
     use Enobrev\API\HTTP;
@@ -377,6 +378,11 @@
                 /** @var DateTime $mValue */
                 // $mValue->setTimezone(new DateTimeZone('GMT')); - FIXME: should only be doing this by explicit request
                 $mValue = $mValue->format(DateTime::RFC3339);
+            }
+
+            if ($mValue instanceof Money) {
+                /** @var Money $mValue */
+                $mValue = $mValue->getAmount();
             }
 
             /** @psalm-suppress PossiblyInvalidArgument */
