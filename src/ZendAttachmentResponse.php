@@ -7,13 +7,13 @@
     use Zend\Diactoros\Stream;
 
     /**
-     * ZendFileResponse.
+     * ZendAttachmentResponse.
      *
      * Allows creating a response by passing file data to the constructor; by default,
      * reads the data, sets a status code of 200 and sets the
      * Content-Type header to what's passed in.
      */
-    class ZendFileResponse extends Response {
+    class ZendAttachmentResponse extends Response {
         use Response\InjectContentTypeTrait;
 
         /**
@@ -28,10 +28,12 @@
             $oFileInfo = new SplFileInfo($sFile);
 
             $sRealPath = $oFileInfo->getRealPath();
+            $sFileName = $oFileInfo->getFilename();
             $iSize     = $oFileInfo->getSize();
 
             $aHeaders = array_merge($aHeaders, [
-                'content-length'        => $iSize
+                'content-length'        => $iSize,
+                'content-disposition'   => "attachment; filename=$sFileName"
             ]);
 
             $oStream = new Stream($sRealPath, 'r');

@@ -42,6 +42,9 @@
         /** @var  string */
         protected $sFile = null;
 
+        /** @var  boolean */
+        protected $bAsAttachment = null;
+
         /** @var  array */
         protected $aResponse = [];
 
@@ -153,9 +156,11 @@
 
         /**
          * @param string $sFile
+         * @param bool $bAsAttachment
          */
-        public function setFile(string $sFile): void {
-            $this->sFile = $sFile;
+        public function setFile(string $sFile, $bAsAttachment = false): void {
+            $this->sFile         = $sFile;
+            $this->bAsAttachment = $bAsAttachment;
         }
 
         /**
@@ -487,7 +492,11 @@
                     throw new Exception\NoContentType('Missing Content Type');
                 }
 
-                $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                if ($this->bAsAttachment) {
+                    $oResponse = new ZendAttachmentResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                } else {
+                    $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                }
             } else {
                 switch($this->sFormat) {
                     default:
