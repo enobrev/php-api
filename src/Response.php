@@ -254,7 +254,7 @@
         public function add($sVar, $mValue = NULL): void {
             if ($sVar instanceof Table) {
                 $this->add($sVar->getTitle(), $sVar->toArray());
-            } else if ($sVar instanceof Field\DateTime) {
+            } else if ($sVar instanceof Field\Date) {
                 $this->set($sVar->sColumn, (string) $sVar);
             } else if ($sVar instanceof Field) {
                 $this->set($sVar->sColumn, $sVar->getValue());
@@ -373,6 +373,10 @@
         private function set($sVar, $mValue): void {
             if ($mValue instanceof Field\JSONText) {
                 $mValue = json_decode($mValue->getValue());
+            }
+
+            if ($mValue instanceof Field\Date) {
+                $mValue = (string) $mValue;
             }
 
             if ($mValue instanceof Field) {
