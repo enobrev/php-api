@@ -25,7 +25,8 @@
         "enobrev/php-tools":  "dev-master",
         "enobrev/php-orm":  "dev-master",
         "zendframework/zend-diactoros": "^1.3",
-        "twig/twig": "^2.4"
+        "twig/twig": "^2.4",
+        "mtdowling/jmespath.php": "^2.4"
     },
     "require-dev": {
         "monolog/monolog": "^1.17",
