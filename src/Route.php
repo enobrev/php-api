@@ -827,23 +827,37 @@
                     }
                 }
             } else if ($oResponse) {
-                if ($oResponse->status == HTTP\NOT_FOUND) {
-                    Log::w('API.Route._attemptRequest.Done', [
-                        'endpoint' => $sEndpoint,
-                        'status'   => $oResponse->status,
-                        'headers'  => json_encode($oResponse->headers),
-                        'body'     => json_encode($oResponse->data),
-                        '--ms'     => $nRequestTimer
-                    ]);
-                } else {
-                    Log::setProcessIsError(true);
-                    Log::e('API.Route._attemptRequest.Done', [
-                        'endpoint' => $sEndpoint,
-                        'status'   => $oResponse->status,
-                        'headers'  => json_encode($oResponse->headers),
-                        'body'     => json_encode($oResponse->data),
-                        '--ms'     => $nRequestTimer
-                    ]);
+                switch($oResponse->status) {
+                    case HTTP\NO_CONTENT:
+                        Log::i('API.Route._attemptRequest.Done', [
+                            'endpoint' => $sEndpoint,
+                            'status'   => $oResponse->status,
+                            'headers'  => json_encode($oResponse->headers),
+                            'body'     => json_encode($oResponse->data),
+                            '--ms'     => $nRequestTimer
+                        ]);
+                        break;
+
+                    case HTTP\NOT_FOUND:
+                        Log::w('API.Route._attemptRequest.Done', [
+                            'endpoint' => $sEndpoint,
+                            'status'   => $oResponse->status,
+                            'headers'  => json_encode($oResponse->headers),
+                            'body'     => json_encode($oResponse->data),
+                            '--ms'     => $nRequestTimer
+                        ]);
+                        break;
+
+                    default:
+                        Log::setProcessIsError(true);
+                        Log::e('API.Route._attemptRequest.Done', [
+                            'endpoint' => $sEndpoint,
+                            'status'   => $oResponse->status,
+                            'headers'  => json_encode($oResponse->headers),
+                            'body'     => json_encode($oResponse->data),
+                            '--ms'     => $nRequestTimer
+                        ]);
+                        break;
                 }
             } else {
                 Log::w('API.Route._attemptRequest.Done', [
@@ -926,7 +940,7 @@
                                 'template' => $sTemplate,
                                 'values'   => $aValues
                             ]);
-                            
+
                             throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
                         }
                     }
