@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use function Enobrev\dbg;
     use Zend\Diactoros\ServerRequest;
     use Enobrev\Log;
     use Enobrev\API\Exception;
@@ -29,6 +30,10 @@
 
         /** @var  array */
         public $PUT  = null;
+
+        /** @var Param[] */
+        public $Params = [];
+
 
         public function __construct(ServerRequest $oRequest) {
             $this->OriginalRequest  = $oRequest;
@@ -59,6 +64,41 @@
                     ]
                 ]
             ]);
+        }
+
+        public function addParams(...$aParams):void {
+            $this->Params = array_merge($this->Params, $aParams);
+        }
+
+        public function validateParams() : ?array {
+            $aErrors = [];
+            foreach($this->Params as $oParam) {
+                if (isset($this->GET[$oParam->name()])) {
+                    $oParam->value($this->GET[$oParam->name()]);
+                } else if (isset($this->POST[$oParam->name()])) {
+                    $oParam->value($this->POST[$oParam->name()]);
+                }
+
+                $aValidationErrors = $oParam->validate();
+                if ($aValidationErrors) {
+                    $aErrors[$oParam->name()] = $aValidationErrors;
+                }
+            }
+
+            if (count($aErrors)) {
+                return $aErrors;
+            }
+
+            return null;
+        }
+
+        public function documentParams() : ?array {
+            $aParams = [];
+            foreach($this->Params as $oParam) {
+                $aParams[$oParam->name()] = $oParam->document();
+            }
+
+            return $aParams;
         }
 
         /**
