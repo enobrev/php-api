@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # generate sql.json
-../../vendor/bin/sql_to_json.php -h localhost -u dev -p -n dev_api_mock
+../../vendor/bin/sql_to_json.php -h 192.168.1.2 -u dev -p -n dev_api_mock
 
 # generate mysql.sql
-mysqldump -h localhost -u dev -p --no-data --databases dev_api_mock > mysql.sql
+mysqldump -h 192.168.1.2 -u dev -p --no-data --databases dev_api_mock > mysql.sql
 
 # download script for converting mysql database to sqlite
 if [ ! -f ./mysql2sqlite.sh ]; then
@@ -13,7 +13,7 @@ if [ ! -f ./mysql2sqlite.sh ]; then
 fi
 
 # generate sqlite.sql
-./mysql2sqlite.sh -h localhost -u dev -p --no-data --databases dev_api_mock > sqlite.sql
+./mysql2sqlite.sh -h 192.168.1.2 -u dev -p --no-data --databases dev_api_mock > sqlite.sql
 sed -i '/CREATE DATABASE/d' ./sqlite.sql
 sed -i '/CONSTRAINT/d' ./sqlite.sql
 sed -i '/PRAGMA/d' ./sqlite.sql

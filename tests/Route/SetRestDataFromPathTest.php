@@ -7,7 +7,7 @@
     use Enobrev\API\Rest;
     use Enobrev\API\Restful;
     use Enobrev\Log;
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
 
     use PDO;
     use Enobrev\API\Mock\Table;

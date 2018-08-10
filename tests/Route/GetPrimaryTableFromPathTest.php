@@ -6,7 +6,7 @@
     use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
     use Enobrev\Log;
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
 
     use Enobrev\API\Exception;
     use Enobrev\API\Response;

@@ -6,7 +6,7 @@
     use Enobrev\API\Rest;
     use Enobrev\API\Request;
     use Enobrev\Log;
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
 
     use Enobrev\API\Response;
     use Enobrev\API\Route;

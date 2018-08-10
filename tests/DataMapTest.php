@@ -3,7 +3,7 @@
 
     require __DIR__ . '/../vendor/autoload.php';
 
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
     use Enobrev\API\DataMap;
     use Enobrev\API\Mock\Table\User;
     use Enobrev\ORM\Field;
@@ -34,7 +34,7 @@
             $oUser->user_happy->setValue(true);
             $oUser->user_date_added->setValue(new \DateTime('2016-11-05'));
 
-            $this->assertInstanceOf(Field\UUIDNullable::class, DataMap::getField($oUser, 'id'));
+            $this->assertInstanceOf(Field\UUID::class,         DataMap::getField($oUser, 'id'));
             $this->assertInstanceOf(Field\TextNullable::class, DataMap::getField($oUser, 'email'));
             $this->assertInstanceOf(Field\TextNullable::class, DataMap::getField($oUser, 'name'));
             $this->assertInstanceOf(Field\Boolean::class,      DataMap::getField($oUser, 'happy'));

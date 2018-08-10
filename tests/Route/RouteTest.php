@@ -4,7 +4,7 @@
     require __DIR__ . '/../../vendor/autoload.php';
 
     use Enobrev\API\Rest;
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
 
     use Enobrev\API\Route;
 

@@ -5,7 +5,7 @@
 
     use Enobrev\API\Request;
     use Enobrev\Log;
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Stream;
     use Zend\Diactoros\Uri;

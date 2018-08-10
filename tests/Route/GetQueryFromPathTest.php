@@ -6,7 +6,7 @@
     use Enobrev\API\DataMap;
     use Enobrev\API\Rest;
     use Enobrev\Log;
-    use PHPUnit_Framework_TestCase as TestCase;
+    use PHPUnit\Framework\TestCase;
 
     use Enobrev\API\Exception;
     use Enobrev\API\Response;
@@ -314,7 +314,8 @@
 
             $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%this is a test%" AND users.user_id LIKE "%whatever%" LIMIT 0, 1000', (string) $oQuery);
         }
-        
+
+        /*
         public function testWithMultiForeignFieldAndSearch() {
             // FIXME: Cannot Currently search with Foreign Fields
             /** @var ServerRequest $oServerRequest
@@ -327,6 +328,7 @@
             $oQuery = Route::_getQueryFromPath($oRequest);
 
             $this->assertEquals('SELECT * FROM users LEFT OUTER JOIN addresses ON users.user_id = addresses.user_id WHERE users.user_name LIKE "%this is a test%" AND addresses.address_city LIKE "%Chicago%" LIMIT 0, 1000', (string) $oQuery);
-            */
+            *
         }
+        */
     }
