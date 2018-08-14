@@ -66,11 +66,20 @@
             ]);
         }
 
+        /**
+         * @param Param[] ...$aParams
+         */
         public function addParams(...$aParams):void {
-            $this->Params = array_merge($this->Params, $aParams);
+            foreach ($aParams as $oParam) {
+                $this->Params[$oParam->name()] = $oParam;
+            }
         }
 
-        public function validateParams() : ?array {
+        public function validateParams(...$aParams) : ?array {
+            if ($aParams) {
+                $this->addParams($aParams);
+            }
+
             $aErrors = [];
             foreach($this->Params as $oParam) {
                 if (isset($this->GET[$oParam->name()])) {
