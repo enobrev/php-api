@@ -40,6 +40,9 @@
         /** @var string */
         private static $sRestClass = Rest::class;
 
+        /** @var bool */
+        private static $bOutputServerErrors = false;
+
         /**
          * @param string $sPathAPI
          * @param string $sNamespaceAPI
@@ -60,6 +63,13 @@
             $sRest::init(self::$sNamespaceTable);
 
             self::_generateRoutes();
+        }
+
+        /**
+         * @param bool $bOutputServerErrors
+         */
+        public static function outputServerErrors(bool $bOutputServerErrors): void {
+            self::$bOutputServerErrors = $bOutputServerErrors;
         }
 
         /**
@@ -183,35 +193,35 @@
          * @return Response
          */
         public static function _getResponse(Request $oRequest): Response {
-            if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
-                Log::d('API.Route._getResponse.root', [
-                    '#request' => [
-                        'path_normalized' => '/'
-                    ]
-                ]);
+            try {
+                if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
+                    Log::d('API.Route._getResponse.root', [
+                        '#request' => [
+                            'path_normalized' => '/'
+                        ]
+                    ]);
 
-                if (!self::$bReturnResponses) {
-                    $oResponse = self::_acceptSyncData($oRequest);
+                    if (!self::$bReturnResponses) {
+                        $oResponse = self::_acceptSyncData($oRequest);
 
-                    if ($oResponse) {
-                        Log::d('API.Route.query._getResponse.sync', [
-                            'response' => get_class($oResponse)
-                        ]);
-
-                        $oMultiResponse = self::_attemptMultiRequest($oRequest, $oResponse);
-
-                        if ($oMultiResponse) {
-                            Log::d('API.Route.query._getResponse.sync_and_query.respond', [
-                                'response' => get_class($oMultiResponse)
+                        if ($oResponse) {
+                            Log::d('API.Route.query._getResponse.sync', [
+                                'response' => get_class($oResponse)
                             ]);
 
-                            return $oMultiResponse;
+                            $oMultiResponse = self::_attemptMultiRequest($oRequest, $oResponse);
+
+                            if ($oMultiResponse) {
+                                Log::d('API.Route.query._getResponse.sync_and_query.respond', [
+                                    'response' => get_class($oMultiResponse)
+                                ]);
+
+                                return $oMultiResponse;
+                            }
                         }
                     }
                 }
-            }
 
-            try {
                 $aRoute   = self::_matchRoute(self::$aCachedRoutes, $oRequest);
                 if ($aRoute) {
                     return self::_endpoint($aRoute, $oRequest);
@@ -345,7 +355,17 @@
 
                 $oResponse = new Response($oRequest);
                 $oResponse->setStatus(HTTP\SERVICE_UNAVAILABLE);
-                $oResponse->setFormat(Response::FORMAT_EMPTY);
+
+                if (self::$bOutputServerErrors) {
+                    $oResponse->add('_server_error', [
+                        'type'    => get_class($e),
+                        'code'    => $e->getCode(),
+                        'message' => $e->getMessage(),
+                        'stack'   => $e->getTrace()
+                    ]);
+                } else {
+                    $oResponse->setFormat(Response::FORMAT_EMPTY);
+                }
 
                 return $oResponse;
             }
