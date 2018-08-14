@@ -948,15 +948,27 @@
 
                 if (strpos($sMatch, 'jmes:') === 0) {
                     $sExpression = str_replace('jmes:', '', $sMatch);
-                    $aValues     = JmesPath\Env::search($sExpression, self::$aData);
+
+                    try {
+                        $aValues = JmesPath\Env::search($sExpression, self::$aData);
+                    } catch (\RuntimeException $e) {
+                        Log::e('Route.getTemplateValue.JMESPath.error', [
+                            'template'   => $sTemplate,
+                            'expression' => $sExpression,
+                            'error'      => $e
+                        ]);
+
+                        $aValues = [];
+                    }
 
                     if ($aValues) {
                         if (!is_array($aValues)) {
                             $aValues = [$aValues];
                         } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
                             Log::e('Route.getTemplateValue.JMESPath', [
-                                'template' => $sTemplate,
-                                'values'   => $aValues
+                                'template'   => $sTemplate,
+                                'expression' => $sExpression,
+                                'values'     => $aValues
                             ]);
 
                             throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
@@ -964,8 +976,9 @@
                     }
 
                     Log::d('Route.getTemplateValue.JMESPath', [
-                        'template' => $sTemplate,
-                        'values'   => $aValues
+                        'template'   => $sTemplate,
+                        'expression' => $sExpression,
+                        'values'     => $aValues
                     ]);
                 } else {
                     $aMatch = explode('.', $sMatch);
