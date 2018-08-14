@@ -363,8 +363,6 @@
                         'message' => $e->getMessage(),
                         'stack'   => $e->getTrace()
                     ]);
-                } else {
-                    $oResponse->setFormat(Response::FORMAT_EMPTY);
                 }
 
                 return $oResponse;
