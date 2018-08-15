@@ -5,7 +5,6 @@
 
     use Enobrev\API\Exception\DocumentationException;
     use Enobrev\API\Exception\InvalidRequest;
-    use function Enobrev\dbg;
     use JsonSchema\Constraints\Constraint;
     use Money\Money;
     use stdClass;
@@ -17,6 +16,7 @@
     use Enobrev\ORM\Tables;
     use Enobrev\Log;
 
+    use function Enobrev\dbg;
     use function Enobrev\array_from_path;
 
     use Adbar\Dot;
@@ -42,52 +42,112 @@
             "response" => [
                 "type" => "object",
                 "properties" => [
-                    "_server"    => ["\$ref"=> "#/definitions/_server"],
-                    "_request"   => ["\$ref"=> "#/definitions/_request"],
+                    "_server"    => ["\$ref"=> "#/properties/response/definitions/_server"],
+                    "_request"   => ["\$ref"=> "#/properties/response/definitions/_request"],
+                    "_response"  => ["\$ref"=> "#/properties/response/definitions/_request"],
                     "__requests" => [
                         "type" => "array",
-                        "items" => ["\$ref"=> "#/definitions/_request"]
+                        "items" => ["\$ref"=> "#/properties/response/definitions/_request"]
+                    ],
+                    "jsonschema" => [
+                        "type" => "object"
+                    ]
+                ],
+                "definitions" => [
+                    "_server" => [
+                        "type" => "object",
+                        "properties"=> [
+                            "timezone"      => ["type" => "string"],
+                            "timezone_gmt"  => ["type" => "string"],
+                            "date"          => ["type" => "string"],
+                            "date_w3c"      => ["type" => "string"]
+                        ],
+                        "additionalProperties"=> false
+                    ],
+                    "_request" => [
+                        "type" => "object",
+                        "properties"=> [
+                            "validation" => [
+                                "type" => "object",
+                                "properties" => [
+                                    "status" => [
+                                        "type" => "string",
+                                        "enum" => ["PASS", "FAIL"]
+                                    ],
+                                    "errors" => [
+                                        "type" => "array",
+                                        "items" => ["\$ref" => "#/definitions/response/definitions/_validation_error"]
+                                    ]
+                                ]
+                            ],
+                            "logs"      => [
+                                "type" => "object",
+                                "properties" => [
+                                    "thread" => [
+                                        "type" => "string",
+                                        "description" => "Alphanumeric hash for looking up entire request thread in logs"
+                                    ],
+                                    "request" => [
+                                        "type" => "string",
+                                        "description" => "Alphanumeric hash for looking up specific API request in logs"
+                                    ]
+                                ]
+                            ],
+                            "method"        => [
+                                "type" => "string",
+                                "enum" => ["GET", "POST", "PUT", "DELETE"]
+                            ],
+                            "path"          => ["type" => "string"],
+                            "attributes"    => [
+                                "type" => "array",
+                                "description" => "Parameters pulled from the path"
+                            ],
+                            "query"         => ["type" => "array"],
+                            "data"          => [
+                                "oneOf" => [
+                                    ["type" => "object"],
+                                    ["type" => "null"]
+                                ],
+                                "description" => "POSTed Data"
+                            ]
+                        ],
+                        "additionalProperties"=> false
+                    ],
+                    "_response" => [
+                        "type" => "object",
+                        "properties"=> [
+                            "validation" => [
+                                "type" => "object",
+                                "properties" => [
+                                    "status" => [
+                                        "type" => "string",
+                                        "enum" => ["PASS", "FAIL"]
+                                    ],
+                                    "errors" => [
+                                        "type" => "array",
+                                        "items" => ["\$ref" => "#/definitions/response/definitions/_validation_error"]
+                                    ]
+                                ]
+                            ]
+                        ],
+                        "additionalProperties"=> false
+                    ],
+                    "_validation_error" => [
+                        "type" => "object",
+                        "properties" => [
+                            "property"      => ["type" => "string"],
+                            "pointer"       => ["type" => "string"],
+                            "message"       => ["type" => "string"],
+                            "constraint"    => ["type" => "string"],
+                            "context"       => ["type" => "number"],
+                            "minimum"       => ["type" => "number"],
+                            "value"         => []
+                        ]
                     ]
                 ]
             ]
         ],
-        "definitions" => [
-            "_server" => [
-                "type" => "object",
-                "properties"=> [
-                    "timezone"      => ["type"=> "string"],
-                    "timezone_gmt"  => ["type"=> "string"],
-                    "date"          => ["type"=> "string"],
-                    "date_w3c"      => ["type"=> "string"]
-                ],
-                "additionalProperties"=> false
-            ],
-            "_request" => [
-                "type" => "object",
-                "properties"=> [
-                    "logs"      => [
-                        "type" => "object",
-                        "properties" => [
-                            "thread" => [
-                                "type" => "string"
-                            ],
-                            "request" => [
-                                "type" => "string"
-                            ]
-                        ]
-                    ],
-                    "method"        => [
-                        "type" => "string",
-                        "enum" => ["GET", "POST", "PUT", "DELETE"]
-                    ],
-                    "path"          => ["type"=> "string"],
-                    "attributes"    => ["type"=> "array"],
-                    "query"         => ["type"=> "array"],
-                    "data"          => ["oneOf"=> ["type" => "object"], ["type" => "null"]]
-                ],
-                "additionalProperties"=> false
-            ]
-        ]
+        "definitions" => []
     ];
 
     class Response {
@@ -106,8 +166,8 @@
         const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
         const HTTP_DATE_FORMAT = 'D, d M Y H:i:s T';
 
-        /** @var stdClass */
-        protected static $oGlobalServer;
+        /** @var array */
+        protected static $aGlobalServer;
 
         /** @var  string */
         protected $sFormat = null;
@@ -176,8 +236,8 @@
 
             $this->oOutput = new stdClass();
 
-            if (!self::$oGlobalServer) {
-                self::$oGlobalServer = new stdClass;
+            if (!self::$aGlobalServer) {
+                self::$aGlobalServer = [];
             }
         }
 
@@ -188,25 +248,25 @@
             $this->Request = $oRequest;
         }
 
-        /**
-         * @return stdClass
-         */
-        private function getRequestOutput() {
-            $oRequest = new stdClass();
-            $oRequest->logs = new stdClass();
-            $oRequest->logs->thread  = Log::getThreadHashForOutput();
-            $oRequest->logs->request = Log::getRequestHashForOutput();
-
-            $oRequest->method = $this->Request->OriginalRequest->getMethod();
-            $oRequest->path   = $this->Request->OriginalRequest->getUri()->getPath();
+        private function setRequestOutput() {
+            $aRequest = [
+                'logs' => (object) [
+                    'thread'  => Log::getThreadHashForOutput(),
+                    'request' => Log::getRequestHashForOutput()
+                ],
+                'method' => $this->Request->OriginalRequest->getMethod(),
+                'path'   => $this->Request->OriginalRequest->getUri()->getPath()
+            ];
 
             if ($this->bIncludeRequestInOutput) {
-                $oRequest->attributes   = $this->Request->OriginalRequest->getAttributes();
-                $oRequest->query        = $this->Request->OriginalRequest->getQueryParams();
-                $oRequest->data         = $this->Request->POST;
+                $aRequest = array_merge($aRequest, [
+                    'attributes' => $this->Request->OriginalRequest->getAttributes(),
+                    'query'      => $this->Request->OriginalRequest->getQueryParams(),
+                    'data'       => $this->Request->POST
+                ]);
             }
 
-            return $oRequest;
+            $this->add('_request', (object) $aRequest);
         }
 
         /**
@@ -409,37 +469,24 @@
          * @param mixed  $mValue
          */
         public static function setGlobalServerData(string $sKey, $mValue): void {
-            self::$oGlobalServer->$sKey = $mValue;
+            self::$aGlobalServer[$sKey] = $mValue;
         }
 
-        /**
-         * @return stdClass
-         */
-        private function getServerDateInfo(): stdClass {
-            if (self::$oGlobalServer && property_exists(self::$oGlobalServer, 'date')) {
-                $oNow = self::$oGlobalServer->date;
+        private function setServerOutput(): void {
+            if (self::$aGlobalServer && isset(self::$aGlobalServer['date'])) {
+                $oNow = self::$aGlobalServer['date'];
             } else {
                 $oNow = new \DateTime;
             }
 
-            $oServerDate = new stdClass;
-            $oServerDate->timezone      = $oNow->format('T');
-            $oServerDate->timezone_gmt  = $oNow->format('P');
-            $oServerDate->date          = $oNow->format(self::SYNC_DATE_FORMAT);
-            $oServerDate->date_w3c      = $oNow->format(DateTime::W3C);
+            $aServer = array_merge(self::$aGlobalServer, [
+                'timezone'      => $oNow->format('T'),
+                'timezone_gmt'  => $oNow->format('P'),
+                'date'          => $oNow->format(self::SYNC_DATE_FORMAT),
+                'date_w3c'      => $oNow->format(DateTime::W3C)
+            ]);
 
-            return $oServerDate;
-        }
-
-        /**
-         * @return stdClass
-         */
-        private function getServerOutput(): stdClass {
-            if (self::$oGlobalServer) {
-                return (object) array_merge((array) self::$oGlobalServer, (array) $this->getServerDateInfo());
-            }
-
-            return $this->getServerDateInfo();
+            $this->add('_server', (object) $aServer);
         }
 
         /**
@@ -558,6 +605,12 @@
          * @throws Exception\InvalidRequest
          */
         public function validateRequest() {
+            $bRequestedDocumentation = $this->Request->GET['document'] ?? $this->Request->POST['document'] ?? false;  // TODO: Make me a header
+
+            if ($bRequestedDocumentation) {
+                $this->add('jsonschema', (object) $this->oSchema->all());
+            }
+
             $oValidator = new Validator;
 
             $oTest = (object) [
@@ -581,16 +634,16 @@
                     $aErrors[]       = $aError;
                 }
 
-                $this->add('validation.request.OK', false);
-                $this->add('validation.request.errors', $aErrors);
+                $this->add('_request.validation.status', 'FAIL');
+                $this->add('_request.validation.errors', $aErrors);
 
                 throw new InvalidRequest();
             } else {
+                $this->add('_request.validation.status', 'PASS');
                 $this->ValidParams = (object) $oTest->request;
             }
 
-            if ($this->ValidParams->document) { // TODO: Make me a header
-                $this->add('jsonschema', $this->oSchema->all());
+            if ($bRequestedDocumentation) {
                 throw new DocumentationException();
             }
         }
@@ -613,9 +666,10 @@
                     $aErrors[]       = $aError;
                 }
 
-                $this->add('validation.response.OK', false);
-                $this->add('validation.response.errors', $aErrors);
-                return false;
+                $this->add('_response.validation.status', 'FAIL');
+                $this->add('_response.validation.errors', $aErrors);
+            } else {
+                $this->add('_response.validation.status', 'PASS');
             }
         }
 
@@ -690,14 +744,10 @@
          * @return stdClass
          */
         public function getOutput(): stdClass {
-            $oOutput = $this->oOutput;
+            $this->setServerOutput();
+            $this->setRequestOutput();
 
-            if ($oOutput instanceof stdClass) {
-                $oOutput->_server  = $this->getServerOutput();
-                $oOutput->_request = $this->getRequestOutput();
-            }
-
-            return $oOutput;
+            return $this->oOutput;
         }
 
         /**

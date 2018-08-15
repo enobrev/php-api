@@ -30,7 +30,7 @@
                             "email"  => ["type" => "string"],
                             "age"    => ["type" => "integer", "minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true]
                         ],
-                        "required" => "sha_id"
+                        "required" => ["sha_id"]
                     ],
                     "response" => [
                         "type" => "object",
@@ -70,8 +70,8 @@
     class TestPartialSchema extends Base {
         public function test() {
             $this->Response->setSchema('properties.request.properties', [
-                "sha_id" => ["type" => "string", "minLength" => 40, "maxLength" => 40],
-                "name"   => ["type" => "string", "minLength" => 3, "maxLength" => 30],
+                "sha_id" => ["type" => "string", "minLength" => 40, "maxLength" => 40, "description" => "Client Generated Sha1 Hash"],
+                "name"   => ["type" => "string", "minLength" => 3, "maxLength" => 30, "description" => "The Person's full name"],
                 "email"  => ["type" => "string"],
                 "age"    => ["type" => "integer", "minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true]
             ]);
@@ -116,11 +116,11 @@
     $oServerRequest = $oServerRequest->withMethod('GET');
     $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/test/test'));
     $oServerRequest = $oServerRequest->withQueryParams([
-//        'document' => true,
+        'document' => true,
         'name'   => 'mark',
-        'sha_id' => 'abcdefghijklmnopqrstuvwxyz0123456789012',
+        'sha_id' => 'abcdefghijklmnopqrstuvwxyz01234567890123',
         'email'  => 'enobrev@gmail.com',
-        'age'    => 12
+        'age'    => 45
     ]);
 
     $oRequest = new Request($oServerRequest);
@@ -129,10 +129,12 @@
 
     $oTest = new TestFullSchema($oRequest);
     $oTest->test();
+    $oTest->Response->validateResponse();
     dbg(json_encode($oTest->Response->getOutput(), JSON_PRETTY_PRINT));
 
     $oTest = new TestPartialSchema($oRequest);
     $oTest->test();
+    $oTest->Response->validateResponse();
     dbg(json_encode($oTest->Response->getOutput(), JSON_PRETTY_PRINT));
 
     /*
