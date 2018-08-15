@@ -4,8 +4,58 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "5d1362a315d444298adfd010e40235de",
+    "content-hash": "81a40d309cfd8ff142036e58913f6585",
     "packages": [
+        {
+            "name": "adbario/php-dot-notation",
+            "version": "dev-recursive-merge",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/melbings/php-dot-notation.git",
+                "reference": "e6e0125cce499e5229b34b8e3556d7686e12a22a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/melbings/php-dot-notation/zipball/e6e0125cce499e5229b34b8e3556d7686e12a22a",
+                "reference": "e6e0125cce499e5229b34b8e3556d7686e12a22a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.0|^5.0|^6.0",
+                "squizlabs/php_codesniffer": "^3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Adbar\\": "src"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Riku Särkinen",
+                    "email": "riku@adbar.io"
+                }
+            ],
+            "description": "PHP dot notation access to arrays",
+            "homepage": "https://github.com/adbario/php-dot-notation",
+            "keywords": [
+                "arrayaccess",
+                "dotnotation"
+            ],
+            "support": {
+                "source": "https://github.com/melbings/php-dot-notation/tree/recursive-merge"
+            },
+            "time": "2018-03-18T20:09:13+00:00"
+        },
         {
             "name": "composer/xdebug-handler",
             "version": "1.1.0",
@@ -161,6 +211,72 @@
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
             "time": "2018-08-14T11:02:37+00:00"
+        },
+        {
+            "name": "justinrainbow/json-schema",
+            "version": "5.2.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/justinrainbow/json-schema.git",
+                "reference": "8560d4314577199ba51bf2032f02cd1315587c23"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/8560d4314577199ba51bf2032f02cd1315587c23",
+                "reference": "8560d4314577199ba51bf2032f02cd1315587c23",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.1",
+                "json-schema/json-schema-test-suite": "1.2.0",
+                "phpunit/phpunit": "^4.8.35"
+            },
+            "bin": [
+                "bin/validate-json"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "JsonSchema\\": "src/JsonSchema/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bruno Prieto Reis",
+                    "email": "bruno.p.reis@gmail.com"
+                },
+                {
+                    "name": "Justin Rainbow",
+                    "email": "justin.rainbow@gmail.com"
+                },
+                {
+                    "name": "Igor Wiedler",
+                    "email": "igor@wiedler.ch"
+                },
+                {
+                    "name": "Robert Schönthal",
+                    "email": "seroscho@googlemail.com"
+                }
+            ],
+            "description": "A library to validate a json schema.",
+            "homepage": "https://github.com/justinrainbow/json-schema",
+            "keywords": [
+                "json",
+                "schema"
+            ],
+            "time": "2018-02-14T22:26:30+00:00"
         },
         {
             "name": "kevinlebrun/colors.php",
@@ -2502,7 +2618,8 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "enobrev/php-tools": 20,
-        "enobrev/php-orm": 20
+        "enobrev/php-orm": 20,
+        "adbario/php-dot-notation": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

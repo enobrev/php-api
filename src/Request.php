@@ -31,10 +31,6 @@
         /** @var  array */
         public $PUT  = null;
 
-        /** @var Param[] */
-        public $Params = [];
-
-
         public function __construct(ServerRequest $oRequest) {
             $this->OriginalRequest  = $oRequest;
             $this->Path             = $this->splitPath();
@@ -64,50 +60,6 @@
                     ]
                 ]
             ]);
-        }
-
-        /**
-         * @param Param[] ...$aParams
-         */
-        public function addParams(...$aParams):void {
-            foreach ($aParams as $oParam) {
-                $this->Params[$oParam->name()] = $oParam;
-            }
-        }
-
-        public function validateParams(...$aParams) : ?array {
-            if ($aParams) {
-                $this->addParams($aParams);
-            }
-
-            $aErrors = [];
-            foreach($this->Params as $oParam) {
-                if (isset($this->GET[$oParam->name()])) {
-                    $oParam->value($this->GET[$oParam->name()]);
-                } else if (isset($this->POST[$oParam->name()])) {
-                    $oParam->value($this->POST[$oParam->name()]);
-                }
-
-                $aValidationErrors = $oParam->validate();
-                if ($aValidationErrors) {
-                    $aErrors[$oParam->name()] = $aValidationErrors;
-                }
-            }
-
-            if (count($aErrors)) {
-                return $aErrors;
-            }
-
-            return null;
-        }
-
-        public function documentParams() : ?array {
-            $aParams = [];
-            foreach($this->Params as $oParam) {
-                $aParams[$oParam->name()] = $oParam->document();
-            }
-
-            return $aParams;
         }
 
         /**

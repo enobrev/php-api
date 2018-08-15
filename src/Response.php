@@ -3,6 +3,10 @@
 
     use DateTime;
 
+    use Enobrev\API\Exception\DocumentationException;
+    use Enobrev\API\Exception\InvalidRequest;
+    use function Enobrev\dbg;
+    use JsonSchema\Constraints\Constraint;
     use Money\Money;
     use stdClass;
 
@@ -15,7 +19,76 @@
 
     use function Enobrev\array_from_path;
 
+    use Adbar\Dot;
+    use JsonSchema\Validator;
     use Zend\Diactoros\Response as ZendResponse;
+
+    const DEFAULT_SCHEMA = [
+        "\$schema" => "http://json-schema.org/draft-07/schema",
+        "type"     => "object",
+        "additionalProperties" => false,
+        "properties" => [
+            "request" => [
+                "type" => "object",
+                "additionalProperties" => false,
+                "properties" => [
+                    "document" => [
+                        "type" => "boolean",
+                        "description" => "Output documentation for this endpoint without processing the endpoint method",
+                        "default" => false
+                    ]
+                ]
+            ],
+            "response" => [
+                "type" => "object",
+                "properties" => [
+                    "_server"    => ["\$ref"=> "#/definitions/_server"],
+                    "_request"   => ["\$ref"=> "#/definitions/_request"],
+                    "__requests" => [
+                        "type" => "array",
+                        "items" => ["\$ref"=> "#/definitions/_request"]
+                    ]
+                ]
+            ]
+        ],
+        "definitions" => [
+            "_server" => [
+                "type" => "object",
+                "properties"=> [
+                    "timezone"      => ["type"=> "string"],
+                    "timezone_gmt"  => ["type"=> "string"],
+                    "date"          => ["type"=> "string"],
+                    "date_w3c"      => ["type"=> "string"]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_request" => [
+                "type" => "object",
+                "properties"=> [
+                    "logs"      => [
+                        "type" => "object",
+                        "properties" => [
+                            "thread" => [
+                                "type" => "string"
+                            ],
+                            "request" => [
+                                "type" => "string"
+                            ]
+                        ]
+                    ],
+                    "method"        => [
+                        "type" => "string",
+                        "enum" => ["GET", "POST", "PUT", "DELETE"]
+                    ],
+                    "path"          => ["type"=> "string"],
+                    "attributes"    => ["type"=> "array"],
+                    "query"         => ["type"=> "array"],
+                    "data"          => ["oneOf"=> ["type" => "object"], ["type" => "null"]]
+                ],
+                "additionalProperties"=> false
+            ]
+        ]
+    ];
 
     class Response {
         const FORMAT_PNG       = 'png';
@@ -69,6 +142,9 @@
         /** @var  bool */
         private $bHasResponded = false;
 
+        /** @var Dot */
+        private $oSchema = null;
+
         /** @var array */
         protected static $aAllowedURIs = ['*'];
 
@@ -77,6 +153,9 @@
 
         /** @var string */
         protected static $sScheme = 'https://';
+
+        /** @var array  */
+        public $ValidParams = [];
 
         /**
          * Response constructor.
@@ -88,6 +167,7 @@
                 throw new Exception\Response('API Response Not Initialized');
             }
 
+            $this->oSchema  = new Dot(DEFAULT_SCHEMA);
             $this->aHeaders = [];
             $this->includeRequestInOutput(true);
             $this->setRequest($oRequest);
@@ -401,10 +481,10 @@
 
             if(is_array($aData)) {
                 if (!property_exists($this->oOutput, $sKey)) {
-                    $this->oOutput->$sKey = array();
+                    $this->oOutput->$sKey = [];
                 }
 
-                $aCleanData = array();
+                $aCleanData = [];
                 foreach($aData as $sDataKey => $sDataValue) {
                     if ($sDataValue === NULL) {
                         continue;
@@ -470,6 +550,73 @@
             }
 
             return false;
+        }
+
+        /**
+         * @throws Exception\DocumentationException
+         * @throws Exception\NoContentType
+         * @throws Exception\InvalidRequest
+         */
+        public function validateRequest() {
+            $oValidator = new Validator;
+
+            $oTest = (object) [
+                'request'  => (object) ($this->Request->isGet() ? $this->Request->GET : $this->Request->POST)
+            ];
+
+            $oValidator->validate(
+                $oTest,
+                json_decode($this->oSchema->toJson()),
+                Constraint::CHECK_MODE_APPLY_DEFAULTS
+                & Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS
+            );
+
+            if (!$oValidator->isValid()) {
+                $oDot = new Dot();
+                $oDot->set('request', $this->Request->isGet() ? $this->Request->GET : $this->Request->POST);
+
+                $aErrors = [];
+                foreach($oValidator->getErrors() as $aError) {
+                    $aError['value'] = $oDot->get($aError['property']);
+                    $aErrors[]       = $aError;
+                }
+
+                $this->add('validation.request.OK', false);
+                $this->add('validation.request.errors', $aErrors);
+
+                throw new InvalidRequest();
+            } else {
+                $this->ValidParams = (object) $oTest->request;
+            }
+
+            if ($this->ValidParams->document) { // TODO: Make me a header
+                $this->add('jsonschema', $this->oSchema->all());
+                throw new DocumentationException();
+            }
+        }
+
+        public function validateResponse() {
+            $oValidator = new Validator;
+
+            $oTest = (object) [
+                'response'  => $this->getOutput()
+            ];
+
+            $oValidator->validate($oTest, json_decode($this->oSchema->toJson()));
+            if (!$oValidator->isValid()) {
+                $oDot = new Dot();
+                $oDot->set('response', json_decode(json_encode($this->getOutput()), true));
+
+                $aErrors = [];
+                foreach($oValidator->getErrors() as $aError) {
+                    $aError['value'] = $oDot->get($aError['property']);
+                    $aErrors[]       = $aError;
+                }
+
+                $this->add('validation.response.OK', false);
+                $this->add('validation.response.errors', $aErrors);
+                return false;
+            }
         }
 
         /**
@@ -636,5 +783,18 @@
             Log::setProcessIsError(true);
             $this->setStatus(HTTP\METHOD_NOT_ALLOWED);
             //$this->setFormat(self::FORMAT_EMPTY);
+        }
+
+        /**
+         * @param string $sKey
+         * @param array $aDefinition
+         */
+        public function setSchema(?string $sKey, array $aDefinition):void {
+            if (!$sKey) {
+                $this->oSchema->mergeRecursiveDistinct($aDefinition);
+                return;
+            }
+
+            $this->oSchema->mergeRecursiveDistinct($sKey, $aDefinition);
         }
     }

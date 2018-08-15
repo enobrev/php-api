@@ -3,37 +3,111 @@
 
     require __DIR__ . '/../vendor/autoload.php';
 
-    use Enobrev\API\Request;
-    use Enobrev\API\Param;
-    use Enobrev\API\Validations as Is;
+    use Enobrev\API\Exception\DocumentationException;
+    use Enobrev\API\Exception\InvalidRequest;
+    use function Enobrev\dbg;
     use Enobrev\Log;
 
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;
 
+
     Log::setService('ValidationDemo');
 
-    class Test extends Base {
-        public function test() {
-            $this->Request->setParams([
-                new Param('sha_id', Param::STRING, [new Is\Required(), new Is\ExactLength(40)]),
-                new Param('name',   Param::STRING, [new Is\Required, new Is\Length(3, 30)]),
-                new Param('email',  Param::STRING, [new Is\Required]),
-                new Param('age',    Param::INT,    [new Is\AtLeast(18), new Is\LessThan(150)])
-            ]);
 
-            $this->Response->document([
-                'description' => 'Whatever',
-                'response' => [
-                    'users' => new ResponseObject('users', [
-                        'id' => new ResponseString,
-                        'name' => new ResponseString,
-                        'age'  => new ResponseInt
-                    ])
+    class TestFullSchema extends Base {
+        public function test() {
+            $this->Response->setSchema(null, [
+                "type" => "object",
+                "additionalProperties" => false,
+                "properties" => [
+                    "request" => [
+                        "type" => "object",
+                        "additionalProperties" => false,
+                        "properties" => [
+                            "sha_id" => ["type" => "string", "minLength" => 40, "maxLength" => 40, "description" => "Client Generated Sha1 Hash"],
+                            "name"   => ["type" => "string", "minLength" => 3, "maxLength" => 30, "description" => "The Person's full name"],
+                            "email"  => ["type" => "string"],
+                            "age"    => ["type" => "integer", "minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true]
+                        ],
+                        "required" => "sha_id"
+                    ],
+                    "response" => [
+                        "type" => "object",
+                        "additionalProperties" => false,
+                        "properties" => [
+                            "users" => ["\$ref" => "#/definitions/users"]
+                        ]
+                    ]
+                ],
+                "definitions" => [
+                    "users" => [
+                        "patternProperties" => [
+                            "^[a-fA-F0-9]+$" => ["\$ref" => "#/definitions/user"]
+                        ],
+                        "additionalProperties" => false
+                    ],
+                    "user" => [
+                        "properties" => [
+                            "id" => ["type" => "string"],
+                        ],
+                        "additionalProperties" => false
+                    ]
                 ]
             ]);
 
-            $this->Response->add('name', $this->Request->Params['name']);
+            try {
+                $this->Response->validateRequest();
+            } catch(DocumentationException | InvalidRequest $e) {
+                return;
+            }
+
+            // $this->Response->add('name', $this->Request->Params['name']);
+            dbg('TEST!');
+        }
+    }
+
+    class TestPartialSchema extends Base {
+        public function test() {
+            $this->Response->setSchema('properties.request.properties', [
+                "sha_id" => ["type" => "string", "minLength" => 40, "maxLength" => 40],
+                "name"   => ["type" => "string", "minLength" => 3, "maxLength" => 30],
+                "email"  => ["type" => "string"],
+                "age"    => ["type" => "integer", "minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true]
+            ]);
+
+            $this->Response->setSchema('properties.request.required', ["sha_id"]);
+
+            $this->schema();
+
+            try {
+                $this->Response->validateRequest();
+            } catch(DocumentationException | InvalidRequest $e) {
+                return;
+            }
+
+            dbg('TEST!');
+        }
+
+        public function schema() {
+            $this->Response->setSchema('properties.response.properties', [
+                "users" => ["\$ref" => "#/definitions/users"]
+            ]);
+
+            $this->Response->setSchema('definitions', [
+                "users" => [
+                    "patternProperties" => [
+                        "^[a-fA-F0-9]+$" => ["\$ref" => "#/definitions/user"]
+                    ],
+                    "additionalProperties" => false
+                ],
+                "user" => [
+                    "properties" => [
+                        "id" => ["type" => "string"],
+                    ],
+                    "additionalProperties" => false
+                ]
+            ]);
         }
     }
 
@@ -42,22 +116,24 @@
     $oServerRequest = $oServerRequest->withMethod('GET');
     $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/test/test'));
     $oServerRequest = $oServerRequest->withQueryParams([
+//        'document' => true,
         'name'   => 'mark',
-        'sha_id' => 'abcdefghijklmnopqrstuvwxyz01234567890123',
+        'sha_id' => 'abcdefghijklmnopqrstuvwxyz0123456789012',
         'email'  => 'enobrev@gmail.com',
-        'age'    => '45'
+        'age'    => 12
     ]);
 
     $oRequest = new Request($oServerRequest);
-    $oRequest->addParams(
-        new Param('sha_id', Param::STRING, [new Is\Required(), new Is\ExactLength(40)]),
-        new Param('name',   Param::STRING, [new Is\Required, new Is\Length(3, 30)]),
-        new Param('email',  Param::STRING, [new Is\Required]),
-        new Param('age',    Param::INT,    [new Is\AtLeast(18), new Is\LessThan(150)])
-    );
 
-    \Enobrev\dbg($oRequest->documentParams());
-    \Enobrev\dbg($oRequest->validateParams());
+    Response::init('example.com');
+
+    $oTest = new TestFullSchema($oRequest);
+    $oTest->test();
+    dbg(json_encode($oTest->Response->getOutput(), JSON_PRETTY_PRINT));
+
+    $oTest = new TestPartialSchema($oRequest);
+    $oTest->test();
+    dbg(json_encode($oTest->Response->getOutput(), JSON_PRETTY_PRINT));
 
     /*
      *
