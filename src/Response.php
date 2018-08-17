@@ -187,8 +187,8 @@
         /** @var  string */
         protected $sTextOutput = '';
 
-        /** @var  stdClass */
-        protected $oOutput = null;
+        /** @var Dot */
+        protected $oOutput;
 
         /** @var  array */
         protected $aHeaders = [];
@@ -228,13 +228,12 @@
             }
 
             $this->oSchema  = new Dot(DEFAULT_SCHEMA);
+            $this->oOutput  = new Dot();
             $this->aHeaders = [];
             $this->includeRequestInOutput(true);
             $this->setRequest($oRequest);
             $this->setFormat($oRequest->Format);
             $this->setStatus(HTTP\OK);
-
-            $this->oOutput = new stdClass();
 
             if (!self::$aGlobalServer) {
                 self::$aGlobalServer = [];
@@ -250,7 +249,7 @@
 
         private function setRequestOutput() {
             $aRequest = [
-                'logs' => (object) [
+                'logs' => [
                     'thread'  => Log::getThreadHashForOutput(),
                     'request' => Log::getRequestHashForOutput()
                 ],
@@ -266,7 +265,7 @@
                 ]);
             }
 
-            $this->add('_request', (object) $aRequest);
+            $this->add('_request', $aRequest);
         }
 
         /**
@@ -393,7 +392,7 @@
          */
         public function add($sVar, $mValue = NULL): void {
             if ($sVar instanceof Table) {
-                $this->add($sVar->getTitle(), $sVar->toArray());
+                $this->add($sVar->getTitle(), $sVar);
             } else if ($sVar instanceof Field\Date) {
                 $this->set($sVar->sColumn, (string) $sVar);
             } else if ($sVar instanceof Field) {
@@ -407,26 +406,11 @@
                             $this->set($sValue->sColumn, $sValue);
                         }
                     } else {
-                        $this->add($sKey, $sValue);
+                        $this->set($sKey, $sValue);
                     }
                 }
             } else if ($mValue instanceof Table) {
-                $aFields = $mValue->getFields();
-                foreach($aFields as $oField) {
-                    $this->set($sVar . '.' . $oField->sColumn, $oField);
-                }
-            } else if (is_array($mValue)) {
-                foreach($mValue as $sKey => $sValue) {
-                    if ($sValue instanceof Field) {
-                        if (preg_match('/[a-zA-Z]/', $sKey)) { // Associative key - replacing field names
-                            $this->set($sVar . '.' . $sKey, $sValue);
-                        } else {
-                            $this->set($sVar . '.' . $sValue->sColumn, $sValue);
-                        }
-                    } else {
-                        $this->add($sVar . '.' . $sKey, $sValue);
-                    }
-                }
+                $this->set($sVar, $mValue->getColumnsWithFields());
             } else {
                 $this->set($sVar, $mValue);
             }
@@ -436,31 +420,7 @@
          * @param string $sKey
          */
         public function remove(string $sKey): void {
-            $aKey = explode('.', $sKey);
-            $sTopKey = array_shift($aKey);
-
-            if (!isset($this->oOutput->$sTopKey)) {
-                return;
-            }
-
-            if (count($aKey) === 0) {
-                unset($this->oOutput->$sTopKey);
-            }
-
-            $aTree = &$this->oOutput->$sTopKey;
-
-            while (count($aKey) > 1) {
-                $sKey = array_shift($aKey);
-
-                if (!isset($aTree[$sKey])) {
-                    return;
-                }
-
-                $aTree = &$aTree[$sKey];
-            }
-
-            $sKey = array_shift($aKey);
-            unset($aTree[$sKey]);
+            $this->oOutput->delete($sKey);
         }
 
         /**
@@ -521,39 +481,19 @@
                 $mValue = $mValue->getAmount();
             }
 
-            /** @psalm-suppress PossiblyInvalidArgument */
-            $aKey  = explode('.', $sVar);
-            $sKey  = $aKey[0];
-            $aData = array_from_path($sVar, $mValue);
-
-            if(is_array($aData)) {
-                if (!property_exists($this->oOutput, $sKey)) {
-                    $this->oOutput->$sKey = [];
-                }
-
-                $aCleanData = [];
-                foreach($aData as $sDataKey => $sDataValue) {
-                    if ($sDataValue === NULL) {
-                        continue;
-                    }
-
-                    $aCleanData[$sDataKey] = $sDataValue;
-                }
-
-                $this->oOutput->$sKey = array_replace_recursive($this->oOutput->$sKey, $aCleanData);
-            } else if ($aData === NULL) {
-                return;
+            if (is_array($mValue)) {
+                $this->oOutput->mergeRecursiveDistinct($sVar, $mValue);
             } else {
-                $this->oOutput->$sKey = $aData;
+                $this->oOutput->set($sVar, $mValue);
             }
         }
 
         /**
          * Overrides all default output and replaces output object with $oOutput
-         * @param array|stdClass $oOutput
+         * @param array $aOutput
          */
-        public function overrideOutput($oOutput): void {
-            $this->oOutput = $oOutput;
+        public function overrideOutput($aOutput): void {
+            $this->oOutput = new Dot($aOutput);
         }
 
         /**
@@ -747,7 +687,7 @@
             $this->setServerOutput();
             $this->setRequestOutput();
 
-            return $this->oOutput;
+            return (object) $this->oOutput->all();
         }
 
         /**
