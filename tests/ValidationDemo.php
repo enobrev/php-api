@@ -10,78 +10,30 @@
 
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;
+    use Enobrev\API\Method;
+    use Enobrev\API\HTTP;
 
+    use Enobrev\API\Mock\Table;
 
     Log::setService('ValidationDemo');
 
-
-    class TestFullSchema extends Base {
+    class TestSpec extends Base {
         public function test() {
-            $this->Response->setSchema(null, [
-                "type" => "object",
-                "additionalProperties" => false,
-                "properties" => [
-                    "request" => [
-                        "type" => "object",
-                        "additionalProperties" => false,
-                        "properties" => [
-                            "sha_id" => ["type" => "string", "minLength" => 40, "maxLength" => 40, "description" => "Client Generated Sha1 Hash"],
-                            "name"   => ["type" => "string", "minLength" => 3, "maxLength" => 30, "description" => "The Person's full name"],
-                            "email"  => ["type" => "string"],
-                            "age"    => ["type" => "integer", "minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true]
-                        ],
-                        "required" => ["sha_id"]
-                    ],
-                    "response" => [
-                        "type" => "object",
-                        "additionalProperties" => false,
-                        "properties" => [
-                            "users" => ["\$ref" => "#/definitions/users"]
-                        ]
-                    ]
-                ],
-                "definitions" => [
-                    "users" => [
-                        "patternProperties" => [
-                            "^[a-fA-F0-9]+$" => ["\$ref" => "#/definitions/user"]
-                        ],
-                        "additionalProperties" => false
-                    ],
-                    "user" => [
-                        "properties" => [
-                            "id" => ["type" => "string"],
-                        ],
-                        "additionalProperties" => false
-                    ]
-                ]
-            ]);
+            $this->defineOutputTypes();
+
+            $this->Response->setParameters(
+                new Param('sha_id', Param::STRING & Param::REQUIRED, ["minLength" => 40, "maxLength" => 40], "Client Generated Sha1 Hash"),
+                new Param('name',   Param::STRING, ["minLength" => 3, "maxLength" => 30], "The Person's full name"),
+                new Param('email',  Param::STRING),
+                new Param('age',    Param::INTEGER,["minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true])
+            );
+
+            $this->Response->setMethods([Method\GET]);
+            $this->Response->setOutputTypes(["Users"]);
+
 
             try {
-                $this->Response->validateRequest();
-            } catch(DocumentationException | InvalidRequest $e) {
-                return;
-            }
-
-            // $this->Response->add('name', $this->Request->Params['name']);
-            dbg('TEST!');
-        }
-    }
-
-    class TestPartialSchema extends Base {
-        public function test() {
-            $this->Response->setSchema('properties.request.properties', [
-                "sha_id" => ["type" => "string", "minLength" => 40, "maxLength" => 40, "description" => "Client Generated Sha1 Hash"],
-                "name"   => ["type" => "string", "minLength" => 3, "maxLength" => 30, "description" => "The Person's full name"],
-                "email"  => ["type" => "string"],
-                "age"    => ["type" => "integer", "minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true]
-            ]);
-
-            $this->Response->setSchema('properties.request.required', ["sha_id"]);
-
-            $this->schema();
-
-            try {
-                $this->Response->validateRequest();
+                $this->Response->validateRequest(__METHOD__);
             } catch(DocumentationException | InvalidRequest $e) {
                 return;
             }
@@ -89,23 +41,14 @@
             dbg('TEST!');
         }
 
-        public function schema() {
-            $this->Response->setSchema('properties.response.properties', [
-                "users" => ["\$ref" => "#/definitions/users"]
+        public function defineOutputTypes() {
+            $this->Response->defineOutputType("User", new Table\User);
+            $this->Response->defineOutputType("User", [
+                'is_authed' => ['type' => 'boolean', 'default' => false]
             ]);
-
-            $this->Response->setSchema('definitions', [
-                "users" => [
-                    "patternProperties" => [
-                        "^[a-fA-F0-9]+$" => ["\$ref" => "#/definitions/user"]
-                    ],
-                    "additionalProperties" => false
-                ],
-                "user" => [
-                    "properties" => [
-                        "id" => ["type" => "string"],
-                    ],
-                    "additionalProperties" => false
+            $this->Response->defineOutputType("Users", [
+                "x-patternProperties" => [
+                    "^[a-fA-F0-9]+$" => ['$ref' => "User"]
                 ]
             ]);
         }
@@ -125,16 +68,12 @@
 
     $oRequest = new Request($oServerRequest);
 
+    DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
     Response::init('example.com');
+    Route::addEndpointRoute('testspec/test',TestSpec::class,'test');
 
-    $oTest = new TestFullSchema($oRequest);
+    $oTest = new TestSpec($oRequest);
     $oTest->test();
-    $oTest->Response->validateResponse();
-    dbg(json_encode($oTest->Response->getOutput(), JSON_PRETTY_PRINT));
-
-    $oTest = new TestPartialSchema($oRequest);
-    $oTest->test();
-    $oTest->Response->validateResponse();
     dbg(json_encode($oTest->Response->getOutput(), JSON_PRETTY_PRINT));
 
     /*
