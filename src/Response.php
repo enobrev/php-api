@@ -16,8 +16,6 @@
     use Enobrev\ORM\Tables;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     use Adbar\Dot;
     use JsonSchema\Validator;
     use Zend\Diactoros\Response as ZendResponse;
@@ -186,7 +184,7 @@
         private $aOutputTypes = [];
 
         /** @var array  */
-        private $aMethods = Method\GET;
+        private $aMethods = [Method\GET];
 
         /** @var array  */
         public $ValidParams = [];
@@ -530,7 +528,6 @@
             $aParameters = ($this->Request->isGet() ? $this->Request->GET : $this->Request->POST);
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
-            dbg($oParameters);
             $oValidator->validate(
                 $oParameters,
                 $this->paramsToJsonSchema(),
