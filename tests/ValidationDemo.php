@@ -33,7 +33,7 @@
 
 
             try {
-                $this->Response->validateRequest(__METHOD__);
+                $this->Response->validateRequest();
             } catch(DocumentationException | InvalidRequest $e) {
                 return;
             }

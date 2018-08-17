@@ -518,7 +518,7 @@
          * @throws DocumentationException
          * @throws InvalidRequest
          */
-        public function validateRequest($sMethod) {
+        public function validateRequest() {
             $bRequestedDocumentation = $this->Request->OriginalRequest->hasHeader('X-Welcome-Docs');
 
             if ($bRequestedDocumentation) {
