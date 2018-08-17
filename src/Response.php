@@ -17,118 +17,103 @@
     use Enobrev\Log;
 
     use function Enobrev\dbg;
-    use function Enobrev\array_from_path;
 
     use Adbar\Dot;
     use JsonSchema\Validator;
     use Zend\Diactoros\Response as ZendResponse;
 
-    const DEFAULT_SCHEMA = [
-        "\$schema" => "http://json-schema.org/draft-07/schema",
-    ];
-
-    /*
-        "parameters" => [
-            "document" => [
-                "type" => "boolean",
-                "description" => "Output documentation for this endpoint without processing the endpoint method",
-                "default" => false
-            ]
+    const DEFAULT_RESPONSE_SCHEMAS = [
+        "_server" => [
+            "type" => "object",
+            "properties"=> [
+                "timezone"      => ["type" => "string"],
+                "timezone_gmt"  => ["type" => "string"],
+                "date"          => ["type" => "string"],
+                "date_w3c"      => ["type" => "string"]
+            ],
+            "additionalProperties"=> false
         ],
-        "definitions" => [
-            "_server" => [
-                "type" => "object",
-                "properties"=> [
-                    "timezone"      => ["type" => "string"],
-                    "timezone_gmt"  => ["type" => "string"],
-                    "date"          => ["type" => "string"],
-                    "date_w3c"      => ["type" => "string"]
-                ],
-                "additionalProperties"=> false
-            ],
-            "_request" => [
-                "type" => "object",
-                "properties"=> [
-                    "validation" => [
-                        "type" => "object",
-                        "properties" => [
-                            "status" => [
-                                "type" => "string",
-                                "enum" => ["PASS", "FAIL"]
-                            ],
-                            "errors" => [
-                                "type" => "array",
-                                "items" => ['$ref' => "#/definitions/response/definitions/_validation_error"]
-                            ]
-                        ]
-                    ],
-                    "logs"      => [
-                        "type" => "object",
-                        "properties" => [
-                            "thread" => [
-                                "type" => "string",
-                                "description" => "Alphanumeric hash for looking up entire request thread in logs"
-                            ],
-                            "request" => [
-                                "type" => "string",
-                                "description" => "Alphanumeric hash for looking up specific API request in logs"
-                            ]
-                        ]
-                    ],
-                    "method"        => [
-                        "type" => "string",
-                        "enum" => ["GET", "POST", "PUT", "DELETE"]
-                    ],
-                    "path"          => ["type" => "string"],
-                    "attributes"    => [
-                        "type" => "array",
-                        "description" => "Parameters pulled from the path"
-                    ],
-                    "query"         => ["type" => "array"],
-                    "data"          => [
-                        "oneOf" => [
-                            ["type" => "object"],
-                            ["type" => "null"]
+        "_request" => [
+            "type" => "object",
+            "properties"=> [
+                "validation" => [
+                    "type" => "object",
+                    "properties" => [
+                        "status" => [
+                            "type" => "string",
+                            "enum" => ["PASS", "FAIL"]
                         ],
-                        "description" => "POSTed Data"
-                    ]
-                ],
-                "additionalProperties"=> false
-            ],
-            "_response" => [
-                "type" => "object",
-                "properties"=> [
-                    "validation" => [
-                        "type" => "object",
-                        "properties" => [
-                            "status" => [
-                                "type" => "string",
-                                "enum" => ["PASS", "FAIL"]
-                            ],
-                            "errors" => [
-                                "type" => "array",
-                                "items" => ['$ref' => "#/definitions/_validation_error"]
-                            ]
+                        "errors" => [
+                            "type" => "array",
+                            "items" => ['$ref' => "#/components/schemas/_validation_error"]
                         ]
                     ]
                 ],
-                "additionalProperties"=> false
-            ],
-            "_validation_error" => [
-                "type" => "object",
-                "properties" => [
-                    "property"      => ["type" => "string"],
-                    "pointer"       => ["type" => "string"],
-                    "message"       => ["type" => "string"],
-                    "constraint"    => ["type" => "string"],
-                    "context"       => ["type" => "number"],
-                    "minimum"       => ["type" => "number"],
-                    "value"         => []
+                "logs"      => [
+                    "type" => "object",
+                    "properties" => [
+                        "thread" => [
+                            "type" => "string",
+                            "description" => "Alphanumeric hash for looking up entire request thread in logs"
+                        ],
+                        "request" => [
+                            "type" => "string",
+                            "description" => "Alphanumeric hash for looking up specific API request in logs"
+                        ]
+                    ]
+                ],
+                "method"        => [
+                    "type" => "string",
+                    "enum" => ["GET", "POST", "PUT", "DELETE"]
+                ],
+                "path"          => ["type" => "string"],
+                "attributes"    => [
+                    "type" => "array",
+                    "description" => "Parameters pulled from the path"
+                ],
+                "query"         => ["type" => "array"],
+                "data"          => [
+                    "oneOf" => [
+                        ["type" => "object"],
+                        ["type" => "null"]
+                    ],
+                    "description" => "POSTed Data"
                 ]
+            ],
+            "additionalProperties"=> false
+        ],
+        "_response" => [
+            "type" => "object",
+            "properties"=> [
+                "validation" => [
+                    "type" => "object",
+                    "properties" => [
+                        "status" => [
+                            "type" => "string",
+                            "enum" => ["PASS", "FAIL"]
+                        ],
+                        "errors" => [
+                            "type" => "array",
+                            "items" => ['$ref' => "#/components/schemas/_validation_error"]
+                        ]
+                    ]
+                ]
+            ],
+            "additionalProperties"=> false
+        ],
+        "_validation_error" => [
+            "type" => "object",
+            "properties" => [
+                "property"      => ["type" => "string"],
+                "pointer"       => ["type" => "string"],
+                "message"       => ["type" => "string"],
+                "constraint"    => ["type" => "string"],
+                "context"       => ["type" => "number"],
+                "minimum"       => ["type" => "number"],
+                "value"         => []
             ]
         ]
     ];
-    */
 
     class Response {
         const FORMAT_PNG       = 'png';
@@ -182,9 +167,6 @@
         /** @var  bool */
         private $bHasResponded = false;
 
-        /** @var Dot */
-        private $oSpec = null;
-
         /** @var array */
         protected static $aAllowedURIs = ['*'];
 
@@ -219,7 +201,6 @@
                 throw new Exception\Response('API Response Not Initialized');
             }
 
-            $this->oSpec  = new Dot(DEFAULT_SCHEMA);
             $this->oOutput  = new Dot();
             $this->oOutputDefinitions = new Dot();
             $this->aHeaders = [];
@@ -742,19 +723,6 @@
         }
 
         /**
-         * @param string $sKey
-         * @param array $aDefinition
-         */
-        public function setSpec(?string $sKey, array $aDefinition):void {
-            if (!$sKey) {
-                $this->oSpec->mergeRecursiveDistinct($aDefinition);
-                return;
-            }
-
-            $this->oSpec->mergeRecursiveDistinct($sKey, $aDefinition);
-        }
-
-        /**
          * @param Param[] $aParameters,...
          * @throws Exception\Response
          */
@@ -767,61 +735,6 @@
                 $this->aParams[$oParameter->sName] = $oParameter;
             }
 
-        }
-
-        /**
-         * @param string $sMethod
-         * @param array $aRequired
-         */
-        public function setRequired(string $sMethod, array $aRequired):void {
-            $sKey = "components.schemas.{$sMethod}::parameters";
-            if (!$this->oSpec->has($sKey)) {
-                $this->oSpec->set($sKey, [
-                    "type"                  => "object",
-                    "additionalProperties"  => false,
-                    "required"              => $aRequired
-                ]);
-            } else {
-                $this->oSpec->mergeRecursiveDistinct($sKey, [
-                    "required"              => $aRequired
-                ]);
-            }
-        }
-
-        /**
-         * @param string $sMethod
-         * @param string $sHTTPMethod
-         * @param int $iStatus
-         * @param string $sType
-         * @param array $aResponse
-         */
-        public function addResponse(string $sMethod, string $sHTTPMethod, int $iStatus, array $aResponse, string $sType = "application/json"):void {
-            $sKey = "components.schemas.{$sMethod}::responses";
-            $this->oSpec->mergeRecursiveDistinct($sKey, [
-                $sHTTPMethod => [
-                    "responses" => [
-                        $iStatus => [
-                            "content" => [
-                                $sType => [
-                                    "schema" => $aResponse
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]);
-        }
-
-        /**
-         * @param string $sName
-         * @param array $aDefinition
-         * @return string
-         */
-        public function addSchema(string $sName, array $aDefinition):string {
-            $sPath = "components.schemas.$sName";
-            $this->oSpec->mergeRecursiveDistinct($sPath, $aDefinition);
-
-            return $sPath;
         }
 
         /**
@@ -887,158 +800,47 @@
         }
 
         private function generateOpenAPIDocumentation() {
-            $aPaths = [];
+            $aReturn = [];
 
-            $aRoutes = Route::_getCachedRoutes() + Route::_getCachedQueryRoutes();
+            $aParameters = [
+                (new Param('document', Param::BOOLEAN, ['default' => false], "Output documentation for this endpoint without processing the endpoint method"))->OpenAPI()
+            ];
 
-            foreach($aRoutes as $aRoute) {
-                $sPath   = $aRoute['normalized'];
-                $sClass  = $aRoute['class'];
-                $sMethod = $aRoute['method'];
-                $aParams = $aRoute['params'] ?? [];
-
-                $aParameters = [
-                    (new Param('document', Param::BOOLEAN, ['default' => false], "Output documentation for this endpoint without processing the endpoint method"))->OpenAPI()
-                ];
-
-                foreach($this->aParams as $sParam => $oParam) {
-                    $bPath = in_array($sParam, $aParams);
-                    $aParameters[] = $oParam->OpenAPI($bPath ? 'path' : 'query');
-                }
-
-                $aPaths[$sPath] = [
-                    "parameters" => $aParameters
-                ];
-
-                $aResponses = [
-                    ['$ref' => "#/components/schemas/_server"],
-                    ['$ref' => "#/components/schemas/_request"]
-                ];
-
-                foreach($this->aOutputTypes as $sOutputType) {
-                    $aResponses[] = ['$ref' => "#/components/schemas/$sOutputType"];
-                }
-
-                foreach($this->aMethods as $sMethod) {
-                    $aPaths[$sPath][$sMethod] = [
-                        "responses" => [
-                            HTTP\OK => [
-                                "content" => [
-                                    "application/json" => [
-                                        "schema" => $aResponses
-                                    ]
-                                ]
-                            ],
-                            HTTP\BAD_REQUEST => [
-                                "description" => "Problem with Request.  See _request.validation for details"
-                            ]
-                        ]
-                    ];
-                }
+            foreach($this->aParams as $sParam => $oParam) {
+                $aParameters[] = $oParam->OpenAPI();
             }
 
-            $this->defaultSchemas();
+            $aReturn['parameters'] = $aParameters;
+            $aReturn['methods']    = [];
 
-            return [
-                'paths' => $aPaths,
-                'components' => [
-                    'schemas' => $this->oOutputDefinitions->all()
-                ]
+            $aResponses = [
+                ['$ref' => "#/components/schemas/_server"],
+                ['$ref' => "#/components/schemas/_request"]
             ];
+
+            foreach($this->aOutputTypes as $sOutputType) {
+                $aResponses[] = ['$ref' => "#/components/schemas/$sOutputType"];
+            }
+
+            foreach($this->aMethods as $sMethod) {
+                $aReturn['methods'][$sMethod] = [
+                    "responses" => [
+                        HTTP\OK => [
+                            "content" => [
+                                "application/json" => [
+                                    "schema" => $aResponses
+                                ]
+                            ]
+                        ],
+                        HTTP\BAD_REQUEST => [
+                            "description" => "Problem with Request.  See _request.validation for details"
+                        ]
+                    ]
+                ];
+            }
+
+            $aReturn['schemas'] = $this->oOutputDefinitions->all();
+            return $aReturn;
         }
 
-        private function defaultSchemas() {
-            $this->oOutputDefinitions->mergeRecursiveDistinct([
-                "_server" => [
-                    "type" => "object",
-                    "properties"=> [
-                        "timezone"      => ["type" => "string"],
-                        "timezone_gmt"  => ["type" => "string"],
-                        "date"          => ["type" => "string"],
-                        "date_w3c"      => ["type" => "string"]
-                    ],
-                    "additionalProperties"=> false
-                ],
-                "_request" => [
-                    "type" => "object",
-                    "properties"=> [
-                        "validation" => [
-                            "type" => "object",
-                            "properties" => [
-                                "status" => [
-                                    "type" => "string",
-                                    "enum" => ["PASS", "FAIL"]
-                                ],
-                                "errors" => [
-                                    "type" => "array",
-                                    "items" => ['$ref' => "#/components/schemas/_validation_error"]
-                                ]
-                            ]
-                        ],
-                        "logs"      => [
-                            "type" => "object",
-                            "properties" => [
-                                "thread" => [
-                                    "type" => "string",
-                                    "description" => "Alphanumeric hash for looking up entire request thread in logs"
-                                ],
-                                "request" => [
-                                    "type" => "string",
-                                    "description" => "Alphanumeric hash for looking up specific API request in logs"
-                                ]
-                            ]
-                        ],
-                        "method"        => [
-                            "type" => "string",
-                            "enum" => ["GET", "POST", "PUT", "DELETE"]
-                        ],
-                        "path"          => ["type" => "string"],
-                        "attributes"    => [
-                            "type" => "array",
-                            "description" => "Parameters pulled from the path"
-                        ],
-                        "query"         => ["type" => "array"],
-                        "data"          => [
-                            "oneOf" => [
-                                ["type" => "object"],
-                                ["type" => "null"]
-                            ],
-                            "description" => "POSTed Data"
-                        ]
-                    ],
-                    "additionalProperties"=> false
-                ],
-                "_response" => [
-                    "type" => "object",
-                    "properties"=> [
-                        "validation" => [
-                            "type" => "object",
-                            "properties" => [
-                                "status" => [
-                                    "type" => "string",
-                                    "enum" => ["PASS", "FAIL"]
-                                ],
-                                "errors" => [
-                                    "type" => "array",
-                                    "items" => ['$ref' => "#/components/schemas/_validation_error"]
-                                ]
-                            ]
-                        ]
-                    ],
-                    "additionalProperties"=> false
-                ],
-                "_validation_error" => [
-                    "type" => "object",
-                    "properties" => [
-                        "property"      => ["type" => "string"],
-                        "pointer"       => ["type" => "string"],
-                        "message"       => ["type" => "string"],
-                        "constraint"    => ["type" => "string"],
-                        "context"       => ["type" => "number"],
-                        "minimum"       => ["type" => "number"],
-                        "value"         => []
-                    ]
-                ]
-            ]);
-        }
     }

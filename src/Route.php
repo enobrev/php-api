@@ -557,7 +557,8 @@
                                 self::$aCachedRoutes[$sRoute] = [
                                     'normalized' => $sRoute,
                                     'class'      => $sClassPath,
-                                    'method'     => $sMethod
+                                    'method'     => $sMethod,
+                                    'version'    => $sVersion
                                 ];
 
 
