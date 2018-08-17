@@ -771,13 +771,7 @@
             $aSchema = [
                 "type"                 => "object",
                 "additionalProperties" => false,
-                "properties"           => [
-                    "document" => [
-                        "type"        => "boolean",
-                        "description" => "Output documentation for this endpoint without processing the endpoint method",
-                        "default"     => false
-                    ]
-                ],
+                "properties"           => [],
                 "required"             => []
             ];
 
@@ -800,11 +794,8 @@
         }
 
         public function generateOpenAPIDocumentation() {
-            $aReturn = [];
-
-            $aParameters = [
-                (new Param('document', Param::BOOLEAN, ['default' => false], "Output documentation for this endpoint without processing the endpoint method"))->OpenAPI()
-            ];
+            $aReturn     = [];
+            $aParameters = [];
 
             foreach($this->aParams as $sParam => $oParam) {
                 $aParameters[] = $oParam->OpenAPI();
