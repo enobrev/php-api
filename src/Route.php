@@ -102,6 +102,7 @@
             }
         }
 
+        const CACHED_ROUTE_BASE    = 'BASE';
         const QUERY_ROUTE_ENDPOINT = 'ENDPOINT';
         const QUERY_ROUTE_TABLE    = 'TABLE';
         const QUERY_ROUTE_REST     = 'REST';
@@ -556,6 +557,7 @@
 
                                 self::$aCachedRoutes[$sRoute] = [
                                     'normalized' => $sRoute,
+                                    'type'       => self::CACHED_ROUTE_BASE,
                                     'class'      => $sClassPath,
                                     'method'     => $sMethod,
                                     'version'    => $sVersion
