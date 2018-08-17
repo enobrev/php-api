@@ -519,7 +519,7 @@
          * @throws InvalidRequest
          */
         public function validateRequest($sMethod) {
-            $bRequestedDocumentation = $this->Request->GET['document'] ?? $this->Request->POST['document'] ?? false;  // TODO: Make me a header
+            $bRequestedDocumentation = $this->Request->OriginalRequest->hasHeader('X-Welcome-Docs');
 
             if ($bRequestedDocumentation) {
                 $this->add('openapi',    (object) $this->generateOpenAPIDocumentation());

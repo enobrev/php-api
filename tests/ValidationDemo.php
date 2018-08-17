@@ -58,8 +58,8 @@
     $oServerRequest = new ServerRequest;
     $oServerRequest = $oServerRequest->withMethod('GET');
     $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/test/test'));
+    $oServerRequest = $oServerRequest->withAddedHeader('X-Welcome-Docs', 1);
     $oServerRequest = $oServerRequest->withQueryParams([
-        'document' => true,
         'name'   => 'mark',
         'sha_id' => 'abcdefghijklmnopqrstuvwxyz01234567890123',
         'email'  => 'enobrev@gmail.com',
