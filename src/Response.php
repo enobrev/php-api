@@ -524,6 +524,7 @@
             if ($bRequestedDocumentation) {
                 $this->add('openapi',    (object) $this->generateOpenAPIDocumentation());
                 $this->add('jsonschema', (object) $this->paramsToJsonSchema());
+                throw new DocumentationException();
             }
 
             $aParameters = ($this->Request->isGet() ? $this->Request->GET : $this->Request->POST);
@@ -553,10 +554,6 @@
             } else {
                 $this->set('_request.validation.status', 'PASS');
                 $this->ValidParams = $oParameters;
-            }
-
-            if ($bRequestedDocumentation) {
-                throw new DocumentationException();
             }
         }
 
