@@ -799,7 +799,7 @@
             $this->aMethods = $aMethods;
         }
 
-        private function generateOpenAPIDocumentation() {
+        public function generateOpenAPIDocumentation() {
             $aReturn = [];
 
             $aParameters = [
