@@ -12,6 +12,8 @@
 
         const REQUIRED   = 64;
         const DEPRECATED = 128;
+        const REFERENCE  = 256;
+
 
         /** @var string */
         public $sName;
@@ -57,6 +59,10 @@
         }
 
         public function JsonSchema(): array {
+            if ($this->is(self::REFERENCE)) {
+                return $this->aValidation;
+            }
+
             $aSchema = $this->aValidation;
             $aSchema['type'] = $this->type();
             return $aSchema;
