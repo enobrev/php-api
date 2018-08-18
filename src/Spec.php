@@ -50,6 +50,9 @@
         /** @var Param[] */
         public $OutHeaders = [];
 
+        /** @var array */
+        public $CodeSamples = [];
+
         /**
          * Spec constructor.
          * @param Request $oRequest
@@ -86,13 +89,41 @@
             return $this;
         }
 
+        public function inTable(Table $oTable):self {
+            $aParams = [];
+            $aFields = $oTable->getColumnsWithFields();
+
+            foreach($aFields as $oField) {
+                switch(true) {
+                    default:
+                    case $oField instanceof Field\Text:    $sType = Param::STRING;  break;
+                    case $oField instanceof Field\Boolean: $sType = Param::BOOLEAN; break;
+                    case $oField instanceof Field\Integer: $sType = Param::INTEGER; break;
+                    case $oField instanceof Field\Number:  $sType = Param::NUMBER;  break;
+                }
+
+                $sField = DataMap::getPublicName($oTable, $oField->sColumn);
+                if (!$sField) {
+                    continue;
+                }
+
+                if ($oField instanceof Field\Enum) {
+                    $aParams[$sField] = new Param($sField, $sType, ['enum' => $oField->aValues]);
+                } else {
+                    $aParams[$sField] = new Param($sField, $sType);
+                }
+            }
+
+            return $this->inParams($aParams);
+        }
+
         public function outParams(array $aParams):self {
             $this->OutParams = $aParams;
             return $this;
         }
 
-        public function outSchema(string $sName, array $aSchemas):self {
-            $this->OutSchemas->mergeRecursiveDistinct($sName, $aSchemas);
+        public function outSchema(string $sName, array $aSchema):self {
+            $this->OutSchemas->mergeRecursiveDistinct($sName, $aSchema);
             return $this;
         }
 
@@ -110,7 +141,9 @@
                 }
 
                 $sField = DataMap::getPublicName($oTable, $oField->sColumn);
-                $aDefinitions[$sField] = new Param($sField, $sType);
+                if (!$sField) {
+                    continue;
+                }
 
                 if ($oField instanceof Field\Enum) {
                     $aDefinitions[$sField] = new Param($sField, $sType, ['enum' => $oField->aValues]);
@@ -137,6 +170,11 @@
 
         public function outHeaders(array $aHeaders):self {
             $this->OutHeaders = $aHeaders;
+            return $this;
+        }
+
+        public function codeSample(string $sLanguage, string $sSource):self {
+            $this->CodeSamples[$sLanguage] = $sSource;
             return $this;
         }
 
@@ -203,16 +241,7 @@
             }
         }
 
-        private function outputsToResponseSchema() {
-            $aDefinitions = [];
-            foreach ($this->OutSchemas->all() as $sDefinition => $aParams) {
-                $aDefinitions[$sDefinition] = $this->paramsToResponseSchema($aParams);
-            }
-
-            return $aDefinitions;
-        }
-
-        public function paramsToResponseSchema(array $aParams): Dot {
+        private function paramsToResponseSchema(array $aParams): Dot {
             $oSchema = $this->paramsToJsonSchema($aParams);
 
             $oSchema->set("properties._server", ['$ref' => "#/components/schemas/_server"]);
@@ -221,7 +250,7 @@
             return $oSchema;
         }
 
-        public function paramsToJsonSchema(array $aParams): Dot {
+        private function paramsToJsonSchema(array $aParams): Dot {
             $oSchema = new Dot([
                 "type" => "object",
                 "additionalProperties" => false
@@ -266,7 +295,7 @@
                 'tags'          => [$sTarget]
             ];
 
-            if (isset($aDoc['scopes'])) {
+            if (count($this->Scopes)) {
                 $aMethod['security'] = [["OAuth2" => $this->Scopes]];
             }
 
@@ -288,13 +317,11 @@
                 }
             }
 
-            if (isset($aDoc['parameters'])) {
-                if (count($aRouteParams)) {
-                    foreach($aParameters as &$aParameter) {
-                        if (in_array($aParameter['name'], $aRouteParams)) {
-                            $aParameter['in'] = 'path';
-                            break;
-                        }
+            if (count($aRouteParams)) {
+                foreach($aParameters as &$aParameter) {
+                    if (in_array($aParameter['name'], $aRouteParams)) {
+                        $aParameter['in'] = 'path';
+                        break;
                     }
                 }
             }
@@ -335,6 +362,15 @@
                 $aMethod['responses'][HTTP\BAD_REQUEST] = [
                     "description" => "Problem with Request.  See _request.validation for details"
                 ];
+            }
+
+            if (count($this->CodeSamples)) {
+                foreach($this->CodeSamples as $sLanguage => $sSource) {
+                    $aMethod['x-code-samples'][] = [
+                        'lang'   => $sLanguage,
+                        'source' => str_replace('{{PATH}}', $sPath, $sSource)
+                    ];
+                }
             }
 
             return $aMethod;
