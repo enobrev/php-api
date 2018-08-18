@@ -31,6 +31,9 @@
         /** @var  array */
         public $PUT  = null;
 
+        /** @var array */
+        public $ValidatedParams = [];
+
         public function __construct(ServerRequest $oRequest) {
             $this->OriginalRequest  = $oRequest;
             $this->Path             = $this->splitPath();

@@ -1,593 +1,470 @@
 <?php
     namespace Enobrev\API;
 
-    use DateTime;
-
-    use function Enobrev\dbg;
-    use Money\Money;
-    use stdClass;
-
-    use Enobrev\API\HTTP;
-    use Enobrev\ORM\ModifiedDateColumn;
-    use Enobrev\ORM\Field;
-    use Enobrev\ORM\Table;
-    use Enobrev\ORM\Tables;
-    use Enobrev\Log;
-
     use Adbar\Dot;
-    use Zend\Diactoros\Response as ZendResponse;
+    use Enobrev\API\Exception\DocumentationException;
+    use Enobrev\API\Exception\InvalidRequest;
+    use function Enobrev\dbg;
+    use Enobrev\ORM\Table;
+    use Enobrev\ORM\Field;
+    use JsonSchema\Constraints\Constraint;
+    use JsonSchema\Validator;
 
-    class Response {
-        const FORMAT_PNG       = 'png';
-        const FORMAT_JPG       = 'jpg';
-        const FORMAT_JPEG      = 'jpeg';
-        const FORMAT_GIF       = 'gif';
-        const FORMAT_TTF       = 'ttf';
-        const FORMAT_WOFF      = 'woff';
-        const FORMAT_CSS       = 'css';
-        const FORMAT_JSON      = 'json';
-        const FORMAT_CSV       = 'csv';
-        const FORMAT_EMPTY     = 'empty';
-        const FORMAT_HTML      = 'html';
+    class Spec {
+        /** @var Response */
+        public $Request;
 
-        const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
-        const HTTP_DATE_FORMAT = 'D, d M Y H:i:s T';
+        /** @var Response */
+        public $Response;
+
+        /** @var string */
+        public $Summary;
+
+        /** @var string */
+        public $Description;
+
+        /** @var string */
+        public $Method;
+
+        /** @var string[] */
+        public $Scopes;
+
+        /** @var Param[] */
+        public $InParams = [];
 
         /** @var array */
-        protected static $aGlobalServer;
+        public $OutParams = [];
 
-        /** @var  string */
-        protected $sFormat = null;
+        /** @var array Expected Schemas */
+        public $OutTypes = [];
 
-        /** @var  string */
-        protected $sFile = null;
+        /** @var Dot Full Schema Objects for components.schemas */
+        public $OutSchemas;
 
-        /** @var  boolean */
-        protected $bAsAttachment = null;
+        /** @var array Collections of full Schema Objects for components.schemas  */
+        public $OutCollections = [];
 
-        /** @var  array */
-        protected $aResponse = [];
+        /** @var Param[] */
+        public $InHeaders = [];
 
-        /** @var  Request */
-        protected $Request = null;
-
-        /** @var  string */
-        protected $sTextOutput = '';
-
-        /** @var Dot */
-        protected $oOutput;
-
-        /** @var  array */
-        protected $aHeaders = [];
-
-        /** @var  int */
-        protected $iStatus = null;
-
-        /** @var  bool */
-        protected $bIncludeRequestInOutput = true;
-
-        /** @var  bool */
-        private $bHasResponded = false;
-
-        /** @var array */
-        protected static $aAllowedURIs = ['*'];
-
-        /** @var string */
-        protected static $sDomain = null;
-
-        /** @var string */
-        protected static $sScheme = 'https://';
-
-        /** @var string */
-        protected static $bDocumenting = false;
-
-        /** @var string */
-        protected static $bIncludeMetadata = true;
-
-        /** @var Spec */
-        public $Spec;
+        /** @var Param[] */
+        public $OutHeaders = [];
 
         /**
-         * Response constructor.
+         * Spec constructor.
          * @param Request $oRequest
-         * @throws Exception\Response
+         * @param Response $oResponse
          */
-        public function __construct(Request $oRequest) {
-            if (self::$sDomain === null) {
-                throw new Exception\Response('API Response Not Initialized');
-            }
-
-            $this->Spec = new Spec($oRequest, $this);
-            $this->oOutput  = new Dot();
-            $this->aHeaders = [];
-            $this->includeRequestInOutput(true);
-            $this->setRequest($oRequest);
-            $this->setFormat($oRequest->Format);
-            $this->setStatus(HTTP\OK);
-
-            if (!self::$aGlobalServer) {
-                self::$aGlobalServer = [];
-            }
+        public function __construct(Request $oRequest,  Response $oResponse) {
+            $this->Request  = $oRequest;
+            $this->Response = $oResponse;
+            $this->OutSchemas = new Dot;
         }
 
-        /**
-         * @param Request $oRequest
-         */
-        private function setRequest(Request $oRequest): void {
-            $this->Request = $oRequest;
+        public function summary(string $sSummary):self {
+            $this->Summary = $sSummary;
+            return $this;
         }
 
-        private function setRequestOutput() {
-            $aRequest = [
-                'logs' => [
-                    'thread'  => Log::getThreadHashForOutput(),
-                    'request' => Log::getRequestHashForOutput()
-                ],
-                'method' => $this->Request->OriginalRequest->getMethod(),
-                'path'   => $this->Request->OriginalRequest->getUri()->getPath()
-            ];
-
-            if ($this->bIncludeRequestInOutput) {
-                $aRequest = array_merge($aRequest, [
-                    'attributes' => $this->Request->OriginalRequest->getAttributes(),
-                    'query'      => $this->Request->OriginalRequest->getQueryParams(),
-                    'data'       => $this->Request->POST
-                ]);
-            }
-
-            $this->add('_request', $aRequest);
+        public function description(string $sDescription):self {
+            $this->Description = $sDescription;
+            return $this;
         }
 
-        /**
-         * @param string $sDomain
-         * @param string $sScheme
-         * @param array  $aAllowedURIs
-         */
-        public static function init(string $sDomain, string $sScheme = 'https://', array $aAllowedURIs = ['*']): void {
-            self::$sScheme      = $sScheme;
-            self::$sDomain      = $sDomain;
-            self::$aAllowedURIs = $aAllowedURIs;
+        public function method(string $sMethod):self {
+            $this->Method = $sMethod;
+            return $this;
         }
 
-        /**
-         * @param bool $bIncludeRequestInOutput
-         */
-        public function includeRequestInOutput(bool $bIncludeRequestInOutput): void {
-            $this->bIncludeRequestInOutput = $bIncludeRequestInOutput;
+        public function scopes(array $aScopes):self {
+            $this->Scopes = $aScopes;
+            return $this;
         }
 
-        /**
-         * @param string $sFormat
-         */
-        public function setFormat(string $sFormat): void {
-            $this->sFormat = $sFormat;
+        public function inParams(array $aParams):self {
+            $this->InParams = $aParams;
+            return $this;
         }
 
-        /**
-         * @param string $sFile
-         * @param bool $bAsAttachment
-         */
-        public function setFile(string $sFile, $bAsAttachment = false): void {
-            $this->sFile         = $sFile;
-            $this->bAsAttachment = $bAsAttachment;
+        public function outParams(array $aParams):self {
+            $this->OutParams = $aParams;
+            return $this;
         }
 
-        /**
-         * @param string $sText
-         */
-        public function setText(string $sText): void {
-            $this->sTextOutput = $sText;
+        public function outSchema(string $sName, array $aSchemas):self {
+            $this->OutSchemas->mergeRecursiveDistinct($sName, $aSchemas);
+            return $this;
         }
 
-        /**
-         * @param int $iContentLength
-         */
-        public function setContentLength(int $iContentLength): void {
-            $this->addHeader('Content-Length', $iContentLength);
-        }
+        public function outTable(string $sName, Table $oTable) {
+            $aDefinitions = [];
+            $aFields = $oTable->getColumnsWithFields();
 
-        /**
-         * @param string $sContentType
-         */
-        public function setContentType(string $sContentType): void {
-            $this->addHeader('Content-Type', $sContentType);
-        }
+            foreach($aFields as $oField) {
+                switch(true) {
+                    default:
+                    case $oField instanceof Field\Text:    $sType = Param::STRING;  break;
+                    case $oField instanceof Field\Boolean: $sType = Param::BOOLEAN; break;
+                    case $oField instanceof Field\Integer: $sType = Param::INTEGER; break;
+                    case $oField instanceof Field\Number:  $sType = Param::NUMBER;  break;
+                }
 
-        /**
-         * @param array $aAllow
-         */
-        public function setAllow(Array $aAllow): void {
-            $this->addHeader('Allow', implode(',', $aAllow));
-        }
+                $sField = DataMap::getPublicName($oTable, $oField->sColumn);
+                $aDefinitions[$sField] = new Param($sField, $sType);
 
-        /**
-         * @param string $sETag
-         */
-        public function setEtag($sETag = null): void {
-            if ($sETag) {
-                $this->addHeader('ETag', $sETag);
-            }
-        }
-
-        /**
-         * @param DateTime $oLastModified
-         */
-        public function setLastModified(DateTime $oLastModified = null): void {
-            if ($oLastModified instanceof DateTime) {
-                $this->addHeader('Last-Modified', $oLastModified->format(self::HTTP_DATE_FORMAT));
-            }
-        }
-
-        /**
-         * @param ModifiedDateColumn[]|Tables $oTables
-         * @psalm-suppress RawObjectIteration
-         */
-        public function setLastModifiedFromTables($oTables): void {
-            $oLatest = new DateTime();
-            $oLatest->modify('-10 years');
-            foreach($oTables as $oTable) {
-                if ($oTable instanceof ModifiedDateColumn) {
-                    $oLatest = max($oLatest, $oTable->getLastModified());
+                if ($oField instanceof Field\Enum) {
+                    $aDefinitions[$sField] = new Param($sField, $sType, ['enum' => $oField->aValues]);
                 } else {
-                    $this->setLastModified(new DateTime());
-                    return;
+                    $aDefinitions[$sField] = new Param($sField, $sType);
                 }
             }
 
-            $this->setLastModified($oLatest);
+            return $this->outSchema($sName, $aDefinitions);
+        }
+
+        public function outCollection(string $sName, string $sKey, string $sReference):self {
+            $this->OutCollections[$sName] = [
+                'key'       => $sKey,
+                'reference' => $sReference
+            ];
+            return $this;
+        }
+
+        public function inHeaders(array $aHeaders):self {
+            $this->InHeaders = $aHeaders;
+            return $this;
+        }
+
+        public function outHeaders(array $aHeaders):self {
+            $this->OutHeaders = $aHeaders;
+            return $this;
         }
 
         /**
-         * @param Table $oTable
+         * @throws DocumentationException
          */
-        public function setHeadersFromTable(Table $oTable): void {
-            $this->setEtag($oTable->toHash());
+        private function documentation() {
+            $bRequestedDocumentation = $this->Request->OriginalRequest->hasHeader('X-Welcome-Docs');
 
-            if ($oTable instanceof ModifiedDateColumn) {
-                $this->setLastModified($oTable->getLastModified());
+            if ($bRequestedDocumentation) {
+                $this->Response->add('openapi', (object) [
+                    'paths' => [
+                        '/' => $this->generateOpenAPI('/', '__class__')
+                    ],
+                    'components' => [
+                        'schemas' => $this->generateOpenAPISchemas('/')
+                    ]
+                ]);
+                $this->Response->add('jsonschema', (object) $this->paramsToJsonSchema($this->InParams)->all());
+
+                throw new DocumentationException();
+            }
+
+        }
+
+        /**
+         * @throws DocumentationException
+         * @throws InvalidRequest
+         */
+        public function ready() {
+            $this->documentation();
+
+            $aParameters = [];
+            switch ($this->Method) {
+                case Method\GET:  $aParameters = $this->Request->GET;  break;
+                case Method\POST: $aParameters = $this->Request->POST; break;
+            }
+
+            $oParameters = (object) $aParameters;
+            $oValidator  = new Validator;
+            $oValidator->validate(
+                $oParameters,
+                $this->paramsToJsonSchema($this->InParams)->all(),
+                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS
+            );
+
+            if (!$oValidator->isValid()) {
+                $oDot = new Dot();
+                $oDot->set('parameters', $aParameters);
+
+                $aErrors = [];
+                foreach($oValidator->getErrors() as $aError) {
+                    $aError['value'] = $oDot->get($aError['property']);
+                    $aErrors[]       = $aError;
+                }
+
+                $this->Response->add('_request.validation.status', 'FAIL');
+                $this->Response->add('_request.validation.errors', $aErrors);
+
+                throw new InvalidRequest();
+            } else {
+                $this->Response->add('_request.validation.status', 'PASS');
+                $this->Request->ValidatedParams = (array) $oParameters;
             }
         }
 
-        /**
-         * @param string $sHeader
-         * @param mixed $sValue
-         */
-        public function addHeader($sHeader, $sValue): void {
-            $this->aHeaders[$sHeader] = $sValue;
+        private function outputsToResponseSchema() {
+            $aDefinitions = [];
+            foreach ($this->OutSchemas->all() as $sDefinition => $aParams) {
+                $aDefinitions[$sDefinition] = $this->paramsToResponseSchema($aParams);
+            }
+
+            return $aDefinitions;
         }
 
-        /**
-         * @param mixed $sVar
-         * @param mixed $mValue
-         */
-        public function add($sVar, $mValue = NULL): void {
-            if ($sVar instanceof Table) {
-                $this->add($sVar->getTitle(), $sVar);
-            } else if ($sVar instanceof Field\Date) {
-                $this->set($sVar->sColumn, (string) $sVar);
-            } else if ($sVar instanceof Field) {
-                $this->set($sVar->sColumn, $sVar->getValue());
-            } else if (is_array($sVar)) {
-                foreach ($sVar as $sKey => $sValue) {
-                    if ($sValue instanceof Field) {
-                        if (preg_match('/[a-zA-Z]/', $sKey)) { // Associative key - replacing field names
-                            $this->set($sKey, $sValue);
-                        } else {
-                            $this->set($sValue->sColumn, $sValue);
-                        }
-                    } else {
-                        $this->set($sKey, $sValue);
+        public function paramsToResponseSchema(array $aParams): Dot {
+            $oSchema = $this->paramsToJsonSchema($aParams);
+
+            $oSchema->set("properties._server", ['$ref' => "#/components/schemas/_server"]);
+            $oSchema->set("properties._request", ['$ref' => "#/components/schemas/_request"]);
+
+            return $oSchema;
+        }
+
+        public function paramsToJsonSchema(array $aParams): Dot {
+            $oSchema = new Dot([
+                "type" => "object",
+                "additionalProperties" => false
+            ]);
+
+            /** @var Param $oParam */
+            foreach ($aParams as $oParam) {
+                $sName = $oParam->sName;
+
+                if (strpos($sName, '.') !== false) {
+                    $aName = explode(".", $sName);
+                    $sFullName = implode(".properties.", $aName);
+
+                    $oSchema->set("properties.$sFullName", $oParam->JsonSchema());
+
+                    if ($oParam->required()) {
+                        $aParent = explode(".", $sName);
+                        array_pop($aParent);
+                        $sParent = implode(".properties.", $aParent);
+
+                        $aKid = explode(".", $sName);
+                        array_shift($aKid);
+                        $sKid = implode(".", $aKid);
+
+                        $oSchema->push("properties.$sParent.required", $sKid);
+                    }
+                } else {
+                    $oSchema->set("properties.$sName", $oParam->JsonSchema());
+                    if ($oParam->required()) {
+                        $oSchema->push('required', $oParam->sName);
                     }
                 }
-            } else if ($mValue instanceof Table) {
-                $this->set($sVar, $mValue->getColumnsWithFields());
-            } else {
-                $this->set($sVar, $mValue);
-            }
-        }
-
-        /**
-         * @param string $sKey
-         */
-        public function remove(string $sKey): void {
-            $this->oOutput->delete($sKey);
-        }
-
-        /**
-         * This is a workaround to ensure we can set _server values from within multi-requests.  I don't like it, but it gets the job done.
-         * @param string $sKey
-         * @param mixed  $mValue
-         */
-        public static function setGlobalServerData(string $sKey, $mValue): void {
-            self::$aGlobalServer[$sKey] = $mValue;
-        }
-
-        private function setServerOutput(): void {
-            if (self::$aGlobalServer && isset(self::$aGlobalServer['date'])) {
-                $oNow = self::$aGlobalServer['date'];
-            } else {
-                $oNow = new \DateTime;
             }
 
-            $aServer = array_merge(self::$aGlobalServer, [
-                'timezone'      => $oNow->format('T'),
-                'timezone_gmt'  => $oNow->format('P'),
-                'date'          => $oNow->format(self::SYNC_DATE_FORMAT),
-                'date_w3c'      => $oNow->format(DateTime::W3C)
-            ]);
-
-            $this->add('_server', (object) $aServer);
+            return $oSchema;
         }
 
-        /**
-         * Turns a dot-separated var into a multidimensional array and merges it with prior data with
-         * the same hierarchy
-         *
-         * @param string|array|Field $sVar
-         * @param mixed $mValue
-         * @return void
-         */
-        private function set($sVar, $mValue): void {
-            if ($mValue instanceof Field\JSONText) {
-                $mValue = json_decode($mValue->getValue());
+        public function generateOpenAPI(string $sPath, string $sTarget, array $aRouteParams = []): array {
+            $aMethod = [
+                'summary'       => $this->Summary ?? $sPath,
+                'description'   => $this->Description ?? $this->Summary ?? $sPath,
+                'tags'          => [$sTarget]
+            ];
+
+            if (isset($aDoc['scopes'])) {
+                $aMethod['security'] = [["OAuth2" => $this->Scopes]];
             }
 
-            if ($mValue instanceof Field\Date) {
-                $mValue = (string) $mValue;
-            }
 
-            if ($mValue instanceof Field) {
-                $mValue = $mValue->getValue();
-            }
+            $oInJsonParams = $this->paramsToJsonSchema($this->InParams);
+            $aParameters   = [];
 
-            if ($mValue instanceof DateTime) {
-                /** @var DateTime $mValue */
-                // $mValue->setTimezone(new DateTimeZone('GMT')); - FIXME: should only be doing this by explicit request
-                $mValue = $mValue->format(DateTime::RFC3339);
-            }
-
-            if ($mValue instanceof Money) {
-                /** @var Money $mValue */
-                $mValue = $mValue->getAmount();
-            }
-
-            if (is_array($mValue)) {
-                $this->oOutput->mergeRecursiveDistinct($sVar, $mValue);
-            } else {
-                $this->oOutput->set($sVar, $mValue);
-            }
-        }
-
-        /**
-         * Overrides all default output and replaces output object with $oOutput
-         * @param array $aOutput
-         */
-        public function overrideOutput($aOutput): void {
-            $this->oOutput = new Dot($aOutput);
-        }
-
-        /**
-         * @throws Exception\NoContentType
-         */
-        public function emptyResponse(): void {
-            $this->setFormat(self::FORMAT_EMPTY);
-            $this->respond();
-        }
-
-        /**
-         * @param array ...$aMethods
-         * @throws Exception\NoContentType
-         */
-        public function respondWithOptions(...$aMethods): void {
-            $this->setAllow($aMethods);
-            $this->statusNoContent();
-            $this->respond();
-        }
-
-        /**
-         * @return bool
-         * @todo: Allow CORS headers to be overridden
-         */
-        private function setOrigin(): bool {
-            $sHeaders = 'Authorization, Content-Type';
-            $sMethods = implode(', ', Method\_ALL);
-
-            if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], self::$aAllowedURIs)) {
-                $this->addHeader('Access-Control-Allow-Origin',      $_SERVER['HTTP_ORIGIN']);
-                $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
-                $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
-                $this->addHeader('Access-Control-Allow-Credentials', 'true');
-                return true;
-            } else if (in_array('*', self::$aAllowedURIs)) {
-                $this->addHeader('Access-Control-Allow-Origin',      '*');
-                $this->addHeader('Access-Control-Allow-Headers',     $sHeaders);
-                $this->addHeader('Access-Control-Allow-Methods',     $sMethods);
-                $this->addHeader('Access-Control-Allow-Credentials', 'false');
-                return true;
-            }
-
-            return false;
-        }
-
-        /**
-         * @param bool $bDocumenting
-         */
-        public static function documenting(bool $bDocumenting) {
-            self::$bDocumenting = $bDocumenting;
-        }
-
-        /**
-         * @param bool $bIncludeMetadata
-         */
-        public static function includeMetadata(bool $bIncludeMetadata) {
-            self::$bIncludeMetadata = $bIncludeMetadata;
-        }
-
-        /**
-         * @throws Exception\NoContentType
-         */
-        public function respond(): void {
-            if (self::$bDocumenting) {
-                return;
-            }
-
-            if ($this->bHasResponded) {
-                Log::d('API.Response.respond.Duplicate');
-                return;
-            }
-
-            $bAccessControlHeaders = $this->setOrigin();
-            $oOutput               = $this->getOutput();
-
-            Log::i('API.Response.respond', [
-                '#ach'     => $bAccessControlHeaders,
-                '#status'  => $this->iStatus,
-                '#headers' => json_encode($this->aHeaders),
-                'body'     => json_encode($oOutput)
-            ]);
-
-            if ($this->sFile) {
-                if (!isset($this->aHeaders['Content-Type'])) {
-                    throw new Exception\NoContentType('Missing Content Type');
+            foreach($this->InParams as $oParam) {
+                if (strpos($oParam->sName, '.') !== false) {
+                    continue;
                 }
 
-                if ($this->bAsAttachment) {
-                    $oResponse = new ZendAttachmentResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                if ($oParam->is(Param::OBJECT)) {
+                    $aParam = $oParam->OpenAPI();
+                    $aParam['schema'] = $oInJsonParams->get("properties.{$oParam->sName}");
+                    $aParameters[] = $aParam;
                 } else {
-                    $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
-                }
-            } else {
-                switch($this->sFormat) {
-                    default:
-                    case self::FORMAT_JSON:
-                        $oResponse = new ZendResponse\JsonResponse($oOutput, $this->iStatus, $this->aHeaders);
-                        break;
-
-                    case self::FORMAT_CSS:
-                    case self::FORMAT_CSV:
-                        if ($this->sTextOutput) {
-                            $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
-                        } else {
-                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
-                        }
-                        break;
-
-                    case self::FORMAT_EMPTY:
-                        $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
-                        break;
-
-                    case self::FORMAT_HTML:
-                        if ($this->sTextOutput) {
-                            $oResponse = new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
-                        } else {
-                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
-                        }
-                        break;
+                    $aParameters[] = $oParam->OpenAPI();
                 }
             }
 
-            $oEmitter = new ZendResponse\SapiEmitter();
-            $oEmitter->emit($oResponse);
-
-            Log::justAddContext(['#size' => $oResponse->getBody()->getSize()]);
-
-            $this->bHasResponded = true;
-        }
-
-        /**
-         * @return stdClass
-         */
-        public function getOutput(): stdClass {
-            if (self::$bIncludeMetadata) {
-                $this->setServerOutput();
-                $this->setRequestOutput();
+            if (isset($aDoc['parameters'])) {
+                if (count($aRouteParams)) {
+                    foreach($aParameters as &$aParameter) {
+                        if (in_array($aParameter['name'], $aRouteParams)) {
+                            $aParameter['in'] = 'path';
+                            break;
+                        }
+                    }
+                }
             }
 
-            return (object) $this->oOutput->all();
+            if (count($aParameters)) {
+                $aMethod['parameters'] = $aParameters;
+            }
+
+            $aResponses = [];
+
+            foreach($this->OutSchemas as $sOutputType => $aOutSchema) {
+                $aResponses[] = ['$ref' => "#/components/schemas/$sOutputType"];
+            }
+
+            if (count($this->OutParams)) {
+                $sCleaned = $this->cleanAPISchemaPath($sPath);
+                $aResponses[] = ['$ref' => "#/components/schemas/$sCleaned"];
+            }
+
+            if (!count($aResponses)) {
+                $aResponses[] = ['$ref' => "#/components/schemas/_default"];
+            }
+
+            $aMethod['responses'] = [
+                HTTP\OK => [
+                    "description" => "Success",
+                    "content" => [
+                        "application/json" => [
+                            "schema" => [
+                                "allOf" => $aResponses,
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            if (count($aParameters)) {
+                $aMethod['responses'][HTTP\BAD_REQUEST] = [
+                    "description" => "Problem with Request.  See _request.validation for details"
+                ];
+            }
+
+            return $aMethod;
         }
 
-        /**
-         * @return stdClass
-         */
-        public function toObject(): stdClass {
-            $oOutput = new stdClass();
-            $oOutput->headers   = $this->aHeaders;
-            $oOutput->status    = $this->iStatus;
-            $oOutput->data      = $this->getOutput();
-
-            return $oOutput;
+        private function cleanAPISchemaPath(string $sPath) {
+            $sCleaned = trim($sPath, '/');
+            $sCleaned = 'path-' . preg_replace('/[^a-z0-9]/', '', $sCleaned);
+            return $sCleaned;
         }
 
-        /**
-         * @param string $sName
-         * @param string $sValue
-         * @param int $iHours
-         */
-        public function addCookie($sName, $sValue, $iHours = 1): void {
-            setcookie($sName, $sValue, time() + (3600 * $iHours), '/', self::$sDomain, self::$sScheme== 'https://', false);
+        public function generateOpenAPISchemas(string $sPath):array {
+            $aDefinitions = [];
+            foreach ($this->OutSchemas->all() as $sDefinition => $aParams) {
+                $aDefinitions[$sDefinition] = $this->paramsToResponseSchema($aParams)->all();
+            }
+
+            if (count($this->OutParams)) {
+                $sCleaned = $this->cleanAPISchemaPath($sPath);
+
+                $aDefinitions[$sCleaned] = $this->paramsToResponseSchema($this->OutParams)->all();
+            }
+
+            return $aDefinitions;
         }
 
-        /**
-         * @param string $sUri
-         * @param int $iStatus
-         */
-        public function redirect($sUri, $iStatus = HTTP\FOUND): void {
-            (new ZendResponse\SapiEmitter())->emit(new ZendResponse\RedirectResponse($sUri, $iStatus, $this->aHeaders));
-            exit(0);
-        }
-
-        /**
-         * @return bool
-         */
-        public function isStatusFailing(): bool {
-            return $this->iStatus >= HTTP\BAD_REQUEST;
-        }
-
-        /**
-         * @param int $iStatus
-         */
-        public function setStatus(int $iStatus): void {
-            $this->iStatus = $iStatus;
-        }
-
-        public function statusNoContent(): void {
-            $this->setStatus(HTTP\NO_CONTENT);
-            $this->setFormat(self::FORMAT_EMPTY);
-        }
-
-        public function statusBadRequest(): void {
-            Log::setProcessIsError(true);
-            $this->setStatus(HTTP\BAD_REQUEST);
-            //$this->setFormat(self::FORMAT_EMPTY);
-        }
-
-        public function statusInternalServerError(): void {
-            Log::setProcessIsError(true);
-            $this->setStatus(HTTP\INTERNAL_SERVER_ERROR);
-            //$this->setFormat(self::FORMAT_EMPTY);
-        }
-
-        public function statusUnauthorized(): void {
-            Log::setProcessIsError(true);
-            $this->setStatus(HTTP\UNAUTHORIZED);
-            //$this->setFormat(self::FORMAT_EMPTY);
-        }
-
-        public function statusForbidden(): void {
-            Log::setProcessIsError(true);
-            $this->setStatus(HTTP\FORBIDDEN);
-            //$this->setFormat(self::FORMAT_EMPTY);
-        }
-
-        public function statusNotFound(): void {
-            Log::setProcessIsError(true);
-            $this->setStatus(HTTP\NOT_FOUND);
-            //$this->setFormat(self::FORMAT_EMPTY);
-        }
-
-        public function statusMethodNotAllowed(): void {
-            Log::setProcessIsError(true);
-            $this->setStatus(HTTP\METHOD_NOT_ALLOWED);
-            //$this->setFormat(self::FORMAT_EMPTY);
-        }
+        const DEFAULT_RESPONSE_SCHEMAS = [
+            "_default" => [
+                "type" => "object",
+                "properties" => [
+                    "_server" => [
+                        '$ref' => "#/components/schemas/_server"
+                    ],
+                    "_request" => [
+                        '$ref' => "#/components/schemas/_request"
+                    ]
+                ]
+            ],
+            "_server" => [
+                "type" => "object",
+                "properties"=> [
+                    "timezone"      => ["type" => "string"],
+                    "timezone_gmt"  => ["type" => "string"],
+                    "date"          => ["type" => "string"],
+                    "date_w3c"      => ["type" => "string"]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_request" => [
+                "type" => "object",
+                "properties"=> [
+                    "validation" => [
+                        "type" => "object",
+                        "properties" => [
+                            "status" => [
+                                "type" => "string",
+                                "enum" => ["PASS", "FAIL"]
+                            ],
+                            "errors" => [
+                                "type" => "array",
+                                "items" => ['$ref' => "#/components/schemas/_validation_error"]
+                            ]
+                        ]
+                    ],
+                    "logs"      => [
+                        "type" => "object",
+                        "properties" => [
+                            "thread" => [
+                                "type" => "string",
+                                "description" => "Alphanumeric hash for looking up entire request thread in logs"
+                            ],
+                            "request" => [
+                                "type" => "string",
+                                "description" => "Alphanumeric hash for looking up specific API request in logs"
+                            ]
+                        ]
+                    ],
+                    "method"        => [
+                        "type" => "string",
+                        "enum" => ["GET", "POST", "PUT", "DELETE"]
+                    ],
+                    "path"          => ["type" => "string"],
+                    "attributes"    => [
+                        "type" => "array",
+                        "description" => "Parameters pulled from the path",
+                        "items" => ["type" => "string"]
+                    ],
+                    "query"         => [
+                        "type" => "array",
+                        "items" => ["type" => "string"]
+                    ],
+                    "data"          => [
+                        '$ref' => '#/components/schemas/_any',
+                        "description" => "POSTed Data"
+                    ]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_response" => [
+                "type" => "object",
+                "properties"=> [
+                    "validation" => [
+                        "type" => "object",
+                        "properties" => [
+                            "status" => [
+                                "type" => "string",
+                                "enum" => ["PASS", "FAIL"]
+                            ],
+                            "errors" => [
+                                "type" => "array",
+                                "items" => ['$ref' => "#/components/schemas/_validation_error"]
+                            ]
+                        ]
+                    ]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_validation_error" => [
+                "type" => "object",
+                "properties" => [
+                    "property"      => ["type" => "string"],
+                    "pointer"       => ["type" => "string"],
+                    "message"       => ["type" => "string"],
+                    "constraint"    => ["type" => "string"],
+                    "context"       => ["type" => "number"],
+                    "minimum"       => ["type" => "number"],
+                    "value"         => [
+                        '$ref' => '#/components/schemas/_any'
+                    ]
+                ]
+            ]
+        ];
     }

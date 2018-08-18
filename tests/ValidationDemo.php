@@ -19,21 +19,24 @@
 
     class TestSpec extends Base {
         public function test() {
-            $this->defineOutputTypes();
-
-            $this->Response->setParameters(
-                new Param('sha_id', Param::STRING & Param::REQUIRED, ["minLength" => 40, "maxLength" => 40], "Client Generated Sha1 Hash"),
-                new Param('name',   Param::STRING, ["minLength" => 3, "maxLength" => 30], "The Person's full name"),
-                new Param('email',  Param::STRING),
-                new Param('age',    Param::INTEGER,["minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true])
-            );
-
-            $this->Response->setMethods([Method\GET]);
-            $this->Response->setOutputTypes(["Users"]);
-
+            $this->Response->Spec
+                ->summary('Test')
+                ->description('Testing')
+                ->scopes(['www'])
+                ->method(Method\GET)
+                ->inParams([
+                    new Param('sha_id', Param::STRING | Param::REQUIRED, ["minLength" => 40, "maxLength" => 40], "Client Generated Sha1 Hash"),
+                    new Param('name',   Param::STRING, ["minLength" => 3, "maxLength" => 30], "The Person's full name"),
+                    new Param('email',  Param::STRING),
+                    new Param('age',    Param::INTEGER,["minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true])
+                ])
+                ->outTable('User', new Table\User)
+                ->outSchema('User', [
+                    new Param('is_authed', Param::BOOLEAN, ['default' => false])
+                ]);
 
             try {
-                $this->Response->validateRequest();
+                $this->Response->Spec->ready();
             } catch(DocumentationException | InvalidRequest $e) {
                 return;
             }
@@ -42,10 +45,6 @@
         }
 
         public function defineOutputTypes() {
-            $this->Response->defineOutputType("User", new Table\User);
-            $this->Response->defineOutputType("User", [
-                'is_authed' => ['type' => 'boolean', 'default' => false]
-            ]);
             $this->Response->defineOutputType("Users", [
                 "x-patternProperties" => [
                     "^[a-fA-F0-9]+$" => ['$ref' => "User"]
@@ -58,10 +57,10 @@
     $oServerRequest = new ServerRequest;
     $oServerRequest = $oServerRequest->withMethod('GET');
     $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/test/test'));
-    $oServerRequest = $oServerRequest->withAddedHeader('X-Welcome-Docs', 1);
+//    $oServerRequest = $oServerRequest->withAddedHeader('X-Welcome-Docs', 1);
     $oServerRequest = $oServerRequest->withQueryParams([
         'name'   => 'mark',
-        'sha_id' => 'abcdefghijklmnopqrstuvwxyz01234567890123',
+//        'sha_id' => 'abcdefghijklmnopqrstuvwxyz0123456789012',
         'email'  => 'enobrev@gmail.com',
         'age'    => 45
     ]);

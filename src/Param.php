@@ -42,13 +42,13 @@
 
         public function type(): string {
             switch(true) {
-                default:
-                case $this->is(self::STRING):  return 'string';
                 case $this->is(self::NUMBER):  return 'number';
                 case $this->is(self::INTEGER): return 'integer';
                 case $this->is(self::BOOLEAN): return 'boolean';
                 case $this->is(self::ARRAY):   return 'array';
                 case $this->is(self::OBJECT):  return 'object';
+                default:
+                case $this->is(self::STRING):  return 'string';
             }
         }
 
@@ -59,10 +59,7 @@
         public function JsonSchema(): array {
             $aSchema = $this->aValidation;
             $aSchema['type'] = $this->type();
-
-            return [
-                $this->sName => $aSchema
-            ];
+            return $aSchema;
         }
 
         /**
@@ -73,11 +70,10 @@
             $aSchema = $this->aValidation;
             $aSchema['type'] = $this->type();
 
-
             $aOutput = [
                 'in' => $sIn,
                 'name' => $this->sName,
-                'schema' => $aSchema
+                'schema' => $this->JsonSchema()
             ];
 
             if ($this->required()) {
