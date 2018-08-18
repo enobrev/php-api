@@ -23,6 +23,12 @@
         /** @var string */
         public $Description;
 
+        /** @var boolean */
+        public $Ready = false;
+
+        /** @var boolean */
+        public $Deprecated;
+
         /** @var string */
         public $Method;
 
@@ -53,6 +59,14 @@
         /** @var array */
         public $CodeSamples = [];
 
+        /** @var array */
+        public $Responses = [
+            HTTP\OK => 'Success',
+        ];
+
+        /** @var string[] */
+        public $Tags = [];
+
         /**
          * Spec constructor.
          * @param Request $oRequest
@@ -74,6 +88,11 @@
             return $this;
         }
 
+        public function deprecated(?bool $bDeprecated = true):self {
+            $this->Deprecated = $bDeprecated;
+            return $this;
+        }
+
         public function method(string $sMethod):self {
             $this->Method = $sMethod;
             return $this;
@@ -86,6 +105,27 @@
 
         public function inParams(array $aParams):self {
             $this->InParams = $aParams;
+            return $this;
+        }
+
+        public function removeResponse(int $iStatus):self {
+            unset($this->Responses[$iStatus]);
+            return $this;
+        }
+
+        public function response(int $iStatus, string $sDescription):self {
+            $this->Responses[$iStatus] = $sDescription;
+            return $this;
+        }
+
+        public function tags(array $aTags):self {
+            $this->Tags += $aTags;
+            $this->Tags = array_unique($aTags);
+            return $this;
+        }
+
+        public function tag(string $sName):self {
+            $this->Tags[] = $sName;
             return $this;
         }
 
@@ -195,7 +235,7 @@
             if ($bRequestedDocumentation) {
                 $this->Response->add('openapi', (object) [
                     'paths' => [
-                        '/' => $this->generateOpenAPI('/', '__class__')
+                        '/' => $this->generateOpenAPI('/')
                     ],
                     'components' => [
                         'schemas' => $this->generateOpenAPISchemas('/')
@@ -213,6 +253,7 @@
          * @throws InvalidRequest
          */
         public function ready() {
+            $this->Ready = true;
             $this->documentation();
 
             $aParameters = [];
@@ -296,17 +337,20 @@
             return $oSchema;
         }
 
-        public function generateOpenAPI(string $sPath, string $sTarget, array $aRouteParams = []): array {
+        public function generateOpenAPI(string $sPath, array $aRouteParams = []): array {
             $aMethod = [
                 'summary'       => $this->Summary ?? $sPath,
                 'description'   => $this->Description ?? $this->Summary ?? $sPath,
-                'tags'          => [$sTarget]
+                'tags'          => $this->Tags
             ];
 
             if (count($this->Scopes)) {
                 $aMethod['security'] = [["OAuth2" => $this->Scopes]];
             }
 
+            if ($this->Deprecated) {
+                $aMethod['deprecated'] = true;
+            }
 
             $oInJsonParams = self::paramsToJsonSchema($this->InParams);
             $aParameters   = [];
@@ -329,7 +373,7 @@
                 foreach($aParameters as &$aParameter) {
                     if (in_array($aParameter['name'], $aRouteParams)) {
                         $aParameter['in'] = 'path';
-                        break;
+                        $aParameter['required'] = true;
                     }
                 }
             }
@@ -353,22 +397,31 @@
                 $aResponses[] = ['$ref' => "#/components/schemas/_default"];
             }
 
-            $aMethod['responses'] = [
-                HTTP\OK => [
-                    "description" => "Success",
-                    "content" => [
-                        "application/json" => [
-                            "schema" => [
-                                "allOf" => $aResponses,
+            $aMethod['responses'] = [];
+
+            foreach($this->Responses as $iStatus => $sDescription) {
+                if ($iStatus === HTTP\OK) {
+                    $aMethod['responses'][$iStatus] = [
+                        "description" => $sDescription,
+                        "content" => [
+                            "application/json" => [
+                                "schema" => [
+                                    "allOf" => $aResponses,
+                                ]
                             ]
                         ]
-                    ]
-                ]
-            ];
+                    ];
+                } else {
+                    $aMethod['responses'][$iStatus] = [
+                        "description" => $sDescription
+                    ];
+                }
+            }
+
 
             if (count($aParameters)) {
                 $aMethod['responses'][HTTP\BAD_REQUEST] = [
-                    "description" => "Problem with Request.  See _request.validation for details"
+                    "description" => "Problem with Request.  See `_request.validation` for details"
                 ];
             }
 
