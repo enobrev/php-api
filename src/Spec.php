@@ -90,31 +90,7 @@
         }
 
         public function inTable(Table $oTable):self {
-            $aParams = [];
-            $aFields = $oTable->getColumnsWithFields();
-
-            foreach($aFields as $oField) {
-                switch(true) {
-                    default:
-                    case $oField instanceof Field\Text:    $sType = Param::STRING;  break;
-                    case $oField instanceof Field\Boolean: $sType = Param::BOOLEAN; break;
-                    case $oField instanceof Field\Integer: $sType = Param::INTEGER; break;
-                    case $oField instanceof Field\Number:  $sType = Param::NUMBER;  break;
-                }
-
-                $sField = DataMap::getPublicName($oTable, $oField->sColumn);
-                if (!$sField) {
-                    continue;
-                }
-
-                if ($oField instanceof Field\Enum) {
-                    $aParams[$sField] = new Param($sField, $sType, ['enum' => $oField->aValues]);
-                } else {
-                    $aParams[$sField] = new Param($sField, $sType);
-                }
-            }
-
-            return $this->inParams($aParams);
+            return $this->inParams(self::tableToParams($oTable));
         }
 
         public function outParams(array $aParams):self {
@@ -127,17 +103,21 @@
             return $this;
         }
 
-        public function outTable(string $sName, Table $oTable) {
+        /**
+         * @param Table $oTable
+         * @return Param[]
+         */
+        public static function tableToParams(Table $oTable) {
             $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
 
             foreach($aFields as $oField) {
                 switch(true) {
                     default:
-                    case $oField instanceof Field\Text:    $sType = Param::STRING;  break;
-                    case $oField instanceof Field\Boolean: $sType = Param::BOOLEAN; break;
-                    case $oField instanceof Field\Integer: $sType = Param::INTEGER; break;
-                    case $oField instanceof Field\Number:  $sType = Param::NUMBER;  break;
+                    case $oField instanceof Field\Text:    $iType = Param::STRING;  break;
+                    case $oField instanceof Field\Boolean: $iType = Param::BOOLEAN; break;
+                    case $oField instanceof Field\Integer: $iType = Param::INTEGER; break;
+                    case $oField instanceof Field\Number:  $iType = Param::NUMBER;  break;
                 }
 
                 $sField = DataMap::getPublicName($oTable, $oField->sColumn);
@@ -145,14 +125,42 @@
                     continue;
                 }
 
-                if ($oField instanceof Field\Enum) {
-                    $aDefinitions[$sField] = new Param($sField, $sType, ['enum' => $oField->aValues]);
-                } else {
-                    $aDefinitions[$sField] = new Param($sField, $sType);
+                $aValidations = [];
+
+                switch(true) {
+                    case $oField instanceof Field\Enum:
+                        $aValidations['enum'] = $oField->aValues;
+                        break;
+
+                    case $oField instanceof Field\TextNullable:
+                        $aValidations['nullable'] = true;
+                        break;
+
+                    case $oField instanceof Field\DateTime:
+                        $aValidations['format'] = "date-time";
+                        break;
+
+                    case $oField instanceof Field\Date:
+                        $aValidations['format'] = "date";
+                        break;
                 }
+
+                if (strpos(strtolower($oField->sColumn), 'password') !== false) {
+                    $aValidations['format'] = "password";
+                }
+
+                if ($oField->hasDefault()) {
+                    $aValidations['default'] = $oField->sDefault;
+                }
+
+                $aDefinitions[$sField] = new Param($sField, $iType, $aValidations);
             }
 
-            return $this->outSchema($sName, $aDefinitions);
+            return $aDefinitions;
+        }
+
+        public function outTable(string $sName, Table $oTable) {
+            return $this->outSchema($sName, self::tableToParams($oTable));
         }
 
         public function outCollection(string $sName, string $sKey, string $sReference):self {
@@ -193,7 +201,7 @@
                         'schemas' => $this->generateOpenAPISchemas('/')
                     ]
                 ]);
-                $this->Response->add('jsonschema', (object) $this->paramsToJsonSchema($this->InParams)->all());
+                $this->Response->add('jsonschema', (object) self::paramsToJsonSchema($this->InParams)->all());
 
                 throw new DocumentationException();
             }
@@ -217,7 +225,7 @@
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                $this->paramsToJsonSchema($this->InParams)->all(),
+                self::paramsToJsonSchema($this->InParams)->all(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS
             );
 
@@ -241,8 +249,8 @@
             }
         }
 
-        private function paramsToResponseSchema(array $aParams): Dot {
-            $oSchema = $this->paramsToJsonSchema($aParams);
+        public function paramsToResponseSchema(array $aParams): Dot {
+            $oSchema = self::paramsToJsonSchema($aParams);
 
             $oSchema->set("properties._server", ['$ref' => "#/components/schemas/_server"]);
             $oSchema->set("properties._request", ['$ref' => "#/components/schemas/_request"]);
@@ -250,7 +258,7 @@
             return $oSchema;
         }
 
-        private function paramsToJsonSchema(array $aParams): Dot {
+        public static function paramsToJsonSchema(array $aParams): Dot {
             $oSchema = new Dot([
                 "type" => "object",
                 "additionalProperties" => false
@@ -300,7 +308,7 @@
             }
 
 
-            $oInJsonParams = $this->paramsToJsonSchema($this->InParams);
+            $oInJsonParams = self::paramsToJsonSchema($this->InParams);
             $aParameters   = [];
 
             foreach($this->InParams as $oParam) {
