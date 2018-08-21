@@ -281,6 +281,18 @@
                 }
             } else if ($mValue instanceof Table) {
                 $this->set($sVar, $mValue->getColumnsWithFields());
+            } else if (is_array($mValue)) {
+                foreach ($mValue as $sKey => $sValue) {
+                    if ($sValue instanceof Field) {
+                        if (preg_match('/[a-zA-Z]/', $sKey)) { // Associative key - replacing field names
+                            $this->add("$sVar.$sKey", $sValue);
+                        } else {
+                            $this->add("$sVar.{$sValue->sColumn}", $sValue);
+                        }
+                    } else {
+                        $this->add("$sVar.$sKey", $sValue);
+                    }
+                }
             } else {
                 $this->set($sVar, $mValue);
             }
@@ -439,48 +451,50 @@
             $bAccessControlHeaders = $this->setOrigin();
             $oOutput               = $this->getOutput();
 
+            $aHeaders = array_merge($this->Spec->ResponseHeaders, $this->aHeaders);
+
             Log::i('API.Response.respond', [
                 '#ach'     => $bAccessControlHeaders,
                 '#status'  => $this->iStatus,
-                '#headers' => json_encode($this->aHeaders),
+                '#headers' => json_encode($aHeaders),
                 'body'     => json_encode($oOutput)
             ]);
 
             if ($this->sFile) {
-                if (!isset($this->aHeaders['Content-Type'])) {
+                if (!isset($aHeaders['Content-Type'])) {
                     throw new Exception\NoContentType('Missing Content Type');
                 }
 
                 if ($this->bAsAttachment) {
-                    $oResponse = new ZendAttachmentResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                    $oResponse = new ZendAttachmentResponse($this->sFile, $this->iStatus, $aHeaders);
                 } else {
-                    $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $this->aHeaders);
+                    $oResponse = new ZendFileResponse($this->sFile, $this->iStatus, $aHeaders);
                 }
             } else {
                 switch($this->sFormat) {
                     default:
                     case self::FORMAT_JSON:
-                        $oResponse = new ZendResponse\JsonResponse($oOutput, $this->iStatus, $this->aHeaders);
+                        $oResponse = new ZendResponse\JsonResponse($oOutput, $this->iStatus, $aHeaders);
                         break;
 
                     case self::FORMAT_CSS:
                     case self::FORMAT_CSV:
                         if ($this->sTextOutput) {
-                            $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
+                            $oResponse = new ZendResponse\TextResponse($this->sTextOutput, $this->iStatus, $aHeaders);
                         } else {
-                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
+                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $aHeaders);
                         }
                         break;
 
                     case self::FORMAT_EMPTY:
-                        $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
+                        $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $aHeaders);
                         break;
 
                     case self::FORMAT_HTML:
                         if ($this->sTextOutput) {
-                            $oResponse = new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $this->aHeaders);
+                            $oResponse = new ZendResponse\HtmlResponse($this->sTextOutput, $this->iStatus, $aHeaders);
                         } else {
-                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $this->aHeaders);
+                            $oResponse = new ZendResponse\EmptyResponse($this->iStatus, $aHeaders);
                         }
                         break;
                 }
@@ -511,7 +525,7 @@
          */
         public function toObject(): stdClass {
             $oOutput = new stdClass();
-            $oOutput->headers   = $this->aHeaders;
+            $oOutput->headers   = array_merge($this->Spec->ResponseHeaders, $this->aHeaders);
             $oOutput->status    = $this->iStatus;
             $oOutput->data      = $this->getOutput();
 
@@ -532,7 +546,8 @@
          * @param int $iStatus
          */
         public function redirect($sUri, $iStatus = HTTP\FOUND): void {
-            (new ZendResponse\SapiEmitter())->emit(new ZendResponse\RedirectResponse($sUri, $iStatus, $this->aHeaders));
+            $aHeaders = array_merge($this->Spec->ResponseHeaders, $this->aHeaders);
+            (new ZendResponse\SapiEmitter())->emit(new ZendResponse\RedirectResponse($sUri, $iStatus, $aHeaders));
             exit(0);
         }
 

@@ -4,6 +4,7 @@
     use Adbar\Dot;
     use Enobrev\API\Exception\DocumentationException;
     use Enobrev\API\Exception\InvalidRequest;
+    use function Enobrev\array_not_associative;
     use function Enobrev\dbg;
     use Enobrev\ORM\Table;
     use Enobrev\ORM\Field;
@@ -24,7 +25,7 @@
         public $Description;
 
         /** @var boolean */
-        public $Ready = false;
+        public $RequestValidated = false;
 
         /** @var boolean */
         public $Deprecated;
@@ -58,6 +59,9 @@
 
         /** @var array */
         public $CodeSamples = [];
+
+        /** @var array */
+        public $ResponseHeaders = [];
 
         /** @var array */
         public $Responses = [
@@ -105,6 +109,11 @@
 
         public function inParams(array $aParams):self {
             $this->InParams = $aParams;
+            return $this;
+        }
+
+        public function responseHeader(string $sHeader, string $sValue):self {
+            $this->ResponseHeaders[$sHeader] = $sValue;
             return $this;
         }
 
@@ -203,11 +212,15 @@
             return $this->outSchema($sName, self::tableToParams($oTable));
         }
 
-        public function outCollection(string $sName, string $sKey, string $sReference):self {
+        public function outCollection(string $sName, string $sKey, string $sReference, ?array $aExtra = null):self {
             $this->OutCollections[$sName] = [
                 'key'       => $sKey,
                 'reference' => $sReference
             ];
+
+            if ($aExtra) {
+                $this->OutCollections[$sName]['extra'] = $aExtra;
+            }
             return $this;
         }
 
@@ -226,35 +239,24 @@
             return $this;
         }
 
-        /**
-         * @throws DocumentationException
-         */
-        private function documentation() {
-            $bRequestedDocumentation = $this->Request->OriginalRequest->hasHeader('X-Welcome-Docs');
-
-            if ($bRequestedDocumentation) {
-                $this->Response->add('openapi', (object) [
-                    'paths' => [
-                        '/' => $this->generateOpenAPI('/')
-                    ],
-                    'components' => [
-                        'schemas' => $this->generateOpenAPISchemas('/')
-                    ]
-                ]);
-                $this->Response->add('jsonschema', (object) self::paramsToJsonSchema($this->InParams)->all());
-
-                throw new DocumentationException();
-            }
-
+        public function documentation() {
+            $this->Response->add('openapi', (object) [
+                'paths' => [
+                    '/' => $this->generateOpenAPI('/')
+                ],
+                'components' => [
+                    'schemas' => $this->generateOpenAPISchemas('/')
+                ]
+            ]);
+            $this->Response->add('jsonschema', (object) self::paramsToJsonSchema($this->InParams)->all());
         }
 
         /**
          * @throws DocumentationException
          * @throws InvalidRequest
          */
-        public function ready() {
-            $this->Ready = true;
-            $this->documentation();
+        public function validateRequest() {
+            $this->RequestValidated = true;
 
             $aParameters = [];
             switch ($this->Method) {
@@ -291,7 +293,11 @@
         }
 
         public function paramsToResponseSchema(array $aParams): Dot {
-            $oSchema = self::paramsToJsonSchema($aParams);
+            if (count($aParams) && isset($aParams['type']) && isset($aParams['properties'])) { // JSONSchema
+                $oSchema = new Dot($aParams);
+            } else {
+                $oSchema = self::paramsToJsonSchema($aParams);
+            }
 
             $oSchema->set("properties._server", ['$ref' => "#/components/schemas/_server"]);
             $oSchema->set("properties._request", ['$ref' => "#/components/schemas/_request"]);
@@ -299,6 +305,10 @@
             return $oSchema;
         }
 
+        /**
+         * @param array|Param[] $aParams
+         * @return Dot
+         */
         public static function paramsToJsonSchema(array $aParams): Dot {
             $oSchema = new Dot([
                 "type" => "object",
@@ -388,6 +398,10 @@
                 $aResponses[] = ['$ref' => "#/components/schemas/$sOutputType"];
             }
 
+            foreach($this->OutCollections as $sName => $aOutCollection) {
+                $aResponses[] = ['$ref' => "#/components/schemas/$sName"];
+            }
+
             if (count($this->OutParams)) {
                 $sCleaned = $this->cleanAPISchemaPath($sPath);
                 $aResponses[] = ['$ref' => "#/components/schemas/$sCleaned"];
@@ -453,6 +467,50 @@
                 $sCleaned = $this->cleanAPISchemaPath($sPath);
 
                 $aDefinitions[$sCleaned] = $this->paramsToResponseSchema($this->OutParams)->all();
+            }
+
+            foreach($this->OutCollections as $sName => $aCollection) {
+                if (isset($aCollection['extra']) && is_array($aCollection['extra'])) {
+                    $aDefinitions["$sName-extra"] = $aCollection['extra'];
+                    $aDefinitions[$sName] = [
+                        'type' => 'object',
+                        'additionalProperties' => false,
+                        'properties' => [
+                            $sName => [
+                                'type' => 'object',
+                                'additionalProperties' => false,
+                                'properties' => [
+                                    $aCollection['key'] => [
+                                        'allOf' => [
+                                            ['$ref' => $aCollection['reference']],
+                                            ['$ref' => "#/components/schemas/$sName-extra"]
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            '_server' => ['$ref' => "#/components/schemas/_server"],
+                            '_request' => ['$ref' => "#/components/schemas/_request"]
+                        ]
+                    ];
+                } else {
+                    $aDefinitions[$sName] = [
+                        'type' => 'object',
+                        'additionalProperties' => false,
+                        'properties' => [
+                            $sName => [
+                                'type' => 'object',
+                                'additionalProperties' => false,
+                                'properties' => [
+                                    $aCollection['key'] => [
+                                        '$ref' => $aCollection['reference']
+                                    ]
+                                ]
+                            ],
+                            '_server' => ['$ref' => "#/components/schemas/_server"],
+                            '_request' => ['$ref' => "#/components/schemas/_request"]
+                        ]
+                    ];
+                }
             }
 
             return $aDefinitions;
