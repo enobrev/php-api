@@ -391,7 +391,10 @@
                 if ($sTopClass) {
                     $sRestClass = self::_getNamespacedAPIClassName($oRequest->Path[0], $sTopClass);
                     if (class_exists($sRestClass)) {
-                        return new $sRestClass($oRequest);
+                        $oClass = new $sRestClass($oRequest);
+                        if ($oClass instanceof RestfulInterface) {
+                            return $oClass;
+                        }
                     }
                 }
 
@@ -549,6 +552,10 @@
                             }
 
                             foreach($aPublicMethods as $sMethod) {
+                                if (strpos($sMethod, '_SPEC_') === 0) { // Skip Spec Methods
+                                    continue;
+                                }
+
                                 if ($sMethod == 'index') {
                                     $sRoute = implode('/', [$sVersion, strtolower($sClass)]);
                                 } else {

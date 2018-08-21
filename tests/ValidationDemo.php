@@ -23,7 +23,7 @@
                 ->summary('Test')
                 ->description('Testing')
                 ->scopes(['www'])
-                ->method(Method\GET)
+                ->method([Method\GET])
                 ->inParams([
                     new Param('sha_id', Param::STRING | Param::REQUIRED, ["minLength" => 40, "maxLength" => 40], "Client Generated Sha1 Hash"),
                     new Param('name',   Param::STRING, ["minLength" => 3, "maxLength" => 30], "The Person's full name"),
