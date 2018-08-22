@@ -24,14 +24,13 @@
                 ->description('Testing')
                 ->scopes(['www'])
                 ->method([Method\GET])
-                ->inParams([
+                ->queryParams([
                     new Param('sha_id', Param::STRING | Param::REQUIRED, ["minLength" => 40, "maxLength" => 40], "Client Generated Sha1 Hash"),
                     new Param('name',   Param::STRING, ["minLength" => 3, "maxLength" => 30], "The Person's full name"),
                     new Param('email',  Param::STRING),
                     new Param('age',    Param::INTEGER,["minimum" => 18, "maximum" => 150, "exclusiveMaximum" => true])
                 ])
-                ->outTable('User', new Table\User)
-                ->outSchema('User', [
+                ->responseSchema([
                     new Param('is_authed', Param::BOOLEAN, ['default' => false])
                 ]);
 

@@ -12,12 +12,6 @@
     use JsonSchema\Validator;
 
     class Spec {
-        /** @var Response */
-        public $Request;
-
-        /** @var Response */
-        public $Response;
-
         /** @var string */
         public $Summary;
 
@@ -31,25 +25,28 @@
         public $Deprecated;
 
         /** @var string */
+        public $Path;
+
+        /** @var string */
+        public $HttpMethod;
+
+        /** @var string */
         public $Method;
 
         /** @var string[] */
         public $Scopes;
 
         /** @var Param[] */
-        public $InParams = [];
+        public $PathParams = [];
+
+        /** @var Param[] */
+        public $QueryParams = [];
 
         /** @var array */
-        public $OutParams = [];
+        public $ResponseSchema;
 
-        /** @var array Expected Schemas */
-        public $OutTypes = [];
-
-        /** @var Dot Full Schema Objects for components.schemas */
-        public $OutSchemas;
-
-        /** @var array Collections of full Schema Objects for components.schemas  */
-        public $OutCollections = [];
+        /** @var string */
+        public $ResponseReference;
 
         /** @var Param[] */
         public $InHeaders = [];
@@ -73,13 +70,12 @@
 
         /**
          * Spec constructor.
-         * @param Request $oRequest
-         * @param Response $oResponse
+         * @param string $sHttpMethod
+         * @param string $sPath
          */
-        public function __construct(Request $oRequest,  Response $oResponse) {
-            $this->Request  = $oRequest;
-            $this->Response = $oResponse;
-            $this->OutSchemas = new Dot;
+        public function __construct(string $sHttpMethod, string $sPath) {
+            $this->httpMethod($sHttpMethod);
+            $this->path($sPath);
         }
 
         public function summary(string $sSummary):self {
@@ -97,6 +93,16 @@
             return $this;
         }
 
+        public function path(string $sPath):self {
+            $this->Path = $sPath;
+            return $this;
+        }
+
+        public function httpMethod(string $sHttpMethod):self {
+            $this->HttpMethod = $sHttpMethod;
+            return $this;
+        }
+
         public function method(string $sMethod):self {
             $this->Method = $sMethod;
             return $this;
@@ -107,8 +113,13 @@
             return $this;
         }
 
-        public function inParams(array $aParams):self {
-            $this->InParams = $aParams;
+        public function pathParams(array $aParams):self {
+            $this->PathParams = $aParams;
+            return $this;
+        }
+
+        public function queryParams(array $aParams):self {
+            $this->QueryParams = $aParams;
             return $this;
         }
 
@@ -139,16 +150,16 @@
         }
 
         public function inTable(Table $oTable):self {
-            return $this->inParams(self::tableToParams($oTable));
+            return $this->queryParams(self::tableToParams($oTable));
         }
 
-        public function outParams(array $aParams):self {
-            $this->OutParams = $aParams;
+        public function responseSchema(array $aSchema):self {
+            $this->ResponseSchema = $aSchema;
             return $this;
         }
 
-        public function outSchema(string $sName, array $aSchema):self {
-            $this->OutSchemas->mergeRecursiveDistinct($sName, $aSchema);
+        public function responseReference(string $aReference):self {
+            $this->ResponseReference = $aReference;
             return $this;
         }
 
@@ -161,67 +172,63 @@
             $aFields = $oTable->getColumnsWithFields();
 
             foreach($aFields as $oField) {
-                switch(true) {
-                    default:
-                    case $oField instanceof Field\Text:    $iType = Param::STRING;  break;
-                    case $oField instanceof Field\Boolean: $iType = Param::BOOLEAN; break;
-                    case $oField instanceof Field\Integer: $iType = Param::INTEGER; break;
-                    case $oField instanceof Field\Number:  $iType = Param::NUMBER;  break;
+                $oParam = self::fieldToParam($oTable, $oField);
+                if ($oParam instanceof Param) {
+                    $aDefinitions[$oParam->sName] = $oParam;
                 }
-
-                $sField = DataMap::getPublicName($oTable, $oField->sColumn);
-                if (!$sField) {
-                    continue;
-                }
-
-                $aValidations = [];
-
-                switch(true) {
-                    case $oField instanceof Field\Enum:
-                        $aValidations['enum'] = $oField->aValues;
-                        break;
-
-                    case $oField instanceof Field\TextNullable:
-                        $aValidations['nullable'] = true;
-                        break;
-
-                    case $oField instanceof Field\DateTime:
-                        $aValidations['format'] = "date-time";
-                        break;
-
-                    case $oField instanceof Field\Date:
-                        $aValidations['format'] = "date";
-                        break;
-                }
-
-                if (strpos(strtolower($oField->sColumn), 'password') !== false) {
-                    $aValidations['format'] = "password";
-                }
-
-                if ($oField->hasDefault()) {
-                    $aValidations['default'] = $oField->sDefault;
-                }
-
-                $aDefinitions[$sField] = new Param($sField, $iType, $aValidations);
             }
 
             return $aDefinitions;
         }
 
-        public function outTable(string $sName, Table $oTable) {
-            return $this->outSchema($sName, self::tableToParams($oTable));
-        }
-
-        public function outCollection(string $sName, string $sKey, string $sReference, ?array $aExtra = null):self {
-            $this->OutCollections[$sName] = [
-                'key'       => $sKey,
-                'reference' => $sReference
-            ];
-
-            if ($aExtra) {
-                $this->OutCollections[$sName]['extra'] = $aExtra;
+        /**
+         * @param Table $oTable
+         * @param Field $oField
+         * @return Param
+         */
+        public static function fieldToParam(Table $oTable, Field $oField): ?Param {
+            switch(true) {
+                default:
+                case $oField instanceof Field\Text:    $iType = Param::STRING;  break;
+                case $oField instanceof Field\Boolean: $iType = Param::BOOLEAN; break;
+                case $oField instanceof Field\Integer: $iType = Param::INTEGER; break;
+                case $oField instanceof Field\Number:  $iType = Param::NUMBER;  break;
             }
-            return $this;
+
+            $sField = DataMap::getPublicName($oTable, $oField->sColumn);
+            if (!$sField) {
+                return null;
+            }
+
+            $aValidations = [];
+
+            switch(true) {
+                case $oField instanceof Field\Enum:
+                    $aValidations['enum'] = $oField->aValues;
+                    break;
+
+                case $oField instanceof Field\TextNullable:
+                    $aValidations['nullable'] = true;
+                    break;
+
+                case $oField instanceof Field\DateTime:
+                    $aValidations['format'] = "date-time";
+                    break;
+
+                case $oField instanceof Field\Date:
+                    $aValidations['format'] = "date";
+                    break;
+            }
+
+            if (strpos(strtolower($oField->sColumn), 'password') !== false) {
+                $aValidations['format'] = "password";
+            }
+
+            if ($oField->hasDefault()) {
+                $aValidations['default'] = $oField->sDefault;
+            }
+
+            return new Param($sField, $iType, $aValidations);
         }
 
         public function inHeaders(array $aHeaders):self {
@@ -239,36 +246,26 @@
             return $this;
         }
 
-        public function documentation() {
-            $this->Response->add('openapi', (object) [
-                'paths' => [
-                    '/' => $this->generateOpenAPI('/')
-                ],
-                'components' => [
-                    'schemas' => $this->generateOpenAPISchemas('/')
-                ]
-            ]);
-            $this->Response->add('jsonschema', (object) self::paramsToJsonSchema($this->InParams)->all());
-        }
-
         /**
          * @throws DocumentationException
          * @throws InvalidRequest
          */
-        public function validateRequest() {
+        public function validateRequest(Request $oRequest,  Response $oResponse) {
             $this->RequestValidated = true;
 
+            // TODO: Validate Path Params
+
             $aParameters = [];
-            switch ($this->Method) {
-                case Method\GET:  $aParameters = $this->Request->GET;  break;
-                case Method\POST: $aParameters = $this->Request->POST; break;
+            switch ($this->HttpMethod) {
+                case Method\GET:  $aParameters = $oRequest->GET;  break;
+                case Method\POST: $aParameters = $oRequest->POST; break;
             }
 
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                self::paramsToJsonSchema($this->InParams)->all(),
+                self::paramsToJsonSchema($this->QueryParams)->all(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS
             );
 
@@ -282,13 +279,13 @@
                     $aErrors[]       = $aError;
                 }
 
-                $this->Response->add('_request.validation.status', 'FAIL');
-                $this->Response->add('_request.validation.errors', $aErrors);
+                $oResponse->add('_request.validation.status', 'FAIL');
+                $oResponse->add('_request.validation.errors', $aErrors);
 
                 throw new InvalidRequest();
             } else {
-                $this->Response->add('_request.validation.status', 'PASS');
-                $this->Request->ValidatedParams = (array) $oParameters;
+                $oResponse->add('_request.validation.status', 'PASS');
+                $oRequest->ValidatedParams = (array) $oParameters;
             }
         }
 
@@ -347,10 +344,10 @@
             return $oSchema;
         }
 
-        public function generateOpenAPI(string $sPath, array $aRouteParams = []): array {
+        public function generateOpenAPI(): array {
             $aMethod = [
-                'summary'       => $this->Summary ?? $sPath,
-                'description'   => $this->Description ?? $this->Summary ?? $sPath,
+                'summary'       => $this->Summary ?? $this->Path,
+                'description'   => $this->Description ?? $this->Summary ?? $this->Path,
                 'tags'          => $this->Tags
             ];
 
@@ -362,29 +359,37 @@
                 $aMethod['deprecated'] = true;
             }
 
-            $oInJsonParams = self::paramsToJsonSchema($this->InParams);
+            $oQueryJsonParams = self::paramsToJsonSchema($this->QueryParams);
             $aParameters   = [];
 
-            foreach($this->InParams as $oParam) {
+            foreach($this->QueryParams as $oParam) {
                 if (strpos($oParam->sName, '.') !== false) {
                     continue;
                 }
 
                 if ($oParam->is(Param::OBJECT)) {
-                    $aParam = $oParam->OpenAPI();
-                    $aParam['schema'] = $oInJsonParams->get("properties.{$oParam->sName}");
+                    $aParam = $oParam->OpenAPI('query');
+                    $aParam['schema'] = $oQueryJsonParams->get("properties.{$oParam->sName}");
                     $aParameters[] = $aParam;
                 } else {
-                    $aParameters[] = $oParam->OpenAPI();
+                    $aParameters[] = $oParam->OpenAPI('query');
                 }
             }
 
-            if (count($aRouteParams)) {
-                foreach($aParameters as &$aParameter) {
-                    if (in_array($aParameter['name'], $aRouteParams)) {
-                        $aParameter['in'] = 'path';
-                        $aParameter['required'] = true;
-                    }
+            $oPathJsonParams = self::paramsToJsonSchema($this->PathParams);
+
+            foreach($this->PathParams as $oParam) {
+                if (strpos($oParam->sName, '.') !== false) {
+                    continue;
+                }
+
+                if ($oParam->is(Param::OBJECT)) {
+                    $aParam = $oParam->OpenAPI('path');
+                    $aParam['schema'] = $oPathJsonParams->get("properties.{$oParam->sName}");
+                    $aParam['required'] = true;
+                    $aParameters[] = $aParam;
+                } else {
+                    $aParameters[] = $oParam->OpenAPI('path');
                 }
             }
 
@@ -394,17 +399,11 @@
 
             $aResponses = [];
 
-            foreach($this->OutSchemas as $sOutputType => $aOutSchema) {
-                $aResponses[] = ['$ref' => "#/components/schemas/$sOutputType"];
-            }
-
-            foreach($this->OutCollections as $sName => $aOutCollection) {
-                $aResponses[] = ['$ref' => "#/components/schemas/$sName"];
-            }
-
-            if (count($this->OutParams)) {
-                $sCleaned = $this->cleanAPISchemaPath($sPath);
-                $aResponses[] = ['$ref' => "#/components/schemas/$sCleaned"];
+            if ($this->ResponseSchema) {
+                $aResponses = [$this->ResponseSchema];
+            } else if ($this->ResponseReference) {
+                $aResponses[] = ['$ref' => "#/components/schemas/_default"];
+                $aResponses[] = ['$ref' => $this->ResponseReference];
             }
 
             if (!count($aResponses)) {
@@ -443,77 +442,12 @@
                 foreach($this->CodeSamples as $sLanguage => $sSource) {
                     $aMethod['x-code-samples'][] = [
                         'lang'   => $sLanguage,
-                        'source' => str_replace('{{PATH}}', $sPath, $sSource)
+                        'source' => str_replace('{{PATH}}', $this->Path, $sSource)
                     ];
                 }
             }
 
             return $aMethod;
-        }
-
-        private function cleanAPISchemaPath(string $sPath) {
-            $sCleaned = trim($sPath, '/');
-            $sCleaned = 'path-' . preg_replace('/[^a-z0-9]/', '', $sCleaned);
-            return $sCleaned;
-        }
-
-        public function generateOpenAPISchemas(string $sPath):array {
-            $aDefinitions = [];
-            foreach ($this->OutSchemas->all() as $sDefinition => $aParams) {
-                $aDefinitions[$sDefinition] = $this->paramsToResponseSchema($aParams)->all();
-            }
-
-            if (count($this->OutParams)) {
-                $sCleaned = $this->cleanAPISchemaPath($sPath);
-
-                $aDefinitions[$sCleaned] = $this->paramsToResponseSchema($this->OutParams)->all();
-            }
-
-            foreach($this->OutCollections as $sName => $aCollection) {
-                if (isset($aCollection['extra']) && is_array($aCollection['extra'])) {
-                    $aDefinitions["$sName-extra"] = $aCollection['extra'];
-                    $aDefinitions[$sName] = [
-                        'type' => 'object',
-                        'additionalProperties' => false,
-                        'properties' => [
-                            $sName => [
-                                'type' => 'object',
-                                'additionalProperties' => false,
-                                'properties' => [
-                                    $aCollection['key'] => [
-                                        'allOf' => [
-                                            ['$ref' => $aCollection['reference']],
-                                            ['$ref' => "#/components/schemas/$sName-extra"]
-                                        ]
-                                    ]
-                                ]
-                            ],
-                            '_server' => ['$ref' => "#/components/schemas/_server"],
-                            '_request' => ['$ref' => "#/components/schemas/_request"]
-                        ]
-                    ];
-                } else {
-                    $aDefinitions[$sName] = [
-                        'type' => 'object',
-                        'additionalProperties' => false,
-                        'properties' => [
-                            $sName => [
-                                'type' => 'object',
-                                'additionalProperties' => false,
-                                'properties' => [
-                                    $aCollection['key'] => [
-                                        '$ref' => $aCollection['reference']
-                                    ]
-                                ]
-                            ],
-                            '_server' => ['$ref' => "#/components/schemas/_server"],
-                            '_request' => ['$ref' => "#/components/schemas/_request"]
-                        ]
-                    ];
-                }
-            }
-
-            return $aDefinitions;
         }
 
         const DEFAULT_RESPONSE_SCHEMAS = [
