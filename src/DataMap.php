@@ -143,9 +143,14 @@
          */
         public static function getField(ORM\Table $oDatum, string $sPublicField) {
             $aMap          = self::getMap($oDatum->getTitle());
-            $sPrivateField = $aMap[$sPublicField];
 
-            return $oDatum->$sPrivateField instanceof ORM\Field ? $oDatum->$sPrivateField : null;
+            if ($sPublicField) {
+                $sPrivateField = $aMap[$sPublicField];
+
+                return $oDatum->$sPrivateField instanceof ORM\Field ? $oDatum->$sPrivateField : null;
+            }
+            
+            return null;
         }
 
         /**
