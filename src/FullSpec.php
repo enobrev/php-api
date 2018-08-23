@@ -32,8 +32,8 @@
             $this->aPaths["{$oSpec->HttpMethod}.{$oSpec->Path}"] = $oSpec;
         }
 
-        public function getPath(string $sHttpMethod, string $sPath): Spec {
-            return $this->aPaths["{$sHttpMethod}.{$sPath}"];
+        public function getPath(string $sHttpMethod, string $sPath): ?Spec {
+            return $this->aPaths["{$sHttpMethod}.{$sPath}"] ?? null;
         }
 
         public function generateOpenAPI(array $aScopes = []) {
