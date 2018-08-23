@@ -461,7 +461,7 @@
                     };
 
                     $sSearch     = preg_replace('/\s+/', ' ', $sSearch);
-                    $sSearch     = preg_replace('/(\w+)\:"(\w+)/', '"${1}:${2}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
+                    $sSearch     = preg_replace('/(\w+)([:><])"(\w+)/', '"${1}${2}${3}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
                     $aSearch     = str_getcsv($sSearch, ' ');
 
                     foreach($aSearch as $sSearchTerm) {
