@@ -2,9 +2,6 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use function Enobrev\dbg;
-    use Enobrev\ORM\Table;
-    use TravelGuide\Config;
 
     class FullSpec {
         /** @var Dot */
@@ -56,13 +53,17 @@
             return $this->aPaths["{$sHttpMethod}.{$sPath}"] ?? null;
         }
 
-        public function generateOpenAPI(array $aScopes = []) {
-            $sUrl = Config::get('uri/api') . 'v1/';
-
+        /**
+         * @param string $sAPIUrl
+         * @param string $sDescription
+         * @param array $aScopes
+         * @return Dot
+         */
+        public function generateOpenAPI(string $sAPIUrl, string $sDescription, array $aScopes = []) {
             $aSecurityFlows = [
                 'password' => [
-                    'tokenUrl'    => $sUrl . 'auth/client',
-                    'refreshUrl'  => $sUrl . 'auth/client',
+                    'tokenUrl'    => $sAPIUrl . 'auth/client',
+                    'refreshUrl'  => $sAPIUrl . 'auth/client',
                     'x-grantType' => 'password',
                     'scopes'      => [
                         'www' => 'General access for the Web Client',
@@ -71,16 +72,16 @@
                     ]
                 ],
                 'clientCredentials' => [
-                    'tokenUrl'    => $sUrl . 'auth/client',
-                    'refreshUrl'  => $sUrl . 'auth/client',
+                    'tokenUrl'    => $sAPIUrl . 'auth/client',
+                    'refreshUrl'  => $sAPIUrl . 'auth/client',
                     'x-grantType' => 'client_credentials',
                     'scopes'      => [
                         's2s' => 'General access for backend clients'
                     ]
                 ],
                 'facebook' => [
-                    'tokenUrl'    => $sUrl . 'auth/client',
-                    'refreshUrl'  => $sUrl . 'auth/client',
+                    'tokenUrl'    => $sAPIUrl . 'auth/client',
+                    'refreshUrl'  => $sAPIUrl . 'auth/client',
                     'x-grantType' => 'facebook',
                     'scopes'      => [
                         'www' => 'General access for the Web Client',
@@ -106,7 +107,7 @@
                 'openapi' => '3.0.1',
                 'info'    => [
                     'title'         => 'Welcome API V1',
-                    'description'   => "This is the documentation for Version 1 of the Welcome API.\n\nThis documentation is generated on the fly and so should be completely up to date\n\nThe raw data for this documentation is here: " . Config::get('uri/api') . 'v1/docs',
+                    'description'   => "This is the documentation for Version 1 of the Welcome API.\n\nThis documentation is generated on the fly and so should be completely up to date\n\nThe raw data for this documentation is here: " . $sAPIUrl . 'docs',
                     'version'       => '1.0.2',
                     'contact'       => [
                         'name'  => 'Mark Armendariz',
@@ -119,13 +120,13 @@
                 ],
                 'servers' => [
                     [
-                        'url'         => $sUrl,
-                        'description' => ucwords(Config::get('environment')) . ' API'
+                        'url'         => $sAPIUrl,
+                        'description' => $sDescription
                     ]
                 ],
                 'paths'         => [],
                 'components'   => [
-                    'schemas' => Spec::DEFAULT_RESPONSE_SCHEMAS,
+                    'schemas' => self::DEFAULT_RESPONSE_SCHEMAS,
                     'securitySchemes' => [
                         'OAuth2' => [
                             'type'  => 'oauth2',
@@ -173,4 +174,111 @@
             $this->aResponses = [];
             $this->aSchemas   = [];
         }
+
+        const DEFAULT_RESPONSE_SCHEMAS = [
+            "_default" => [
+                "type" => "object",
+                "properties" => [
+                    "_server" => [
+                        '$ref' => "#/components/schemas/_server"
+                    ],
+                    "_request" => [
+                        '$ref' => "#/components/schemas/_request"
+                    ]
+                ]
+            ],
+            "_server" => [
+                "type" => "object",
+                "properties"=> [
+                    "timezone"      => ["type" => "string"],
+                    "timezone_gmt"  => ["type" => "string"],
+                    "date"          => ["type" => "string"],
+                    "date_w3c"      => ["type" => "string"]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_request" => [
+                "type" => "object",
+                "properties"=> [
+                    "validation" => [
+                        "type" => "object",
+                        "properties" => [
+                            "status" => [
+                                "type" => "string",
+                                "enum" => ["PASS", "FAIL"]
+                            ],
+                            "errors" => [
+                                "type" => "array",
+                                "items" => ['$ref' => "#/components/schemas/_validation_error"]
+                            ]
+                        ]
+                    ],
+                    "logs"      => [
+                        "type" => "object",
+                        "properties" => [
+                            "thread" => [
+                                "type" => "string",
+                                "description" => "Alphanumeric hash for looking up entire request thread in logs"
+                            ],
+                            "request" => [
+                                "type" => "string",
+                                "description" => "Alphanumeric hash for looking up specific API request in logs"
+                            ]
+                        ]
+                    ],
+                    "method"        => [
+                        "type" => "string",
+                        "enum" => ["GET", "POST", "PUT", "DELETE"]
+                    ],
+                    "path"          => ["type" => "string"],
+                    "attributes"    => [
+                        "type" => "array",
+                        "description" => "Parameters pulled from the path",
+                        "items" => ["type" => "string"]
+                    ],
+                    "query"         => [
+                        "type" => "array",
+                        "items" => ["type" => "string"]
+                    ],
+                    "data"          => [
+                        '$ref' => '#/components/schemas/_any',
+                        "description" => "POSTed Data"
+                    ]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_response" => [
+                "type" => "object",
+                "properties"=> [
+                    "validation" => [
+                        "type" => "object",
+                        "properties" => [
+                            "status" => [
+                                "type" => "string",
+                                "enum" => ["PASS", "FAIL"]
+                            ],
+                            "errors" => [
+                                "type" => "array",
+                                "items" => ['$ref' => "#/components/schemas/_validation_error"]
+                            ]
+                        ]
+                    ]
+                ],
+                "additionalProperties"=> false
+            ],
+            "_validation_error" => [
+                "type" => "object",
+                "properties" => [
+                    "property"      => ["type" => "string"],
+                    "pointer"       => ["type" => "string"],
+                    "message"       => ["type" => "string"],
+                    "constraint"    => ["type" => "string"],
+                    "context"       => ["type" => "number"],
+                    "minimum"       => ["type" => "number"],
+                    "value"         => [
+                        '$ref' => '#/components/schemas/_any'
+                    ]
+                ]
+            ]
+        ];
     }
