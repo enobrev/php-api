@@ -65,7 +65,7 @@
 
         /**
          * @param string $sAPIUrl
-         * @param string $sDescription
+         * @param string $sAPIDescription
          * @param array $aScopes
          * @return Dot
          */
