@@ -8,6 +8,9 @@
         private $oData;
 
         /** @var array */
+        private $aInfo;
+
+        /** @var array */
         private $aSchemas;
 
         /** @var array */
@@ -15,6 +18,13 @@
 
         /** @var Spec[] */
         private $aPaths;
+
+        public function __construct(array $aInfo) {
+            $this->aPaths     = [];
+            $this->aResponses = [];
+            $this->aSchemas   = [];
+            $this->aInfo      = $aInfo;
+        }
 
         public function schemas($sSchema, $aSchema) {
             $this->aSchemas[$sSchema] = $aSchema;
@@ -59,7 +69,7 @@
          * @param array $aScopes
          * @return Dot
          */
-        public function generateOpenAPI(string $sAPIUrl, string $sDescription, array $aScopes = []) {
+        public function generateOpenAPI(string $sAPIUrl, string $sAPIDescription, array $aScopes = []) {
             $aSecurityFlows = [
                 'password' => [
                     'tokenUrl'    => $sAPIUrl . 'auth/client',
@@ -105,23 +115,11 @@
 
             $oData = new Dot([
                 'openapi' => '3.0.1',
-                'info'    => [
-                    'title'         => 'Welcome API V1',
-                    'description'   => "This is the documentation for Version 1 of the Welcome API.\n\nThis documentation is generated on the fly and so should be completely up to date\n\nThe raw data for this documentation is here: " . $sAPIUrl . 'docs',
-                    'version'       => '1.0.2',
-                    'contact'       => [
-                        'name'  => 'Mark Armendariz',
-                        'email' => 'src@enobrev.com',
-                        'url'   => 'https://github.com/welcotravel/api.welco.me'
-                    ],
-                    'license'   => [
-                        'name'  => '© 2018 Matthew Rosenberg All Rights Reserved'
-                    ]
-                ],
+                'info'    => $this->aInfo,
                 'servers' => [
                     [
                         'url'         => $sAPIUrl,
-                        'description' => $sDescription
+                        'description' => $sAPIDescription
                     ]
                 ],
                 'paths'         => [],
@@ -167,12 +165,6 @@
 
         public function set($sPath, $mValue) {
             return $this->oData->set($sPath, $mValue);
-        }
-
-        public function __construct() {
-            $this->aPaths     = [];
-            $this->aResponses = [];
-            $this->aSchemas   = [];
         }
 
         const DEFAULT_RESPONSE_SCHEMAS = [
