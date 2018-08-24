@@ -6,9 +6,6 @@
     use Enobrev\ORM\Table;
     use TravelGuide\Config;
 
-    class FullSpecException extends Exception {};
-    class InvalidResponseException extends FullSpecException {};
-
     class FullSpec {
         /** @var Dot */
         private $oData;
@@ -27,32 +24,24 @@
         }
 
         /**
-         * @param string $sResponse
-         * @param array $aResponse
-         * @throws InvalidResponseException
+         * @param string $sName
+         * @param string $sDescription
+         * @param array $aContent
          */
-        public function responses(string $sResponse, array $aResponse) {
-            if (!isset($aResponse['description'])) {
-                throw new InvalidResponseException('Response is Missing description in Spec');
-            }
-
-            if (!isset($aResponse['content'])) {
-                throw new InvalidResponseException('Response is Missing content in Spec');
-            }
-
-            $this->aResponses[$sResponse] = $aResponse;
+        public function responses(string $sName, string $sDescription, array $aContent) {
+            $this->aResponses[$sName] = [
+                'description' => $sDescription,
+                'content'     => $aContent
+            ];
         }
 
         public function defaultSchemaResponse(string $sResponse) {
-            $this->responses($sResponse, [
-                'description' => "A successful response object with the $sResponse data and the standard metadata",
-                'content' => [
-                    'application/json' => [
-                        'schema' => [
-                            'allOf' => [
-                                ['$ref' => "#/components/schemas/_default"],
-                                ['$ref' => "#/components/schemas/$sResponse"],
-                            ]
+            $this->responses($sResponse, "A successful response object with the $sResponse data and the standard metadata", [
+                'application/json' => [
+                    'schema' => [
+                        'allOf' => [
+                            ['$ref' => "#/components/schemas/_default"],
+                            ['$ref' => "#/components/schemas/$sResponse"],
                         ]
                     ]
                 ]
