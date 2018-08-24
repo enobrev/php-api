@@ -1,11 +1,13 @@
 <?php
     namespace Enobrev\API;
 
-
     use Adbar\Dot;
     use function Enobrev\dbg;
     use Enobrev\ORM\Table;
     use TravelGuide\Config;
+
+    class FullSpecException extends Exception {};
+    class InvalidResponseException extends FullSpecException {};
 
     class FullSpec {
         /** @var Dot */
@@ -24,8 +26,37 @@
             $this->aSchemas[$sSchema] = $aSchema;
         }
 
-        public function responses($sResponse, $aResponse) {
+        /**
+         * @param string $sResponse
+         * @param array $aResponse
+         * @throws InvalidResponseException
+         */
+        public function responses(string $sResponse, array $aResponse) {
+            if (!isset($aResponse['description'])) {
+                throw new InvalidResponseException('Response is Missing description in Spec');
+            }
+
+            if (!isset($aResponse['content'])) {
+                throw new InvalidResponseException('Response is Missing content in Spec');
+            }
+
             $this->aResponses[$sResponse] = $aResponse;
+        }
+
+        public function defaultSchemaResponse(string $sResponse) {
+            $this->responses($sResponse, [
+                'description' => "A successful response object with the $sResponse data and the standard metadata",
+                'content' => [
+                    'application/json' => [
+                        'schema' => [
+                            'allOf' => [
+                                ['$ref' => "#/components/schemas/_default"],
+                                ['$ref' => "#/components/schemas/$sResponse"],
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
         }
 
         public function paths(Spec $oSpec) {
@@ -37,6 +68,51 @@
         }
 
         public function generateOpenAPI(array $aScopes = []) {
+            $sUrl = Config::get('uri/api') . 'v1/';
+
+            $aSecurityFlows = [
+                'password' => [
+                    'tokenUrl'    => $sUrl . 'auth/client',
+                    'refreshUrl'  => $sUrl . 'auth/client',
+                    'x-grantType' => 'password',
+                    'scopes'      => [
+                        'www' => 'General access for the Web Client',
+                        'ios' => 'General access for the IOS Client',
+                        'cms' => 'General access for the CMS Client'
+                    ]
+                ],
+                'clientCredentials' => [
+                    'tokenUrl'    => $sUrl . 'auth/client',
+                    'refreshUrl'  => $sUrl . 'auth/client',
+                    'x-grantType' => 'client_credentials',
+                    'scopes'      => [
+                        's2s' => 'General access for backend clients'
+                    ]
+                ],
+                'facebook' => [
+                    'tokenUrl'    => $sUrl . 'auth/client',
+                    'refreshUrl'  => $sUrl . 'auth/client',
+                    'x-grantType' => 'facebook',
+                    'scopes'      => [
+                        'www' => 'General access for the Web Client',
+                        'ios' => 'General access for the IOS Client',
+                        'cms' => 'General access for the CMS Client'
+                    ]
+                ]
+            ];
+
+            $aFlows = [];
+            if (count($aScopes)) {
+                foreach($aSecurityFlows as $sFlow => $aSecurityFlow) {
+                    if (count(array_intersect($aScopes, array_keys($aSecurityFlow['scopes'])))) {
+                        $aFlows[$sFlow] = $aSecurityFlow;
+                        $aFlows[$sFlow]['scopes'] = array_intersect_key($aFlows[$sFlow]['scopes'], array_flip($aScopes));
+                    }
+                }
+            } else {
+                $aFlows = $aSecurityFlows;
+            }
+
             $oData = new Dot([
                 'openapi' => '3.0.1',
                 'info'    => [
@@ -54,16 +130,8 @@
                 ],
                 'servers' => [
                     [
-                        'url' => 'https://api.welco.me/v1',
-                        'description' => 'Production API'
-                    ],
-                    [
-                        'url' => 'https://api.dev.welco.me/v1',
-                        'description' => 'Development API'
-                    ],
-                    [
-                        'url' => 'https://api.travel.enobrev.net/v1',
-                        'description' => 'Enobrev API'
+                        'url'         => $sUrl,
+                        'description' => ucwords(Config::get('environment')) . ' API'
                     ]
                 ],
                 'paths'         => [],
@@ -72,35 +140,7 @@
                     'securitySchemes' => [
                         'OAuth2' => [
                             'type'  => 'oauth2',
-                            'flows' => [
-                                'password' => [
-                                    'tokenUrl'   => Config::get('uri/api') . 'v1/auth/client',
-                                    'refreshUrl' => Config::get('uri/api') . 'v1/auth/client',
-                                    'scopes'     => [
-                                        'www' => 'General access for the Web Client',
-                                        'ios' => 'General access for the IOS Client',
-                                        'cms' => 'General access for the CMS Client'
-                                    ]
-                                ],
-                                'clientCredentials' => [
-                                    'tokenUrl'   => Config::get('uri/api') . 'v1/auth/client',
-                                    'refreshUrl' => Config::get('uri/api') . 'v1/auth/client',
-                                    'scopes'     => [
-                                        's2s' => 'General access for backend clients'
-                                    ]
-                                ]
-                                /*
-                                'facebook' => [
-                                    'tokenUrl'   => Config::get('uri/api') . 'v1/auth/client',
-                                    'refreshUrl' => Config::get('uri/api') . 'v1/auth/client',
-                                    'scopes'     => [
-                                        'www' => 'General access for the Web Client',
-                                        'ios' => 'General access for the IOS Client',
-                                        'cms' => 'General access for the CMS Client'
-                                    ]
-                                ]
-                                */
-                            ]
+                            'flows' => $aFlows
                         ]
                     ]
                 ]

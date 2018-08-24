@@ -397,33 +397,31 @@
                 $aMethod['parameters'] = $aParameters;
             }
 
-            $aResponses = [];
-
-            if ($this->ResponseSchema) {
-                $aResponses = [$this->ResponseSchema];
-            } else if ($this->ResponseReference) {
-                $aResponses[] = ['$ref' => "#/components/schemas/_default"];
-                $aResponses[] = ['$ref' => $this->ResponseReference];
-            }
-
-            if (!count($aResponses)) {
-                $aResponses[] = ['$ref' => "#/components/schemas/_default"];
-            }
-
             $aMethod['responses'] = [];
 
             foreach($this->Responses as $iStatus => $sDescription) {
                 if ($iStatus === HTTP\OK) {
-                    $aMethod['responses'][$iStatus] = [
-                        "description" => $sDescription,
-                        "content" => [
-                            "application/json" => [
-                                "schema" => [
-                                    "allOf" => $aResponses,
+                    if ($this->ResponseSchema) {
+                        $aMethod['responses'][$iStatus] = [
+                            "description" => $sDescription,
+                            "content" => [
+                                "application/json" => [
+                                    "schema" => $this->ResponseSchema
                                 ]
                             ]
-                        ]
-                    ];
+                        ];
+                    } else if ($this->ResponseReference) {
+                        $aMethod['responses'][$iStatus] = ['$ref' => $this->ResponseReference];
+                    } else {
+                        $aMethod['responses'][$iStatus] = [
+                            "description" => $sDescription,
+                            "content" => [
+                                "application/json" => [
+                                    "schema" => ['$ref' => "#/components/schemas/_default"]
+                                ]
+                            ]
+                        ];
+                    }
                 } else {
                     $aMethod['responses'][$iStatus] = [
                         "description" => $sDescription
