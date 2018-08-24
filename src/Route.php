@@ -819,9 +819,14 @@
 
                 $aResponseParsed = json_decode((string) json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
 
-                self::$aData['__requests'][] = $aResponseParsed['_request'];
-                unset($aResponseParsed['_request']);
-                unset($aResponseParsed['_server']);
+                if (isset($aResponseParsed['_request'])) {
+                    self::$aData['__requests'][] = $aResponseParsed['_request'];
+                    unset($aResponseParsed['_request']);
+                }
+
+                if (isset($aResponseParsed['_server'])) {
+                    unset($aResponseParsed['_server']);
+                }
 
                 if (isset($aResponseParsed['counts'])) {
                     if (!isset(self::$aData['counts'])) {
@@ -849,8 +854,10 @@
                             self::$aData[$sTable] = [];
                         }
 
-                        foreach ($aRecords as $sId => $aRecord) {
-                            self::$aData[$sTable][$sId] = $aRecord;
+                        if (is_iterable($aRecords)) {
+                            foreach ($aRecords as $sId => $aRecord) {
+                                self::$aData[$sTable][$sId] = $aRecord;
+                            }
                         }
                     }
                 }
