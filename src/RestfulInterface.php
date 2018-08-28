@@ -12,4 +12,5 @@
         public function put();
         public function delete();
         public function options();
+        public function spec(FullSpec &$oFullSpec);
     }

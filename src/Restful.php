@@ -25,6 +25,16 @@
         /** @var  string */
         protected $sDataPath = null;
 
+        /** @var string */
+        protected $sBaseTable;
+
+        /**
+         * @param string $sBaseTable
+         */
+        public function setBaseTable(string $sBaseTable) {
+            $this->sBaseTable = $sBaseTable;
+        }
+
         /**
          * @return string
          */
@@ -605,7 +615,7 @@
          */
         public static function _getNamespacedTableClassName(string $sTableClass): string {
             if (self::$sNamespaceTable === null) {
-                throw new Exception\Response('API Route Not Initialized');
+                throw new Exception\Response('Rest Class Not Initialized');
             }
 
             return implode('\\', [self::$sNamespaceTable, $sTableClass]);

@@ -100,4 +100,7 @@
         public function methodNotAllowed(): void {
             $this->Response->statusMethodNotAllowed();
         }
+
+        public function spec(FullSpec &$oFullSpec) {
+        }
     }
