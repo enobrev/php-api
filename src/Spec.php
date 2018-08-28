@@ -27,6 +27,9 @@
         /** @var string */
         public $Path;
 
+        /** @var boolean */
+        public $Public = false;
+
         /** @var string */
         public $HttpMethod;
 
@@ -110,6 +113,11 @@
 
         public function scopes(array $aScopes):self {
             $this->Scopes = $aScopes;
+            return $this;
+        }
+
+        public function isPublic(bool $bPublic = true):self {
+            $this->Public = $bPublic;
             return $this;
         }
 
@@ -351,7 +359,7 @@
                 'tags'          => $this->Tags
             ];
 
-            if (count($this->Scopes)) {
+            if (!$this->Public && count($this->Scopes)) {
                 $aMethod['security'] = [["OAuth2" => $this->Scopes]];
             }
 
