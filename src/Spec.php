@@ -2,10 +2,7 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use Enobrev\API\Exception\DocumentationException;
     use Enobrev\API\Exception\InvalidRequest;
-    use function Enobrev\array_not_associative;
-    use function Enobrev\dbg;
     use Enobrev\ORM\Table;
     use Enobrev\ORM\Field;
     use JsonSchema\Constraints\Constraint;
@@ -255,7 +252,8 @@
         }
 
         /**
-         * @throws DocumentationException
+         * @param Request $oRequest
+         * @param Response $oResponse
          * @throws InvalidRequest
          */
         public function validateRequest(Request $oRequest,  Response $oResponse) {
