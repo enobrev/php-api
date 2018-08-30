@@ -1,25 +1,35 @@
 <?php
     namespace Enobrev\API;
 
+    use function Enobrev\dbg;
+    use RecursiveIteratorIterator;
+    use RecursiveDirectoryIterator;
+    use FilesystemIterator;
+    use ReflectionClass;
+    use ReflectionException;
+
     use Adbar\Dot;
     use Enobrev\ORM\Table;
     use Zend\Diactoros\ServerRequest;
 
     class FullSpec {
         /** @var string */
+        private static $sPathToSpec;
+
+        /** @var string */
         private static $sAppNamespace;
 
         /** @var string */
         private static $sPathToSQLJson;
 
+        /** @var string */
+        private static $sPathToAPIClasses;
+
         /** @var array */
         private static $aDatabaseSchema;
 
-        /** @var Dot */
-        private $oData;
-
         /** @var array */
-        private $aInfo;
+        private static $aVersions;
 
         /** @var array */
         private $aSchemas;
@@ -30,21 +40,26 @@
         /** @var Spec[] */
         private $aPaths;
 
-        public function __construct( array $aInfo) {
+        public function __construct() {
             $this->aPaths           = [];
             $this->aResponses       = [];
             $this->aSchemas         = [];
-            $this->aInfo            = $aInfo;
         }
 
         /**
-         * @param string $sAppNamespace
+         * @param string $sPathToSpec
          * @param string $sPathToSQLJson
+         * @param string $sAppNamespace
+         * @param string $sPathToAPIClasses
+         * @param array $aVersions
          * @throws Exception
          */
-        public static function init(string $sAppNamespace, string $sPathToSQLJson): void {
-            self::$sAppNamespace  = $sAppNamespace;
-            self::$sPathToSQLJson = $sPathToSQLJson;
+        public static function init(string $sPathToSpec, string $sPathToSQLJson, string $sAppNamespace, string $sPathToAPIClasses, array $aVersions): void {
+            self::$sPathToSpec          = $sPathToSpec;
+            self::$sPathToSQLJson       = $sPathToSQLJson;
+            self::$sAppNamespace        = $sAppNamespace;
+            self::$sPathToAPIClasses    = $sPathToAPIClasses;
+            self::$aVersions            = $aVersions;
 
             if (!file_exists($sPathToSQLJson)) {
                 throw new Exception('Missing SQL JSON file');
@@ -81,36 +96,95 @@
         }
 
         public function paths(Spec $oSpec) {
-            $this->aPaths["{$oSpec->HttpMethod}.{$oSpec->Path}"] = $oSpec;
+            if (!isset($this->aPaths[$oSpec->Path])) {
+                $this->aPaths[$oSpec->Path] = [];
+            }
+
+            $this->aPaths[$oSpec->Path][$oSpec->HttpMethod] = $oSpec;
         }
 
-        public function getPath(string $sHttpMethod, string $sPath): ?Spec {
-            return $this->aPaths["{$sHttpMethod}.{$sPath}"] ?? null;
+        public function getPath(string $sPath, string $sHttpMethod): ?Spec {
+            return $this->aPaths[$sPath][$sHttpMethod] ?? null;
+        }
+
+        public function removePath(string $sPath, string $sHttpMethod): void {
+            if (isset($this->aPaths[$sPath])) {
+                if (isset($this->aPaths[$sPath][$sHttpMethod])) {
+                    unset($this->aPaths[$sPath][$sHttpMethod]);
+                }
+            }
+
+            if (count($this->aPaths[$sPath]) == 0) {
+                unset($this->aPaths[$sPath]);
+            }
+        }
+
+        public function removeSpec(Spec $oSpec) {
+            $this->removePath($oSpec->Path, $oSpec->HttpMethod);
         }
 
         /**
-         * @param string $sAPIUrl
-         * @param string $sAPIDescription
+         * @throws Exception\Response
+         * @throws ReflectionException
+         */
+        public static function generateAndCache() {
+            $oFullSpec = new self;
+            $oFullSpec->generateData();
+            file_put_contents(self::$sPathToSpec, serialize($oFullSpec));
+        }
+
+        /**
+         * @return self
+         * @throws Exception\Response
+         * @throws ReflectionException
+         */
+        public static function getFromCache() {
+            if (!file_exists(self::$sPathToSpec)) {
+                self::generateAndCache();
+            }
+
+            return unserialize(file_get_contents(self::$sPathToSpec));
+        }
+
+        public static function generateLiveForDevelopment() {
+            $oFullSpec = new self;
+            $oFullSpec->generateData();
+            return $oFullSpec;
+        }
+
+        public function getRoutes() {
+            $aRoutes = [];
+            foreach($this->aPaths as $sPath => $aHttpMethods) {
+                $aRoutes[$sPath] = array_keys($aHttpMethods);
+            }
+
+            return $aRoutes;
+        }
+
+        /**
+         * @throws Exception\Response
+         * @throws ReflectionException
+         */
+        protected function generateData() {
+            $this->tablesFromFile();
+            $this->specsFromSQLFile();
+            $this->specsFromClasses();
+        }
+
+        /**
+         * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
          * @param array $aScopes
          * @return Dot
          * @throws Exception\Response
+         * @throws ReflectionException
          */
-        public function generateOpenAPI(string $sAPIUrl, string $sAPIDescription, array $aScopes = []) {
-            $this->tablesFromFile();
-            $this->specsFromSQLFile();
-            $this->specsFromRoutes();
-
+        public function getOpenAPI(array $aScopes = []) {
             $oData = new Dot([
-                'openapi' => '3.0.1',
-                'info'    => $this->aInfo,
-                'servers' => [
-                    [
-                        'url'         => $sAPIUrl,
-                        'description' => $sAPIDescription
-                    ]
-                ],
-                'paths'         => [],
-                'components'   => [
+                'openapi'   => '3.0.1',
+                'info'      => [],
+                'servers'   => [],
+                'paths'     => [],
+                'components' => [
                     'schemas' => self::DEFAULT_RESPONSE_SCHEMAS
                 ]
             ]);
@@ -125,27 +199,21 @@
              * @var Spec $oSpec
              */
 
-            foreach($this->aPaths as $oSpec) {
-                if (count($aScopes)) {
-                    if (count($oSpec->Scopes) && count(array_intersect($aScopes, $oSpec->Scopes))) {
+            foreach($this->aPaths as $sPath => $aMethods) {
+                foreach($aMethods as $sHttpMethod => $oSpec) {
+                    if (count($aScopes)) {
+                        if (count($oSpec->Scopes) && count(array_intersect($aScopes, $oSpec->Scopes))) {
+                            $sMethod = strtolower($oSpec->HttpMethod);
+                            $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
+                        }
+                    } else {
                         $sMethod = strtolower($oSpec->HttpMethod);
                         $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
                     }
-                } else {
-                    $sMethod = strtolower($oSpec->HttpMethod);
-                    $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
                 }
             }
 
             return $oData;
-        }
-
-        public function get($sPath) {
-            return $this->oData->get($sPath);
-        }
-
-        public function set($sPath, $mValue) {
-            return $this->oData->set($sPath, $mValue);
         }
 
         /**
@@ -250,27 +318,53 @@
             }
         }
 
-        private function specsFromRoutes() {
-            $aRoutes = Route::_getCachedRoutes() + Route::_getCachedQueryRoutes();
+        /**
+         * @throws ReflectionException
+         */
+        private function specsFromClasses() {
+            foreach (self::$aVersions as $sVersion) {
+                // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
+                // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
 
-            foreach($aRoutes as $aRoute) {
-                $oClass  = null;
-                $sClass  = $aRoute['class'];
+                $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
+                if (file_exists($sVersionPath)) {
+                    /** @var \SplFileInfo[] $aFiles */
+                    $aFiles  = new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator(
+                            $sVersionPath,
+                            FilesystemIterator::SKIP_DOTS
+                        )
+                    );
 
-                switch($aRoute['type']) {
-                    case Route::CACHED_ROUTE_BASE:
-                    case Route::QUERY_ROUTE_REST:
-                    case Route::QUERY_ROUTE_ENDPOINT:
-                        /** @var Base $oClass */
-                        $oClass  = new $sClass(new Request(new ServerRequest));
-                        break;
+                    foreach($aFiles as $oFile) {
+                        $sContents = file_get_contents($oFile->getPathname());
+                        if (preg_match('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
+                            $sClass = $aMatchesClass[1];
 
-                    case Route::QUERY_ROUTE_TABLE:
-                        // Not currently handled
-                }
+                            if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
+                                $sNamespace = $aMatchesNamespace[1];
+                                $sFullClass = implode('\\', [$sNamespace, $sClass]);
 
-                if ($oClass) {
-                    $oClass->spec($this);
+                                $oReflectionClass = new ReflectionClass($sFullClass);
+
+                                if ($oReflectionClass->implementsInterface(RestfulInterface::class)
+                                &&  $oReflectionClass->hasMethod('spec')
+                                &&  $oReflectionClass->getMethod('spec')->class == $oReflectionClass->name) {
+                                    //dbg('Restful', $sFullClass);
+                                    /** @var RestfulInterface $oClass */
+                                    $oClass = new $sFullClass(new Request(new ServerRequest));
+                                    $oClass->spec($this);
+                                } else if ($oReflectionClass->isSubclassOf(Base::class)
+                                       &&  $oReflectionClass->hasMethod('spec')
+                                       &&  $oReflectionClass->getMethod('spec')->class == $oReflectionClass->name) {
+                                    //dbg('Base', $sFullClass);
+                                    /** @var Base $oClass */
+                                    $oClass = new $sFullClass(new Request(new ServerRequest));
+                                    $oClass->spec($this);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -1,0 +1,71 @@
+<?php
+    namespace {{ spec.namespace.spec }}\{{ table.name }};
+
+    use Adbar\Dot;
+    use Psr\Http\Message\ResponseInterface;
+    use Psr\Http\Message\ServerRequestInterface;
+    use Psr\Http\Server\MiddlewareInterface;
+    use Psr\Http\Server\RequestHandlerInterface;
+    use Zend\Diactoros\Response\JsonResponse;
+
+    use Enobrev\API\Method;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
+    use Enobrev\API\SpecInterface;
+
+    use {{ spec.namespace.table }};
+
+    class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        public function spec(): Spec {
+            $oSpec = new Spec();
+            $oSpec->HttpMethod              = Method\{{ spec.http_method }};
+            $oSpec->Path                    = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
+            $oSpec->Summary                 = 'List `{{ table.name }}`';
+            $oSpec->Description             = 'Get listing of `{{ table.name }}`';
+            $oSpec->Scopes                  = {{ spec.scopes|raw }};
+
+{% set unreferenced_fields = [] %}
+{% for field in fields %}
+{% if not field.reference and not field.primary %}
+{% set unreferenced_fields = unreferenced_fields|merge([field]) %}
+{% endif %}
+{% endfor %}
+            $oSpec->QueryParams['page']     = new Param\_Integer('page',   ['default' => 1],   "Current Page of `{{ table.name }}`");
+            $oSpec->QueryParams['per']      = new Param\_Integer('per',    ['default' => 100], "Number of `{{ table.name }}` per page of Data");
+            $oSpec->QueryParams['search']   = new Param\_String( 'search', [],                 "Search term.  Can be a plain string or in the format field:value");
+            $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   ['enum'    => [{% for field in unreferenced_fields %}'{{field.short}}'{% if not loop.last %}, {% endif %}{% endfor %}]],
+                                                                                            "`{{ table.name }}` field to sort by");
+            $oSpec->ResponseSchema          = [
+                'type' => 'object',
+                'properties' => [
+                    'places' => [
+                        'type' => 'object',
+                        'properties' => [
+                            '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
+                                'type' => 'object',
+                                'properties' => Spec::tableToParams(new {{ table.class }})
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            return $oSpec;
+        }
+
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oOutput = new Dot();
+
+            /** @var {{ table.class }}[] $a{{ table.plural }} */
+            $a{{ table.plural }} = {{ table.class_plural }}::get();
+            foreach($a{{ table.plural }} as $o{{ table.title }}) {
+{% if primary|length > 1 %}
+                $oOutput->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", $o{{ table.title }});
+{% else %}
+                $oOutput->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", $o{{ table.title }});
+{% endif %}
+            }
+
+            return new JsonResponse($oOutput->all());
+        }
+    }

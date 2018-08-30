@@ -9,6 +9,8 @@
     use JsonSchema\Validator;
 
     class Spec {
+        const SKIP_PRIMARY = 1;
+
         /** @var string */
         public $Summary;
 
@@ -68,14 +70,12 @@
         /** @var string[] */
         public $Tags = [];
 
-        /**
-         * Spec constructor.
-         * @param string $sHttpMethod
-         * @param string $sPath
-         */
-        public function __construct(string $sHttpMethod, string $sPath) {
-            $this->httpMethod($sHttpMethod);
-            $this->path($sPath);
+        public static function create() {
+            return new self();
+        }
+
+        public function handle(Request $oRequest, Response $oResponse) {
+            // Override Me
         }
 
         public function summary(string $sSummary):self {
@@ -170,13 +170,18 @@
 
         /**
          * @param Table $oTable
+         * @param int $iOptions
          * @return Param[]
          */
-        public static function tableToParams(Table $oTable) {
+        public static function tableToParams(Table $oTable, int $iOptions = 0) {
             $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
 
             foreach($aFields as $oField) {
+                if ($iOptions & self::SKIP_PRIMARY && $oField->isPrimary()) {
+                    continue;
+                }
+
                 $oParam = self::fieldToParam($oTable, $oField);
                 if ($oParam instanceof Param) {
                     $aDefinitions[$oParam->sName] = $oParam;
@@ -259,20 +264,62 @@
         public function validateRequest(Request $oRequest,  Response $oResponse) {
             $this->RequestValidated = true;
 
-            // TODO: Validate Path Params
+            $this->validatePathParameters($oRequest, $oResponse);
+            $this->validateQueryParameters($oRequest, $oResponse);
+        }
 
-            $aParameters = [];
-            switch ($this->HttpMethod) {
-                case Method\GET:  $aParameters = $oRequest->GET;  break;
-                case Method\POST: $aParameters = $oRequest->POST; break;
+        /**
+         * @param Request $oRequest
+         * @param Response $oResponse
+         * @throws InvalidRequest
+         */
+        private function validatePathParameters(Request $oRequest, Response $oResponse) {
+            $aParameters = $oRequest->pathParams();
+
+            // Coerce CSV Params
+            foreach($this->PathParams as $oParam) {
+                if ($oParam->is(Param::ARRAY)) {
+                    if (isset($aParameters[$oParam->sName])) {
+                        $aParameters[$oParam->sName] = explode(',', $aParameters[$oParam->sName]);
+                    }
+                }
             }
 
+            $this->validateParameters($aParameters, $oResponse);
+        }
+
+        /**
+         * @param Request $oRequest
+         * @param Response $oResponse
+         * @throws InvalidRequest
+         */
+        private function validateQueryParameters(Request $oRequest, Response $oResponse) {
+            $aParameters = $oRequest->queryParams();
+
+            // Coerce CSV Params
+            foreach($this->QueryParams as $oParam) {
+                if ($oParam->is(Param::ARRAY)) {
+                    if (isset($aParameters[$oParam->sName])) {
+                        $aParameters[$oParam->sName] = explode(',', $aParameters[$oParam->sName]);
+                    }
+                }
+            }
+
+            $this->validateParameters($aParameters, $oResponse);
+        }
+
+        /**
+         * @param array $aParameters
+         * @param Response $oResponse
+         * @throws InvalidRequest
+         */
+        private function validateParameters(array $aParameters,  Response $oResponse) {
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                self::paramsToJsonSchema($this->QueryParams)->all(),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS
+                self::paramsToJsonSchema($this->PathParams)->all(),
+                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
             if (!$oValidator->isValid()) {
@@ -291,7 +338,7 @@
                 throw new InvalidRequest();
             } else {
                 $oResponse->add('_request.validation.status', 'PASS');
-                $oRequest->ValidatedParams = (array) $oParameters;
+                //$oRequest->ValidatedParams = (array) $oParameters;
             }
         }
 
@@ -452,5 +499,43 @@
             }
 
             return $aMethod;
+        }
+
+        public function toArray() {
+            $aPathParams = [];
+            foreach($this->PathParams as $sParam => $oParam) {
+                $PathParams[$sParam] = $oParam->JsonSchema();
+            }
+            
+            $aQueryParams = [];
+            foreach($this->QueryParams as $sParam => $oParam) {
+                $QueryParams[$sParam] = $oParam->JsonSchema();
+            }
+            
+            return [
+                'Summary'           => $this->Summary,
+                'Description'       => $this->Description,
+                'RequestValidated'  => $this->RequestValidated,
+                'Deprecated'        => $this->Deprecated,
+                'Path'              => $this->Path,
+                'Public'            => $this->Public,
+                'HttpMethod'        => $this->HttpMethod,
+                'Method'            => $this->Method,
+                'Scopes'            => $this->Scopes,
+                'PathParams'        => $aPathParams,
+                'QueryParams'       => $aQueryParams,
+                'ResponseSchema'    => $this->ResponseSchema,
+                'ResponseReference' => $this->ResponseReference,
+                'InHeaders'         => $this->InHeaders,
+                'OutHeaders'        => $this->OutHeaders,
+                'CodeSamples'       => $this->CodeSamples,
+                'ResponseHeaders'   => $this->ResponseHeaders,
+                'Responses'         => $this->Responses,
+                'Tags'              => $this->Tags
+            ];
+        }
+        
+        public function toJson() {
+            return json_encode($this->toArray());
         }
     }

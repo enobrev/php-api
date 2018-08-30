@@ -14,6 +14,8 @@
         const DEPRECATED = 128;
         const REFERENCE  = 256;
 
+        const ANYOF      = 512;
+
 
         /** @var string */
         public $sName;
@@ -61,6 +63,12 @@
         public function JsonSchema(): array {
             if ($this->is(self::REFERENCE)) {
                 return $this->aValidation;
+            } else if ($this->is(self::ANYOF)) {
+                return [
+                    'anyOf' => [
+                        $this->aValidation
+                    ]
+                ];
             }
 
             $aSchema = $this->aValidation;

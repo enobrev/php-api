@@ -1,0 +1,73 @@
+<?php
+    namespace {{ spec.namespace.spec }}\{{ table.name }};
+
+    use Adbar\Dot;
+    use Psr\Http\Message\ResponseInterface;
+    use Psr\Http\Message\ServerRequestInterface;
+    use Psr\Http\Server\MiddlewareInterface;
+    use Psr\Http\Server\RequestHandlerInterface;
+    use Zend\Diactoros\Response\JsonResponse;
+
+    use Enobrev\API\Method;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
+    use Enobrev\API\SpecInterface;
+
+    use {{ spec.namespace.table }};
+
+    class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        public function spec(): Spec {
+            $oSpec = new Spec();
+            $oSpec->HttpMethod        = Method\{{ spec.http_method }};
+            $oSpec->Path              = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
+            $oSpec->Summary           = 'Get `{{ table.name }}`';
+{% if primary|length > 1 %}
+            $oSpec->Description       = 'Get `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %}';
+{% else %}
+            $oSpec->Description       = 'Get `{{ table.name }}` designated by comma separated list of `{{ primary.0.short }}`';
+{% endif %}
+            $oSpec->Scopes            = {{ spec.scopes|raw }};
+
+{% if primary|length > 1 %}
+{% for field in primary %}
+            $oSpec->PathParams['{{ field.short }}'] = new Param\{{ field.param_class }}('{{ field.short }}', Param::REQUIRED);
+{% endfor %}
+{% else %}
+            $oSpec->PathParams['{{ primary.0.short }}']  = new Param\_Array('{{ primary.0.short }}', Param::REQUIRED, ['items' => ['type' => '{{ primary.0.param_list_type }}']]);
+{% endif %}
+
+            $oSpec->ResponseSchema    = [
+                'type' => 'object',
+                'properties' => [
+                    'places' => [
+                        'type' => 'object',
+                        'properties' => [
+                            '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
+                                'type' => 'object',
+                                'properties' => Spec::tableToParams(new {{ table.class }})
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+
+            return $oSpec;
+        }
+
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oOutput = new Dot();
+{% if primary|length > 1 %}
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            if ($o{{ table.title }} instanceof {{ table.class }}) {
+                $oOutput->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", $o{{ table.title }});
+            }
+{% else %}
+            $a{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            foreach($a{{ table.plural }} as $o{{ table.title }}) {
+                $oOutput->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", $o{{ table.title }});
+            }
+{% endif %}
+
+            return new JsonResponse($oOutput->all());
+        }
+    }

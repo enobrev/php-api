@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use function Enobrev\dbg;
     use PDO;
 
     use Enobrev\Log;
@@ -147,8 +148,6 @@
                 $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMaps($this->getDataPath(), $this->Data, $this->_getUrlKeyField($this->Data[0])->sColumn));
                 $this->Response->add('sorts.' . $this->getDataPath(), $this->getSorts());
                 $this->Response->setLastModifiedFromTables($this->Data);
-            } else {
-                $this->Response->statusNoContent();
             }
             return;
         }
@@ -330,7 +329,7 @@
                             }
 
                             $oReference->setValue($aPart[1]);
-                            $this->Request->updateParam($oReference->sColumn, $oReference->getValue());
+                            $this->Request->updatePathParam($oReference->sColumn, $oReference->getValue());
                         }
                     }
 
@@ -414,7 +413,7 @@
             $aLastPair     = array_pop($aPairs);
             if (isset($aLastPair[1])) {
                 $oQuery->eq_in($oPrimaryField, $aLastPair[1]);
-                $this->Request->updateParam($oPrimaryField->sColumn, $aLastPair[1]);
+                $this->Request->updatePathParam($oPrimaryField->sColumn, $aLastPair[1]);
             }
 
             while (count($aPairs) > 0) {
@@ -439,7 +438,7 @@
                     }
 
                     $oQuery->eq_in($oReference, $aPart[1]);
-                    $this->Request->updateParam($oReference->sColumn, $aPart[1]);
+                    $this->Request->updatePathParam($oReference->sColumn, $aPart[1]);
 
                     Log::d('API.Restful._getQueryFromPath.Pairs.AddingAttribute', [
                         'field' => $oReference->sColumn,

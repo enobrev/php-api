@@ -1,0 +1,44 @@
+<?php
+    namespace {{ spec.namespace.spec }}\{{ table.name }};
+
+    use Psr\Http\Message\ResponseInterface;
+    use Psr\Http\Message\ServerRequestInterface;
+    use Psr\Http\Server\MiddlewareInterface;
+    use Psr\Http\Server\RequestHandlerInterface;
+
+    use Enobrev\API\HTTP;
+    use Enobrev\API\Method;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
+    use Enobrev\API\SpecInterface;
+
+    use {{ spec.namespace.table }};
+
+    class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        public function spec(): Spec {
+            $oSpec = new Spec();
+            $oSpec->HttpMethod        = Method\{{ spec.http_method }};
+            $oSpec->Path              = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
+            $oSpec->Summary           = 'Delete `{{ table.name }}`';
+            $oSpec->Description       = 'Delete `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %}';
+            $oSpec->Scopes            = {{ spec.scopes|raw }};
+
+{% for field in primary %}
+            $oSpec->PathParams['{{ field.short }}'] = new Param\{{ field.param_class }}('{{ field.short }}', Param::REQUIRED);
+{% endfor %}
+
+            return $oSpec;
+        }
+
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oResponse = $oHandler->handle($oRequest);
+
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            if ($o{{ table.title }} instanceof {{ table.class }} === false) {
+                return $oResponse->withStatus(HTTP\NOT_FOUND, '{{ table.name }} Not Found');
+            } else {
+                $o{{ table.title }}->delete();
+                return $oResponse->withStatus(HTTP\ACCEPTED);
+            }
+        }
+    }

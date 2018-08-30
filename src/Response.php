@@ -97,7 +97,7 @@
                 throw new Exception\Response('API Response Not Initialized');
             }
 
-            $this->Spec = new Spec(Method\GET, '/');
+            $this->Spec = new Spec();
             $this->oOutput  = new Dot();
             $this->aHeaders = [];
             $this->includeRequestInOutput(true);

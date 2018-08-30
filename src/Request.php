@@ -34,6 +34,12 @@
         /** @var array */
         public $ValidatedParams = [];
 
+        /** @var array */
+        public $QueryParams = [];
+
+        /** @var array */
+        public $PathParams = [];
+
         public function __construct(ServerRequest $oRequest) {
             $this->OriginalRequest  = $oRequest;
             $this->Path             = $this->splitPath();
@@ -185,7 +191,66 @@
          * @return null|mixed
          */
         private function param(string $sMethod, string $sParam, $sDefault = null) {
-            return $this->$sMethod[$sParam] ?? $sDefault;
+            $mValue = $this->$sMethod[$sParam] ?? $sDefault;
+            if (is_numeric($mValue)) {
+                return $mValue + 0;
+            }
+
+            return $mValue;
+        }
+
+        /**
+         * @return array|null
+         */
+        public function queryParams() :?array {
+            if (!$this->QueryParams) {
+                $aParams = [];
+
+                if ($this->isPost()) {
+                    $aParams = $this->handlePost();
+                } else if ($this->isGet()) {
+                    $aParams = $this->OriginalRequest->getQueryParams();
+                }
+
+
+                foreach ($aParams as &$mParam) {
+                    if (strlen($mParam) === 0) {
+                        continue;
+                    } else if (is_numeric($mParam)) {
+                        $mParam = $mParam + 0;
+                    } else {
+                        $mBool = filter_var($mParam, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                        if ($mBool !== null) {
+                            $mParam = $mBool;
+                        }
+                    }
+                }
+
+                $this->QueryParams = $aParams;
+            }
+
+            return $this->QueryParams;
+        }
+
+        public function queryParam(string $sParam, $sDefault = null) {
+            $aParams = $this->queryParams();
+            return $aParams[$sParam] ?? $sDefault;
+        }
+
+        /**
+         * @return array
+         */
+        public function pathParams() {
+            return $this->OriginalRequest->getAttributes();
+        }
+
+        /**
+         * @param string     $sParam
+         * @param mixed|null $sDefault
+         * @return mixed
+         */
+        public function pathParam(string $sParam, $sDefault = null) {
+            return $this->OriginalRequest->getAttribute($sParam, $sDefault);
         }
 
         /**
@@ -200,9 +265,9 @@
         /**
          * @param array $aParams
          */
-        public function updateParams(array $aParams): void {
+        public function updatePathParams(array $aParams): void {
             foreach($aParams as $sKey => $sValue) {
-                $this->updateParam($sKey, $sValue);
+                $this->updatePathParam($sKey, $sValue);
             }
         }
 
@@ -210,7 +275,7 @@
          * @param string $sKey
          * @param string $sValue
          */
-        public function updateParam($sKey, $sValue): void {
+        public function updatePathParam($sKey, $sValue): void {
             $this->OriginalRequest = $this->OriginalRequest->withAttribute($sKey, $sValue);
         }
 
