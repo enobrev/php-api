@@ -8,6 +8,7 @@
 
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
+    use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -31,9 +32,10 @@
         }
 
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oResponse = $oHandler->handle($oRequest);
+            $aPathParams = $oRequest->getAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS);
+            $oResponse   = $oHandler->handle($oRequest);
 
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 return $oResponse->withStatus(HTTP\NOT_FOUND, '{{ table.name }} Not Found');
             } else {

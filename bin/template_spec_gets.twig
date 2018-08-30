@@ -6,9 +6,10 @@
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use Zend\Diactoros\Response\JsonResponse;
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Method;
+    use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -19,7 +20,7 @@
         public function spec(): Spec {
             $oSpec = new Spec();
             $oSpec->HttpMethod              = Method\{{ spec.http_method }};
-            $oSpec->Path                    = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
+            $oSpec->Path                    = '{{ spec.path_prefix}}/{{ table.name }}';
             $oSpec->Summary                 = 'List `{{ table.name }}`';
             $oSpec->Description             = 'Get listing of `{{ table.name }}`';
             $oSpec->Scopes                  = {{ spec.scopes|raw }};
@@ -30,11 +31,11 @@
 {% set unreferenced_fields = unreferenced_fields|merge([field]) %}
 {% endif %}
 {% endfor %}
-            $oSpec->QueryParams['page']     = new Param\_Integer('page',   ['default' => 1],   "Current Page of `{{ table.name }}`");
-            $oSpec->QueryParams['per']      = new Param\_Integer('per',    ['default' => 100], "Number of `{{ table.name }}` per page of Data");
-            $oSpec->QueryParams['search']   = new Param\_String( 'search', [],                 "Search term.  Can be a plain string or in the format field:value");
-            $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   ['enum'    => [{% for field in unreferenced_fields %}'{{field.short}}'{% if not loop.last %}, {% endif %}{% endfor %}]],
-                                                                                            "`{{ table.name }}` field to sort by");
+            $oSpec->QueryParams['page']     = new Param\_Integer('page',   0, ['default' => 1],   "Current Page of `{{ table.name }}`");
+            $oSpec->QueryParams['per']      = new Param\_Integer('per',    0, ['default' => 100], "Number of `{{ table.name }}` per page of Data");
+            $oSpec->QueryParams['search']   = new Param\_String( 'search', 0, [],                 "Search term.  Can be a plain string or in the format field:value");
+            $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   0, ['enum'    => [{% for field in unreferenced_fields %}'{{field.short}}'{% if not loop.last %}, {% endif %}{% endfor %}]],
+                                                                                                  "`{{ table.name }}` field to sort by");
             $oSpec->ResponseSchema          = [
                 'type' => 'object',
                 'properties' => [
@@ -54,18 +55,19 @@
         }
 
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oOutput = new Dot();
+            /** @var Dot $oBuilder */
+            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class);
 
             /** @var {{ table.class }}[] $a{{ table.plural }} */
             $a{{ table.plural }} = {{ table.class_plural }}::get();
             foreach($a{{ table.plural }} as $o{{ table.title }}) {
 {% if primary|length > 1 %}
-                $oOutput->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", $o{{ table.title }});
+                $oBuilder->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
 {% else %}
-                $oOutput->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", $o{{ table.title }});
+                $oBuilder->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
 {% endif %}
             }
 
-            return new JsonResponse($oOutput->all());
+            return $oHandler->handle($oRequest->withAttribute(ResponseBuilder::class, $oBuilder));
         }
     }

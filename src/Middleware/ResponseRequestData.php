@@ -1,11 +1,11 @@
 <?php
     namespace Enobrev\API\Middleware;
 
+    use Adbar\Dot;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use Zend\Diactoros\Response\JsonResponse;
 
     class ResponseRequestData implements MiddlewareInterface {
         /**
@@ -13,26 +13,21 @@
          * response creation to a handler.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oResponse = $oHandler->handle($oRequest);
-
-            switch (true) {
-                case $oResponse instanceof JsonResponse:
-                    $oPayload = $oResponse->getPayload();
-
-                    $oPayload->_request = (object) [
-                        'method'     => $oRequest->getMethod(),
-                        'path'       => $oRequest->getUri()->getPath(),
-                        'attributes' => $oRequest->getAttributes(),
-                        'query'      => $oRequest->getQueryParams(),
-                        'headers'    => $oRequest->getHeaders()
-                    ];
-
-                    return $oResponse->withPayload($oPayload);
-                    break;
-
-                default:
-                    return $oResponse;
-                    break;
+            /** @var Dot $oBuilder */
+            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class);
+            if ($oBuilder) {
+                $oBuilder->set('_request', [
+                    'method'     => $oRequest->getMethod(),
+                    'path'       => $oRequest->getUri()->getPath(),
+                    'params'     => [
+                        'path'  => $oRequest->getAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS),
+                        'query' => $oRequest->getQueryParams()
+                    ],
+                    'headers'    => json_encode($oRequest->getHeaders())
+                ]);
+                $oRequest = $oRequest->withAttribute(ResponseBuilder::class, $oBuilder);
             }
+
+            return $oHandler->handle($oRequest);
         }
     }

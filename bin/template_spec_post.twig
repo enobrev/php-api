@@ -7,6 +7,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\Method;
+    use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -46,7 +47,8 @@
         }
 
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            $aPathParams = $oRequest->getAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS);
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 $o{{ table.title }} = new {{ table.class }};
 {% for field in primary %}

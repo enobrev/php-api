@@ -41,6 +41,7 @@
         private $aPaths;
 
         public function __construct() {
+            $this->aSpecs           = [];
             $this->aPaths           = [];
             $this->aResponses       = [];
             $this->aSchemas         = [];
@@ -101,6 +102,8 @@
             }
 
             $this->aPaths[$oSpec->Path][$oSpec->HttpMethod] = $oSpec;
+
+            // TODO: Generate Components from Spec as well
         }
 
         public function getPath(string $sPath, string $sHttpMethod): ?Spec {
@@ -153,12 +156,7 @@
         }
 
         public function getRoutes() {
-            $aRoutes = [];
-            foreach($this->aPaths as $sPath => $aHttpMethods) {
-                $aRoutes[$sPath] = array_keys($aHttpMethods);
-            }
-
-            return $aRoutes;
+            return $this->aSpecs;
         }
 
         /**
@@ -166,9 +164,10 @@
          * @throws ReflectionException
          */
         protected function generateData() {
-            $this->tablesFromFile();
-            $this->specsFromSQLFile();
-            $this->specsFromClasses();
+            //$this->tablesFromFile();
+            //$this->specsFromSQLFile();
+            //$this->specsFromClasses();
+            $this->specsFromSpecInterfaces();
         }
 
         /**
@@ -361,6 +360,52 @@
                                     /** @var Base $oClass */
                                     $oClass = new $sFullClass(new Request(new ServerRequest));
                                     $oClass->spec($this);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        /**
+         * @throws ReflectionException
+         */
+        private function specsFromSpecInterfaces() {
+            foreach (self::$aVersions as $sVersion) {
+                // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
+                // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
+
+                $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
+                if (file_exists($sVersionPath)) {
+                    /** @var \SplFileInfo[] $aFiles */
+                    $aFiles  = new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator(
+                            $sVersionPath,
+                            FilesystemIterator::SKIP_DOTS
+                        )
+                    );
+
+                    foreach($aFiles as $oFile) {
+                        $sContents = file_get_contents($oFile->getPathname());
+                        if (preg_match('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
+                            $sClass = $aMatchesClass[1];
+
+                            if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
+                                $sNamespace = $aMatchesNamespace[1];
+                                $sFullClass = implode('\\', [$sNamespace, $sClass]);
+
+                                $oReflectionClass = new ReflectionClass($sFullClass);
+
+                                if ($oReflectionClass->implementsInterface(SpecInterface::class)) {
+                                    /** @var SpecInterface $oClass */
+                                    $oClass = new $sFullClass(new Request(new ServerRequest));
+                                    $oSpec  = $oClass->spec();
+
+                                    if (!isset($this->aSpecs[$oSpec->Path])) {
+                                        $this->aSpecs[$oSpec->Path] = [];
+                                    }
+
+                                    $this->aSpecs[$oSpec->Path][$oSpec->HttpMethod] = $sFullClass;
                                 }
                             }
                         }

@@ -8,7 +8,10 @@
     use Psr\Http\Server\RequestHandlerInterface;
     use Zend\Diactoros\Response\JsonResponse;
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\Method;
+    use Enobrev\API\Middleware\FastRoute;
+    use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -55,19 +58,22 @@
         }
 
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oOutput = new Dot();
+            /** @var Dot $oBuilder */
+            $oBuilder    = $oRequest->getAttribute(ResponseBuilder::class);
+            $aPathParams = $oRequest->getAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS);
+
 {% if primary|length > 1 %}
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }}) {
-                $oOutput->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", $o{{ table.title }});
+                $oBuilder->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
             }
 {% else %}
-            $a{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$oRequest->getAttribute('{{ field.short }}'){% if not loop.last %}, {% endif %}{% endfor %});
+            $a{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             foreach($a{{ table.plural }} as $o{{ table.title }}) {
-                $oOutput->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", $o{{ table.title }});
+                $oBuilder->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
             }
 {% endif %}
 
-            return new JsonResponse($oOutput->all());
+            return $oHandler->handle($oRequest->withAttribute(ResponseBuilder::class, $oBuilder));
         }
     }

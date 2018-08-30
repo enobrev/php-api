@@ -276,16 +276,7 @@
         private function validatePathParameters(Request $oRequest, Response $oResponse) {
             $aParameters = $oRequest->pathParams();
 
-            // Coerce CSV Params
-            foreach($this->PathParams as $oParam) {
-                if ($oParam->is(Param::ARRAY)) {
-                    if (isset($aParameters[$oParam->sName])) {
-                        $aParameters[$oParam->sName] = explode(',', $aParameters[$oParam->sName]);
-                    }
-                }
-            }
-
-            $this->validateParameters($aParameters, $oResponse);
+            $this->validateParameters($this->PathParams, $aParameters, $oResponse);
         }
 
         /**
@@ -296,16 +287,7 @@
         private function validateQueryParameters(Request $oRequest, Response $oResponse) {
             $aParameters = $oRequest->queryParams();
 
-            // Coerce CSV Params
-            foreach($this->QueryParams as $oParam) {
-                if ($oParam->is(Param::ARRAY)) {
-                    if (isset($aParameters[$oParam->sName])) {
-                        $aParameters[$oParam->sName] = explode(',', $aParameters[$oParam->sName]);
-                    }
-                }
-            }
-
-            $this->validateParameters($aParameters, $oResponse);
+            $this->validateParameters($this->QueryParams, $aParameters, $oResponse);
         }
 
         /**
@@ -313,12 +295,21 @@
          * @param Response $oResponse
          * @throws InvalidRequest
          */
-        private function validateParameters(array $aParameters,  Response $oResponse) {
+        private function validateParameters(array $aSpecParameters, array $aParameters, Response $oResponse) {
+            // Coerce CSV Params
+            foreach($aSpecParameters as $oParam) {
+                if ($oParam->is(Param::ARRAY)) {
+                    if (isset($aParameters[$oParam->sName])) {
+                        $aParameters[$oParam->sName] = explode(',', $aParameters[$oParam->sName]);
+                    }
+                }
+            }
+
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                self::paramsToJsonSchema($this->PathParams)->all(),
+                self::paramsToJsonSchema($aSpecParameters)->all(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
@@ -362,7 +353,7 @@
         public static function paramsToJsonSchema(array $aParams): Dot {
             $oSchema = new Dot([
                 "type" => "object",
-                "additionalProperties" => false
+                "additionalProperties" => true
             ]);
 
             /** @var Param $oParam */
@@ -504,12 +495,12 @@
         public function toArray() {
             $aPathParams = [];
             foreach($this->PathParams as $sParam => $oParam) {
-                $PathParams[$sParam] = $oParam->JsonSchema();
+                $aPathParams[$sParam] = $oParam->JsonSchema();
             }
             
             $aQueryParams = [];
             foreach($this->QueryParams as $sParam => $oParam) {
-                $QueryParams[$sParam] = $oParam->JsonSchema();
+                $aQueryParams[$sParam] = $oParam->JsonSchema();
             }
             
             return [

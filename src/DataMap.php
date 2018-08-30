@@ -2,6 +2,10 @@
     namespace Enobrev\API;
 
     use ArrayIterator;
+    use DateTime;
+
+    use Money\Money;
+
     use Enobrev\API\Exception;
     use Enobrev\ORM;
 
@@ -133,6 +137,46 @@
                     $aResponseMap[$sPublicField] = $oDatum->$sTableField;
                 }
             }
+            return $aResponseMap;
+        }
+
+        /**
+         * @param ORM\Table $oTable
+         * @return array
+         */
+        public static function convertTableToResponseArray(ORM\Table $oTable): array {
+            $aMap         = self::getMap($oTable->getTitle());
+            $aResponseMap = [];
+            foreach($aMap as $sPublicField => $sTableField) {
+                if ($oTable->$sTableField instanceof ORM\Field === false) {
+                    continue;
+                }
+
+                $mValue = $oTable->$sTableField->getValue();
+
+                switch(true) {
+                    case $oTable->$sTableField instanceof ORM\Field\JSONText:
+                        $mValue = json_decode($oTable->$sTableField->getValue());
+                        break;
+
+                    case $oTable->$sTableField instanceof ORM\Field\Date:
+                        $mValue = (string) $oTable->$sTableField;
+                        break;
+                }
+
+                switch(true) {
+                    case $mValue instanceof \DateTime:
+                        $mValue = $mValue->format(\DateTime::RFC3339);
+                        break;
+
+                    case $mValue instanceof Money:
+                        $mValue = $mValue->getAmount();
+                        break;
+                }
+
+                $aResponseMap[$sPublicField] = $mValue;
+            }
+
             return $aResponseMap;
         }
 

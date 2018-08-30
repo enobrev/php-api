@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Middleware;
 
+    use Adbar\Dot;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -15,27 +16,16 @@
          * response creation to a handler.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oResponse = $oHandler->handle($oRequest);
-
-            switch (true) {
-                case $oResponse instanceof JsonResponse:
-                    $oPayload = $oResponse->getPayload();
-
-                    if (!property_exists($oPayload, '_request')) {
-                        $oPayload->_request = (object) [];
-                    }
-
-                    $oPayload->_request->logs = (object) [
-                        'thread'  => Log::getThreadHashForOutput(),
-                        'request' => Log::getRequestHashForOutput()
-                    ];
-
-                    return $oResponse->withPayload($oPayload);
-                    break;
-
-                default:
-                    return $oResponse;
-                    break;
+            /** @var Dot $oBuilder */
+            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class);
+            if ($oBuilder) {
+                $oBuilder->set('_request.logs', [
+                    'thread'  => Log::getThreadHashForOutput(),
+                    'request' => Log::getRequestHashForOutput()
+                ]);
+                $oRequest = $oRequest->withAttribute(ResponseBuilder::class, $oBuilder);
             }
+
+            return $oHandler->handle($oRequest);
         }
     }

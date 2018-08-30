@@ -10,11 +10,11 @@
         const ARRAY      = 16;
         const OBJECT     = 32;
 
-        const REQUIRED   = 64;
-        const DEPRECATED = 128;
-        const REFERENCE  = 256;
+        const REQUIRED   = 128;
+        const DEPRECATED = 256;
+        const REFERENCE  = 512;
 
-        const ANYOF      = 512;
+        const ANYOF      = 1024;
 
 
         /** @var string */
@@ -29,7 +29,7 @@
         /** @var int */
         public $iOptions;
 
-        public function __construct(string $sName, $iOptions, ?array $aValidation = null, ?string $sDescription = null) {
+        public function __construct(string $sName, int $iOptions = 0, ?array $aValidation = null, ?string $sDescription = null) {
             $this->sName        = $sName;
             $this->iOptions     = $iOptions;
             $this->aValidation  = $aValidation;
