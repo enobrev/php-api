@@ -1,6 +1,7 @@
 <?php
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
+    use Adbar\Dot;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -8,6 +9,7 @@
 
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\FastRoute;
+    use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -17,18 +19,19 @@
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
         public function spec(): Spec {
             $oSpec = new Spec();
-            $oSpec->HttpMethod        = Method\{{ spec.http_method }};
-            $oSpec->Path              = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
-            $oSpec->Summary           = 'Create or Update `{{ table.name }}`';
-            $oSpec->Description       = 'Create or Update `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %}';
-            $oSpec->Scopes            = {{ spec.scopes|raw }};
-            $oSpec->QueryParams       = Spec::tableToParams(new {{ table.class }}, Spec::SKIP_PRIMARY);
+            $oSpec->HttpMethod      = Method\{{ spec.http_method }};
+            $oSpec->Path            = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
+            $oSpec->Summary         = 'Create or Update `{{ table.name }}`';
+            $oSpec->Description     = 'Create or Update `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %}';
+            $oSpec->Scopes          = {{ spec.scopes|raw }};
+            $oSpec->QueryParams     = Spec::tableToParams(new {{ table.class }}, Spec::SKIP_PRIMARY);
+            $oSpec->Tags            = ['{{ table.name }}'];
 
 {% for field in primary %}
             $oSpec->PathParams['{{ field.short }}'] = new Param\{{ field.param_class }}('{{ field.short }}', Param::REQUIRED);
 {% endfor %}
 
-            $oSpec->ResponseSchema    = [
+            $oSpec->ResponseSchema = [
                 'type' => 'object',
                 'properties' => [
                     '{{ table.name }}' => [
@@ -36,7 +39,7 @@
                         'properties' => [
                             '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
                                 'type' => 'object',
-                                'properties' => Spec::tableToParams(new {{ table.class }})
+                                'properties' => Spec::paramsToJsonSchema(Spec::tableToParams(new {{ table.class }}))
                             ]
                         ]
                     ]
@@ -44,6 +47,29 @@
             ];
 
             return $oSpec;
+        }
+
+        /**
+         * @param array|null $aPathParams   Params from Request Path
+         * @param array|null $aQueryParams  Params from Request Query
+         * @param Dot $oResponse            Response Object
+         * @return Dot
+         */
+        protected function getResponse(?array $aPathParams, ?array $aQueryParams, Dot $oResponse): Dot {
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+            if ($o{{ table.title }} instanceof {{ table.class }} === false) {
+                $o{{ table.title }} = new {{ table.class }};
+{% for field in primary %}
+                $o{{ table.title }}->{{ field.name }}->setValue($aPathParams['{{ field.short }}']);
+{% endfor %}
+                $o{{ table.title }}->setFromArray($aQueryParams);
+                $o{{ table.title }}->insert();
+            } else {
+                $o{{ table.title }}->setFromArray($aQueryParams);
+                $o{{ table.title }}->update();
+            }
+
+            return $oResponse;
         }
 
         /**
@@ -58,19 +84,13 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $aPathParams = FastRoute::getPathParams($oRequest);
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
-            if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                $o{{ table.title }} = new {{ table.class }};
-{% for field in primary %}
-                $o{{ table.title }}->{{ field.name }}->setValue($oRequest->getAttribute('{{ field.short }}'));
-{% endfor %}
-                $o{{ table.title }}->setFromArray($oRequest->getQueryParams());
-                $o{{ table.title }}->insert();
-            } else {
-                $o{{ table.title }}->setFromArray($oRequest->getQueryParams());
-                $o{{ table.title }}->update();
-            }
+            $oRequest = ResponseBuilder::update($oRequest,
+                $this->getResponse(
+                    FastRoute::getPathParams($oRequest),
+                    $oRequest->getQueryParams(),
+                    ResponseBuilder::get($oRequest)
+                )
+            );
 
             return (new get())->process($oRequest, $oHandler);
         }

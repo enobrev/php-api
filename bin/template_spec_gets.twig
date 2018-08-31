@@ -9,6 +9,7 @@
 
     use Enobrev\API\DataMap;
     use Enobrev\API\Method;
+    use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
@@ -19,11 +20,12 @@
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
         public function spec(): Spec {
             $oSpec = new Spec();
-            $oSpec->HttpMethod              = Method\{{ spec.http_method }};
-            $oSpec->Path                    = '{{ spec.path_prefix}}/{{ table.name }}';
-            $oSpec->Summary                 = 'List `{{ table.name }}`';
-            $oSpec->Description             = 'Get listing of `{{ table.name }}`';
-            $oSpec->Scopes                  = {{ spec.scopes|raw }};
+            $oSpec->HttpMethod      = Method\{{ spec.http_method }};
+            $oSpec->Path            = '{{ spec.path_prefix}}/{{ table.name }}';
+            $oSpec->Summary         = 'List `{{ table.name }}`';
+            $oSpec->Description     = 'Get listing of `{{ table.name }}`';
+            $oSpec->Scopes          = {{ spec.scopes|raw }};
+            $oSpec->Tags            = ['{{ table.name }}'];
 
 {% set unreferenced_fields = [] %}
 {% for field in fields %}
@@ -39,7 +41,7 @@
             $oSpec->QueryParams['sync']     = new Param\_String( 'sync',   0, ['default' => null], "Get only `{{ table.name }}` with an updated date since the date in `sync`");
 {% endif %}
 
-            $oSpec->ResponseSchema          = [
+            $oSpec->ResponseSchema = [
                 'type' => 'object',
                 'properties' => [
                     '{{ table.name }}' => [
@@ -47,7 +49,7 @@
                         'properties' => [
                             '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
                                 'type' => 'object',
-                                'properties' => Spec::tableToParams(new {{ table.class }})
+                                'properties' => Spec::paramsToJsonSchema(Spec::tableToParams(new {{ table.class }}))
                             ]
                         ]
                     ]
@@ -55,6 +57,35 @@
             ];
 
             return $oSpec;
+        }
+
+        /**
+         * @param array|null $aPathParams   Params from Request Path
+         * @param array|null $aQueryParams  Params from Request Query
+         * @param Dot $oResponse            Response Object
+         * @return Dot
+         */
+        protected function getResponse(?array $aPathParams, ?array $aQueryParams, Dot $oResponse): Dot {
+            /** @var {{ table.class }}[] $a{{ table.plural }} */
+            $oBaseTable = new {{ table.class }};
+            $a{{ table.plural }} = {{ table.class_plural }}::getForCMS(
+                $aQueryParams['page'],
+                $aQueryParams['per'],
+                DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']),
+                DataMap::convertSortTablesToORMTables($oBaseTable, $aQueryParams['sort']){% if has_date %},
+                $aQueryParams['sync']
+{% endif %}
+            );
+
+            foreach($a{{ table.plural }} as $o{{ table.title }}) {
+{% if primary|length > 1 %}
+                $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+{% else %}
+                $oResponse->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+{% endif %}
+            }
+
+            return $oResponse;
         }
 
         /**
@@ -69,28 +100,14 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $aQueryParams = $oRequest->getQueryParams();
-            $oBuilder     = ResponseBuilder::get($oRequest);
-
-            /** @var {{ table.class }}[] $a{{ table.plural }} */
-            $oBaseTable = new {{ table.class }};
-            $a{{ table.plural }} = {{ table.class_plural }}::getForCMS(
-                $aQueryParams['page'],
-                $aQueryParams['per'],
-                DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']),
-                DataMap::convertSortTablesToORMTables($oBaseTable, $aQueryParams['sort']){% if has_date %},
-                $aQueryParams['sync']
-{% endif %}
+            return $oHandler->handle(
+                ResponseBuilder::update($oRequest,
+                    $this->getResponse(
+                        FastRoute::getPathParams($oRequest),
+                        $oRequest->getQueryParams(),
+                        ResponseBuilder::get($oRequest)
+                    )
+                )
             );
-
-            foreach($a{{ table.plural }} as $o{{ table.title }}) {
-{% if primary|length > 1 %}
-                $oBuilder->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
-{% else %}
-                $oBuilder->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
-{% endif %}
-            }
-
-            return $oHandler->handle(ResponseBuilder::update($oRequest, $oBuilder));
         }
     }

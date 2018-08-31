@@ -2,11 +2,12 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
+    use JsonSchema\Constraints\Constraint;
+    use JsonSchema\Validator;
+    
     use Enobrev\API\Exception\InvalidRequest;
     use Enobrev\ORM\Table;
     use Enobrev\ORM\Field;
-    use JsonSchema\Constraints\Constraint;
-    use JsonSchema\Validator;
 
     class Spec {
         const SKIP_PRIMARY = 1;

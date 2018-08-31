@@ -198,17 +198,20 @@
              * @var Spec $oSpec
              */
 
-            foreach($this->aPaths as $sPath => $aMethods) {
-                foreach($aMethods as $sHttpMethod => $oSpec) {
+            foreach($this->aSpecs as $sPath => $aMethods) {
+                foreach($aMethods as $sHttpMethod => $sSpecInterface) {
+                    /** @var SpecInterface $oSpecInterface */
+                    $oSpecInterface = new $sSpecInterface;
+                    $oSpec          = $oSpecInterface->spec();
+
                     if (count($aScopes)) {
-                        if (count($oSpec->Scopes) && count(array_intersect($aScopes, $oSpec->Scopes))) {
-                            $sMethod = strtolower($oSpec->HttpMethod);
-                            $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
+                        if (count($oSpec->Scopes) && count(array_intersect($aScopes, $oSpec->Scopes)) == 0) {
+                            continue;
                         }
-                    } else {
-                        $sMethod = strtolower($oSpec->HttpMethod);
-                        $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
                     }
+
+                    $sMethod = strtolower($oSpec->HttpMethod);
+                    $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
                 }
             }
 
