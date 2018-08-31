@@ -35,6 +35,10 @@
             $oSpec->QueryParams['per']      = new Param\_Integer('per',    0, ['default' => 100],  "Number of `{{ table.name }}` per page of Data");
             $oSpec->QueryParams['search']   = new Param\_String( 'search', 0, ['default' => null], "Search term.  Can be a plain string or in the format field:value");
             $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   0, ['default' => null], "`{{ table.name }}` field to sort by");
+{% if has_date %}
+            $oSpec->QueryParams['sync']     = new Param\_String( 'sync',   0, ['default' => null], "Get only `{{ table.name }}` with an updated date since the date in `sync`");
+{% endif %}
+
             $oSpec->ResponseSchema          = [
                 'type' => 'object',
                 'properties' => [
@@ -74,8 +78,11 @@
                 $aQueryParams['page'],
                 $aQueryParams['per'],
                 DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']),
-                DataMap::convertSortTablesToORMTables($oBaseTable, $aQueryParams['sort'])
+                DataMap::convertSortTablesToORMTables($oBaseTable, $aQueryParams['sort']){% if has_date %},
+                $aQueryParams['sync']
+{% endif %}
             );
+
             foreach($a{{ table.plural }} as $o{{ table.title }}) {
 {% if primary|length > 1 %}
                 $oBuilder->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
