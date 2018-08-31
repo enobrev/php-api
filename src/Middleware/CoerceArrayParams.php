@@ -2,6 +2,7 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
+    use Enobrev\API\FullSpec;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -22,22 +23,13 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $sClass = $oRequest->getAttribute(FastRoute::ATTRIBUTE_REQUEST_HANDLER);
+            $oSpec = RequestAttributeSpec::getSpec($oRequest);
 
-            if (empty($sClass)) {
+            if ($oSpec instanceof Spec === false) {
                 return $oHandler->handle($oRequest);
             }
 
-            /** @var SpecInterface $oClass */
-            $oClass = new $sClass;
-
-            if ($oClass instanceof SpecInterface === false) {
-                return $oHandler->handle($oRequest);
-            }
-
-            $oSpec = $oClass->spec();
-
-            $aPathParams = $oRequest->getAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS);
+            $aPathParams = FastRoute::getPathParams($oRequest);
             if ($aPathParams) {
                 foreach ($oSpec->PathParams as $oParam) {
                     if ($oParam->is(Param::ARRAY) && isset($aPathParams[$oParam->sName])) {
@@ -45,7 +37,7 @@
                     }
                 }
                 
-                $oRequest = $oRequest->withAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS, $aPathParams);
+                $oRequest = FastRoute::updatePathParams($oRequest, $aPathParams);
             }
 
             $aQueryParams = $oRequest->getQueryParams();

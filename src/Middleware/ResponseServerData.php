@@ -19,7 +19,7 @@
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             /** @var Dot $oBuilder */
-            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class);
+            $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
                 $oNow = new DateTime;
                 $oBuilder->set('_server', [
@@ -28,7 +28,7 @@
                     'date'          => $oNow->format(self::SYNC_DATE_FORMAT),
                     'date_w3c'      => $oNow->format(DateTime::W3C)
                 ]);
-                $oRequest = $oRequest->withAttribute(ResponseBuilder::class, $oBuilder);
+                ResponseBuilder::update($oRequest, $oBuilder);
             }
 
             return $oHandler->handle($oRequest);

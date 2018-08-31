@@ -210,4 +210,64 @@
 
             return null;
         }
+
+        /**
+         * @param ORM\Table $oBaseTable
+         * @param null|string $sSearch
+         * @return array|null
+         * @throws \Enobrev\API\Exception
+         */
+        public static function convertSearchTablesToORMTables(ORM\Table $oBaseTable, ?string $sSearch): ?array {
+            if (!$sSearch) {
+                return null;
+            }
+
+            $aSearch = ORM\Tables::searchTermPreProcess($sSearch);
+
+            if (count($aSearch)) {
+                foreach ($aSearch['conditions'] as &$aCondition) {
+                    if (isset($aCondition['field'])) {
+                        $oSearchField = self::getField($oBaseTable, $aCondition['field']);
+                        if ($oSearchField instanceof ORM\Field) {
+                            $aCondition['field'] = $oSearchField->sColumn;
+                        } else {
+                            throw new Exception('Invalid Field For Search ' . $aCondition['field']);
+                        }
+                    }
+                }
+            }
+
+            return $aSearch;
+        }
+
+        /**
+         * @param ORM\Table $oBaseTable
+         * @param null|string $sSort
+         * @return array|null
+         * @throws \Enobrev\API\Exception
+         */
+        public static function convertSortTablesToORMTables(ORM\Table $oBaseTable, ?string $sSort): ?array {
+            if (!$sSort) {
+                return null;
+            }
+
+            $aSort = ORM\Tables::sortTermPreProcess($sSort);
+
+            if (count($aSort)) {
+                foreach ($aSort as &$aPair) {
+                    if (isset($aPair['table'])) {
+                        $aPair['table'] = self::getClassName($aPair['table']);
+                    } else {
+                        $oSortField = self::getField($oBaseTable, $aPair['field']);
+                        if ($oSortField instanceof ORM\Field) {
+                            $aPair['field'] = $oSortField->sColumn;
+                        } else {
+                            throw new Exception('Invalid Field For Sort ' . $aPair['field']);
+                        }
+                    }
+                }
+            }
+
+            return $aSort;
+        }
     }

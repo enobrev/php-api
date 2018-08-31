@@ -31,15 +31,14 @@
 {% set unreferenced_fields = unreferenced_fields|merge([field]) %}
 {% endif %}
 {% endfor %}
-            $oSpec->QueryParams['page']     = new Param\_Integer('page',   0, ['default' => 1],   "Current Page of `{{ table.name }}`");
-            $oSpec->QueryParams['per']      = new Param\_Integer('per',    0, ['default' => 100], "Number of `{{ table.name }}` per page of Data");
-            $oSpec->QueryParams['search']   = new Param\_String( 'search', 0, [],                 "Search term.  Can be a plain string or in the format field:value");
-            $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   0, ['enum'    => [{% for field in unreferenced_fields %}'{{field.short}}'{% if not loop.last %}, {% endif %}{% endfor %}]],
-                                                                                                  "`{{ table.name }}` field to sort by");
+            $oSpec->QueryParams['page']     = new Param\_Integer('page',   0, ['default' => 1],    "Current Page of `{{ table.name }}`");
+            $oSpec->QueryParams['per']      = new Param\_Integer('per',    0, ['default' => 100],  "Number of `{{ table.name }}` per page of Data");
+            $oSpec->QueryParams['search']   = new Param\_String( 'search', 0, ['default' => null], "Search term.  Can be a plain string or in the format field:value");
+            $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   0, ['default' => null], "`{{ table.name }}` field to sort by");
             $oSpec->ResponseSchema          = [
                 'type' => 'object',
                 'properties' => [
-                    'places' => [
+                    '{{ table.name }}' => [
                         'type' => 'object',
                         'properties' => [
                             '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
@@ -54,12 +53,29 @@
             return $oSpec;
         }
 
+        /**
+         * Middleware
+         * Use the ServerRequestInterface to figure out what is needed
+         * Either return a ResponseInterface (and stop processing other Middleware)
+         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
+         * The ResponseBuilder data should match the Schema defined in spec();
+
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
+         */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            /** @var Dot $oBuilder */
-            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class);
+            $aQueryParams = $oRequest->getQueryParams();
+            $oBuilder     = ResponseBuilder::get($oRequest);
 
             /** @var {{ table.class }}[] $a{{ table.plural }} */
-            $a{{ table.plural }} = {{ table.class_plural }}::get();
+            $oBaseTable = new {{ table.class }};
+            $a{{ table.plural }} = {{ table.class_plural }}::getForCMS(
+                $aQueryParams['page'],
+                $aQueryParams['per'],
+                DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']),
+                DataMap::convertSortTablesToORMTables($oBaseTable, $aQueryParams['sort'])
+            );
             foreach($a{{ table.plural }} as $o{{ table.title }}) {
 {% if primary|length > 1 %}
                 $oBuilder->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
@@ -68,6 +84,6 @@
 {% endif %}
             }
 
-            return $oHandler->handle($oRequest->withAttribute(ResponseBuilder::class, $oBuilder));
+            return $oHandler->handle(ResponseBuilder::update($oRequest, $oBuilder));
         }
     }

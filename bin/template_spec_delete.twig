@@ -31,8 +31,19 @@
             return $oSpec;
         }
 
+        /**
+         * Middleware
+         * Use the ServerRequestInterface to figure out what is needed
+         * Either return a ResponseInterface (and stop processing other Middleware)
+         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
+         * The ResponseBuilder data should match the Schema defined in spec();
+
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
+         */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $aPathParams = $oRequest->getAttribute(FastRoute::ATTRIBUTE_PATH_PARAMS);
+            $aPathParams = FastRoute::getPathParams($oRequest);
             $oResponse   = $oHandler->handle($oRequest);
 
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});

@@ -22,8 +22,6 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            /** @var Dot $oBuilder */
-            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class, new Dot());
-            return new JsonResponse($oBuilder->all(), HTTP\OK);
+            return new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
         }
     }

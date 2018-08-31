@@ -17,13 +17,13 @@
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             /** @var Dot $oBuilder */
-            $oBuilder = $oRequest->getAttribute(ResponseBuilder::class);
+            $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
                 $oBuilder->set('_request.logs', [
                     'thread'  => Log::getThreadHashForOutput(),
                     'request' => Log::getRequestHashForOutput()
                 ]);
-                $oRequest = $oRequest->withAttribute(ResponseBuilder::class, $oBuilder);
+                ResponseBuilder::update($oRequest, $oBuilder);
             }
 
             return $oHandler->handle($oRequest);

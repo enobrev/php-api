@@ -17,12 +17,13 @@
          * Process a server request and return a response.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $sClass = $oRequest->getAttribute(FastRoute::ATTRIBUTE_REQUEST_HANDLER);
+            $sClass = FastRoute::getRouteClassName($oRequest);
 
-            if (empty($sClass)) {
+            if (!$sClass) {
                 throw new RuntimeException('Empty request handler');
             }
 
+            /** @var MiddlewareInterface|RequestHandlerInterface $oClass */
             $oClass = new $sClass;
 
             if ($oClass instanceof MiddlewareInterface) {
