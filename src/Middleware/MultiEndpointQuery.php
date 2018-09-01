@@ -11,6 +11,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
     use Zend\Diactoros\Response\JsonResponse;
     use Zend\Diactoros\ServerRequestFactory;
+    use Zend\Diactoros\Stream;
     use Zend\Diactoros\Uri;
 
     use Enobrev\API\Exception;
@@ -67,7 +68,9 @@
                 $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\GET)
                                                                    ->withUri($oUri)
                                                                    ->withQueryParams($aQueryParams)
+                                                                   ->withBody(new Stream('php://memory'))
                                                                    ->withParsedBody(null);
+
 
                 Log::startChildRequest();
                 $oSubResponse = $this->oHandler->handle($oSubRequest);

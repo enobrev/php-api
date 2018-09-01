@@ -50,6 +50,9 @@
         /** @var Param[] */
         private $aPostParams = [];
 
+        /** @var FullSpecComponent */
+        private $oPostBodyReference;
+
         /** @var array */
         private $aResponseSchema;
 
@@ -207,6 +210,11 @@
             return $this;
         }
 
+        public function postBodyReference(FullSpecComponent $oReference):self {
+            $this->oPostBodyReference = $oReference;
+            return $this;
+        }
+
         public function postParams(array $aParams):self {
             $this->aPostParams = $aParams;
             return $this;
@@ -222,8 +230,8 @@
             return $this;
         }
 
-        public function response(int $iStatus, string $sDescription):self {
-            $this->aResponses[$iStatus] = $sDescription;
+        public function response(int $iStatus, $mResponse):self {
+            $this->aResponses[$iStatus] = $mResponse;
             return $this;
         }
 
@@ -252,21 +260,26 @@
             return $this;
         }
 
-        public static function tableToJsonSchema(Table $oTable, int $iOptions = 0) {
-            return self::paramsToJsonSchema(self::tableToParams($oTable, $iOptions));
+        public static function tableToJsonSchema(Table $oTable, int $iOptions = 0, array $aExclude = []) {
+            return self::paramsToJsonSchema(self::tableToParams($oTable, $iOptions, $aExclude));
         }
 
         /**
          * @param Table $oTable
          * @param int $iOptions
+         * @param array $aExclude
          * @return Param[]
          */
-        public static function tableToParams(Table $oTable, int $iOptions = 0) {
+        public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []) {
             $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
 
             foreach($aFields as $oField) {
                 if ($iOptions & self::SKIP_PRIMARY && $oField->isPrimary()) {
+                    continue;
+                }
+
+                if (in_array($oField->sColumn, $aExclude)) {
                     continue;
                 }
 
@@ -445,7 +458,7 @@
         public static function paramsToJsonSchema(array $aParams): Dot {
             $oSchema = new Dot([
                 "type" => "object",
-                "additionalProperties" => true
+                "additionalProperties" => false
             ]);
 
             /** @var Param $oParam */
@@ -496,6 +509,7 @@
             }
 
             $oPathJsonParams = self::paramsToJsonSchema($this->aPathParams);
+            $aParameters   = [];
 
             foreach($this->aPathParams as $oParam) {
                 if (strpos($oParam->sName, '.') !== false) {
@@ -513,7 +527,6 @@
             }
 
             $oQueryJsonParams = self::paramsToJsonSchema($this->aQueryParams);
-            $aParameters   = [];
 
             foreach($this->aQueryParams as $oParam) {
                 if (strpos($oParam->sName, '.') !== false) {
@@ -533,43 +546,49 @@
                 $aMethod['parameters'] = $aParameters;
             }
 
-            $oPostJsonParams = self::paramsToJsonSchema($this->aPostParams);
-            $aPost = [];
+            if ($this->oPostBodyReference) {
+                $aMethod['requestBody'] = $this->oPostBodyReference->getOpenAPI();
+            } else {
+                $oPostJsonParams = self::paramsToJsonSchema($this->aPostParams);
+                $aPost = [];
 
-            foreach($this->aPostParams as $oParam) {
-                if (strpos($oParam->sName, '.') !== false) {
-                    continue;
+                foreach ($this->aPostParams as $oParam) {
+                    if (strpos($oParam->sName, '.') !== false) {
+                        continue;
+                    }
+
+                    if ($oParam->is(Param::OBJECT)) {
+                        $aParam = $oParam->OpenAPI(null);
+                        $aParam['schema'] = $oPostJsonParams->get("properties.{$oParam->sName}");
+                        $aPost[$oParam->sName] = $aParam;
+                    } else {
+                        $aPost[$oParam->sName] = $oParam->JsonSchema();
+                    }
                 }
 
-                if ($oParam->is(Param::OBJECT)) {
-                    $aParam = $oParam->OpenAPI(null);
-                    $aParam['schema'] = $oPostJsonParams->get("properties.{$oParam->sName}");
-                    $aPost[] = $aParam;
-                } else {
-                    $aPost[] = $oParam->OpenAPI(null);
-                }
-            }
-            
-            if (count($aPost)) {
-                $aMethod['requestBody'] = [
-                    "content" => [
-                        'multipart/form-data' => [
-                            'schema' => [
-                                'type' => 'object',
-                                'properties' => $aPost
+                if (count($aPost)) {
+                    $aMethod['requestBody'] = [
+                        "content" => [
+                            'multipart/form-data' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => $aPost
+                                ]
                             ]
                         ]
-                    ]
-                ];
+                    ];
+                }
             }
 
             $aMethod['responses'] = [];
 
-            foreach($this->aResponses as $iStatus => $sDescription) {
-                if ($iStatus === HTTP\OK) {
+            foreach($this->aResponses as $iStatus => $mStatus) {
+                if ($mStatus instanceof FullSpecComponent) {
+                    $aMethod['responses'][$iStatus] = $mStatus->getOpenAPI();
+                } else if ($iStatus === HTTP\OK) {
                     if ($this->aResponseSchema) {
                         $aMethod['responses'][$iStatus] = [
-                            "description" => $sDescription,
+                            "description" => $mStatus,
                             "content" => [
                                 "application/json" => [
                                     "schema" => $this->aResponseSchema
@@ -580,7 +599,7 @@
                         $aMethod['responses'][$iStatus] = ['$ref' => $this->sResponseReference];
                     } else {
                         $aMethod['responses'][$iStatus] = [
-                            "description" => $sDescription,
+                            "description" => $mStatus,
                             "content" => [
                                 "application/json" => [
                                     "schema" => ['$ref' => "#/components/schemas/_default"]
@@ -590,16 +609,9 @@
                     }
                 } else {
                     $aMethod['responses'][$iStatus] = [
-                        "description" => $sDescription
+                        "description" => $mStatus
                     ];
                 }
-            }
-
-
-            if (count($aParameters)) {
-                $aMethod['responses'][HTTP\BAD_REQUEST] = [
-                    "description" => "Problem with Request.  See `_request.validation` for details"
-                ];
             }
 
             if (count($this->aCodeSamples)) {

@@ -13,6 +13,25 @@
     use Zend\Diactoros\ServerRequest;
 
     class FullSpec {
+        const SCHEMA_ANY                    = 'schemas/_any';
+        const SCHEMA_DEFAULT                = 'schemas/_default';
+
+        const _CREATED                      = 'Created';
+        const _BAD_REQUEST                  = 'BadRequest';
+        const _UNAUTHORIZED                 = 'Unauthorized';
+        const _FORBIDDEN                    = 'Forbidden';
+        const _UNPROCESSABLE_ENTITY         = 'UnprocessableEntiry';
+        const _SERVER_ERROR                 = 'ServerError';
+        const _MULTI_STATUS                 = 'MultiStatus';
+
+        const RESPONSE_CREATED              = 'responses/' . self::_CREATED;
+        const RESPONSE_BAD_REQUEST          = 'responses/' . self::_BAD_REQUEST;
+        const RESPONSE_UNAUTHORIZED         = 'responses/' . self::_UNAUTHORIZED;
+        const RESPONSE_FORBIDDEN            = 'responses/' . self::_FORBIDDEN;
+        const RESPONSE_UNPROCESSABLE_ENTITY = 'responses/' . self::_UNPROCESSABLE_ENTITY;
+        const RESPONSE_SERVER_ERROR         = 'responses/' . self::_SERVER_ERROR;
+        const RESPONSE_MULTI_STATUS         = 'responses/' . self::_MULTI_STATUS;
+
         /** @var string */
         private static $sPathToSpec;
 
@@ -41,6 +60,7 @@
         private $aPaths;
 
         public function __construct() {
+            $this->aComponents      = [];
             $this->aSpecs           = [];
             $this->aPaths           = [];
             $this->aResponses       = [];
@@ -167,14 +187,45 @@
                 'servers'   => [],
                 'paths'     => [],
                 'components' => [
-                    'schemas' => self::DEFAULT_RESPONSE_SCHEMAS
+                    'schemas' => self::DEFAULT_RESPONSE_SCHEMAS,
+                    'responses' => [
+                        self::_CREATED => FullSpecComponent::response(self::RESPONSE_CREATED,
+                                            'New record was created.  If a new key was generated for the record, See Location header',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_BAD_REQUEST => FullSpecComponent::response(self::RESPONSE_BAD_REQUEST,
+                                            'Request Validation Error.  See `_request.validation` in the response for more information',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_UNAUTHORIZED => FullSpecComponent::response(self::RESPONSE_UNAUTHORIZED,
+                                            'Access Token Invalid.  Client should Re-authenticate',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_FORBIDDEN => FullSpecComponent::response(self::RESPONSE_FORBIDDEN,
+                                            'Access Denied.  Authenticated Profile does not have access.',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_UNPROCESSABLE_ENTITY => FullSpecComponent::response(self::RESPONSE_UNPROCESSABLE_ENTITY,
+                                            'Request was Valid and Server handled properly, but something else went wrong.  See `_request.errors` in the response for more infomration.',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_SERVER_ERROR => FullSpecComponent::response(self::RESPONSE_SERVER_ERROR,
+                                            'Something went wrong on the server.  Contact an API developer for info.  `_server.errors` will have details, and `_request.logs` will have references for the developers to find what happened.',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_MULTI_STATUS => FullSpecComponent::response(self::RESPONSE_MULTI_STATUS,
+                                            'The overall multi-endpoint query was successful, but some endpoints were not.  See `_request.multiquery` in the response for more information',
+                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                    ]
                 ]
             ]);
+
+
 
             $oData->set('components.schemas._any', (object) []);
 
             $oData->mergeRecursiveDistinct("components.responses", $this->aResponses);
             $oData->mergeRecursiveDistinct("components.schemas", $this->aSchemas);
+
+            ksort($this->aComponents, SORT_NATURAL); // because why not
+            foreach($this->aComponents as $oComponent) {
+                $sName = str_replace('/', '.', $oComponent->getName());
+                $oData->set("components.$sName", $oComponent->getOpenAPI());
+            }
 
             /**
              * @var string $sPath
@@ -356,9 +407,6 @@
          */
         private function specsFromSpecInterfaces() {
             foreach (self::$aVersions as $sVersion) {
-                // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
-                // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
-
                 $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
                     /** @var \SplFileInfo[] $aFiles */
@@ -392,6 +440,13 @@
                                     }
 
                                     $this->aSpecs[$sPath][$sHttpMethod] = $sFullClass;
+                                } else if ($oReflectionClass->implementsInterface(FullSpecComponentInterface::class)) {
+                                    /** @var FullSpecComponentInterface $oClass */
+                                    $oClass      = new $sFullClass();
+                                    $aComponents = $oClass->components();
+                                    foreach($aComponents as $oComponent) {
+                                        $this->aComponents[$oComponent->getName()] = $oComponent;
+                                    }
                                 }
                             }
                         }

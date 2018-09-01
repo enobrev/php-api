@@ -61,17 +61,21 @@
         }
 
         public function JsonSchema(): array {
+            $aSchema = $this->aValidation;
+            if ($this->is(self::ARRAY) && $aSchema['items'] instanceof self) {
+                $aSchema['items'] = $aSchema['items']->JsonSchema(null);
+            }
+
             if ($this->is(self::REFERENCE)) {
-                return $this->aValidation;
+                return $aSchema;
             } else if ($this->is(self::ANYOF)) {
                 return [
                     'anyOf' => [
-                        $this->aValidation
+                        $aSchema
                     ]
                 ];
             }
 
-            $aSchema = $this->aValidation;
             $aSchema['type'] = $this->type();
             return $aSchema;
         }
@@ -82,6 +86,10 @@
          */
         public function OpenAPI(?string $sIn = 'query'): array {
             $aSchema = $this->aValidation;
+            if ($this->is(self::ARRAY) && $aSchema['items'] instanceof self) {
+                $aSchema['items'] = $aSchema['items']->OpenAPI(null);
+            }
+
             $aSchema['type'] = $this->type();
 
             $aOutput = [

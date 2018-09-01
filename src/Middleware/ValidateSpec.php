@@ -103,6 +103,7 @@
             $oSpec       = AttributeSpec::getSpec($oRequest);
             $aParameters = $oRequest->getParsedBody();
             $oParameters = (object) $aParameters;
+
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
