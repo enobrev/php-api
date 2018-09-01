@@ -69,7 +69,10 @@
                                                                    ->withQueryParams($aQueryParams)
                                                                    ->withParsedBody(null);
 
+                Log::startChildRequest();
                 $oSubResponse = $this->oHandler->handle($oSubRequest);
+                Log::endChildRequest();
+
                 if ($oSubResponse instanceof JsonResponse) {
                     $aPayload = $oSubResponse->getPayload();
                     foreach($aPayload as $sTable => $aData) {
