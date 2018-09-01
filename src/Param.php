@@ -77,18 +77,21 @@
         }
 
         /**
-         * @param string $sIn
+         * @param string|null $sIn
          * @return array
          */
-        public function OpenAPI($sIn = 'query'): array {
+        public function OpenAPI(?string $sIn = 'query'): array {
             $aSchema = $this->aValidation;
             $aSchema['type'] = $this->type();
 
             $aOutput = [
-                'in' => $sIn,
-                'name' => $this->sName,
+                'name'   => $this->sName,
                 'schema' => $this->JsonSchema()
             ];
+
+            if ($sIn) {
+                $aOutput['in'] = $sIn;
+            }
 
             if ($this->required()) {
                 $aOutput['required'] = true;

@@ -304,7 +304,7 @@
                 'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes())
             ]);
 
-            [$sClass, $sMethod] = explode('::', $oSpec->Method);
+            [$sClass, $sMethod] = explode('::', $oSpec->sMethod);
 
             /** @var Base $oClass */
             $oClass  = new $sClass($oRequest);

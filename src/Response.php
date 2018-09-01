@@ -451,7 +451,7 @@
             $bAccessControlHeaders = $this->setOrigin();
             $oOutput               = $this->getOutput();
 
-            $aHeaders = array_merge($this->Spec->ResponseHeaders, $this->aHeaders);
+            $aHeaders = array_merge($this->Spec->aResponseHeaders, $this->aHeaders);
 
             Log::i('API.Response.respond', [
                 '#ach'     => $bAccessControlHeaders,
@@ -525,7 +525,7 @@
          */
         public function toObject(): stdClass {
             $oOutput = new stdClass();
-            $oOutput->headers   = array_merge($this->Spec->ResponseHeaders, $this->aHeaders);
+            $oOutput->headers   = array_merge($this->Spec->aResponseHeaders, $this->aHeaders);
             $oOutput->status    = $this->iStatus;
             $oOutput->data      = $this->getOutput();
 
@@ -546,7 +546,7 @@
          * @param int $iStatus
          */
         public function redirect($sUri, $iStatus = HTTP\FOUND): void {
-            $aHeaders = array_merge($this->Spec->ResponseHeaders, $this->aHeaders);
+            $aHeaders = array_merge($this->Spec->aResponseHeaders, $this->aHeaders);
             (new ZendResponse\SapiEmitter())->emit(new ZendResponse\RedirectResponse($sUri, $iStatus, $aHeaders));
             exit(0);
         }

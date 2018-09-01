@@ -1,27 +1,32 @@
 <?php
-    namespace Enobrev\API\Middleware;
+    namespace Enobrev\API\Middleware\Response;
 
-    use Adbar\Dot;
+    use DateTime;
+
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use Zend\Diactoros\Response\JsonResponse;
 
-    use Enobrev\Log;
+    use Enobrev\API\Middleware\ResponseBuilder;
+    use function Enobrev\dbg;
 
-    class ResponseRequestLogData implements MiddlewareInterface {
+    class MetadataServer implements MiddlewareInterface {
+        const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
+
         /**
          * Process an incoming server request and return a response, optionally delegating
          * response creation to a handler.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            /** @var Dot $oBuilder */
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
-                $oBuilder->set('_request.logs', [
-                    'thread'  => Log::getThreadHashForOutput(),
-                    'request' => Log::getRequestHashForOutput()
+                $oNow = new DateTime;
+                $oBuilder->set('_server', [
+                    'timezone'      => $oNow->format('T'),
+                    'timezone_gmt'  => $oNow->format('P'),
+                    'date'          => $oNow->format(self::SYNC_DATE_FORMAT),
+                    'date_w3c'      => $oNow->format(DateTime::W3C)
                 ]);
                 ResponseBuilder::update($oRequest, $oBuilder);
             }

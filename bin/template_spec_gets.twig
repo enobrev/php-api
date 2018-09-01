@@ -19,53 +19,47 @@
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
         public function spec(): Spec {
-            $oSpec = new Spec();
-            $oSpec->HttpMethod      = Method\{{ spec.http_method }};
-            $oSpec->Path            = '{{ spec.path_prefix}}/{{ table.name }}';
-            $oSpec->Summary         = 'List `{{ table.name }}`';
-            $oSpec->Description     = 'Get listing of `{{ table.name }}`';
-            $oSpec->Scopes          = {{ spec.scopes|raw }};
-            $oSpec->Tags            = ['{{ table.name }}'];
+            return Spec::create()
+                ->httpMethod      (Method\{{ spec.http_method }})
+                ->path            ('{{ spec.path_prefix}}/{{ table.name }}')
+                ->summary         ('List `{{ table.name }}`')
+                ->description     ('Get listing of `{{ table.name }}`')
+                ->scopes          ({{ spec.scopes|raw }})
+                ->tag             ('{{ table.name }}')
+                ->queryParams     ([
+                    'page'     => new Param\_Integer('page',   0, ['default' => 1],    "Current Page of `{{ table.name }}`"),
+                    'per'      => new Param\_Integer('per',    0, ['default' => 100],  "Number of `{{ table.name }}` per page of Data"),
+                    'search'   => new Param\_String( 'search', 0, ['default' => null], "Search term.  Can be a plain string or in the format field:value"),
+                    'sort'     => new Param\_String( 'sort',   0, ['default' => null], "`{{ table.name }}` field to sort by"){% if has_date %},{% endif %}
 
-{% set unreferenced_fields = [] %}
-{% for field in fields %}
-{% if not field.reference and not field.primary %}
-{% set unreferenced_fields = unreferenced_fields|merge([field]) %}
-{% endif %}
-{% endfor %}
-            $oSpec->QueryParams['page']     = new Param\_Integer('page',   0, ['default' => 1],    "Current Page of `{{ table.name }}`");
-            $oSpec->QueryParams['per']      = new Param\_Integer('per',    0, ['default' => 100],  "Number of `{{ table.name }}` per page of Data");
-            $oSpec->QueryParams['search']   = new Param\_String( 'search', 0, ['default' => null], "Search term.  Can be a plain string or in the format field:value");
-            $oSpec->QueryParams['sort']     = new Param\_String( 'sort',   0, ['default' => null], "`{{ table.name }}` field to sort by");
 {% if has_date %}
-            $oSpec->QueryParams['sync']     = new Param\_String( 'sync',   0, ['default' => null], "Get only `{{ table.name }}` with an updated date since the date in `sync`");
+                    'sync'     => new Param\_String( 'sync',   0, ['default' => null], "Get only `{{ table.name }}` with an updated date since the date in `sync`")
 {% endif %}
-
-            $oSpec->ResponseSchema = [
-                'type' => 'object',
-                'properties' => [
-                    '{{ table.name }}' => [
-                        'type' => 'object',
-                        'properties' => [
-                            '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
-                                'type' => 'object',
-                                'properties' => Spec::paramsToJsonSchema(Spec::tableToParams(new {{ table.class }}))
+                ])
+                ->responseSchema  ([
+                    'type' => 'object',
+                    'properties' => [
+                        '{{ table.name }}' => [
+                            'type' => 'object',
+                            'properties' => [
+                                '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
+                                    'type' => 'object',
+                                    'properties' => Spec::tableToJsonSchema(new {{ table.class }})
+                                ]
                             ]
                         ]
                     ]
-                ]
-            ];
-
-            return $oSpec;
+                ]);
         }
 
         /**
          * @param array|null $aPathParams   Params from Request Path
          * @param array|null $aQueryParams  Params from Request Query
+         * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
          * @return Dot
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, Dot $oResponse): Dot {
+        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
             /** @var {{ table.class }}[] $a{{ table.plural }} */
             $oBaseTable = new {{ table.class }};
             $a{{ table.plural }} = {{ table.class_plural }}::getForCMS(
@@ -105,6 +99,7 @@
                     $this->getResponse(
                         FastRoute::getPathParams($oRequest),
                         $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
                         ResponseBuilder::get($oRequest)
                     )
                 )

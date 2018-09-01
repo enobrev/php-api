@@ -97,33 +97,15 @@
         }
 
         public function paths(Spec $oSpec) {
-            if (!isset($this->aPaths[$oSpec->Path])) {
-                $this->aPaths[$oSpec->Path] = [];
+            $sPath       = $oSpec->getPath();
+            $sHttpMethod = $oSpec->getHttpMethod();
+            if (!isset($this->aPaths[$sPath])) {
+                $this->aPaths[$sPath] = [];
             }
 
-            $this->aPaths[$oSpec->Path][$oSpec->HttpMethod] = $oSpec;
+            $this->aPaths[$sPath][$sHttpMethod] = $oSpec;
 
             // TODO: Generate Components from Spec as well
-        }
-
-        public function getPath(string $sPath, string $sHttpMethod): ?Spec {
-            return $this->aPaths[$sPath][$sHttpMethod] ?? null;
-        }
-
-        public function removePath(string $sPath, string $sHttpMethod): void {
-            if (isset($this->aPaths[$sPath])) {
-                if (isset($this->aPaths[$sPath][$sHttpMethod])) {
-                    unset($this->aPaths[$sPath][$sHttpMethod]);
-                }
-            }
-
-            if (count($this->aPaths[$sPath]) == 0) {
-                unset($this->aPaths[$sPath]);
-            }
-        }
-
-        public function removeSpec(Spec $oSpec) {
-            $this->removePath($oSpec->Path, $oSpec->HttpMethod);
         }
 
         /**
@@ -156,6 +138,7 @@
         }
 
         public function getRoutes() {
+            ksort($this->aSpecs, SORT_NATURAL);
             return $this->aSpecs;
         }
 
@@ -197,7 +180,7 @@
              * @var string $sPath
              * @var Spec $oSpec
              */
-
+            ksort($this->aSpecs, SORT_NATURAL); // ensures named sub-paths come before {var} subpaths
             foreach($this->aSpecs as $sPath => $aMethods) {
                 foreach($aMethods as $sHttpMethod => $sSpecInterface) {
                     /** @var SpecInterface $oSpecInterface */
@@ -205,13 +188,11 @@
                     $oSpec          = $oSpecInterface->spec();
 
                     if (count($aScopes)) {
-                        if (count($oSpec->Scopes) && count(array_intersect($aScopes, $oSpec->Scopes)) == 0) {
+                        if (!$oSpec->hasAnyOfTheseScopes($aScopes)) {
                             continue;
                         }
                     }
-
-                    $sMethod = strtolower($oSpec->HttpMethod);
-                    $oData->set("paths.{$oSpec->Path}.{$sMethod}", $oSpec->generateOpenAPI());
+                    $oData->set("paths.{$oSpec->getPath()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
                 }
             }
 
@@ -401,14 +382,16 @@
 
                                 if ($oReflectionClass->implementsInterface(SpecInterface::class)) {
                                     /** @var SpecInterface $oClass */
-                                    $oClass = new $sFullClass(new Request(new ServerRequest));
-                                    $oSpec  = $oClass->spec();
+                                    $oClass      = new $sFullClass();
+                                    $oSpec       = $oClass->spec();
+                                    $sPath       = $oSpec->getPath();
+                                    $sHttpMethod = $oSpec->getHttpMethod();
 
-                                    if (!isset($this->aSpecs[$oSpec->Path])) {
-                                        $this->aSpecs[$oSpec->Path] = [];
+                                    if (!isset($this->aSpecs[$sPath])) {
+                                        $this->aSpecs[$sPath] = [];
                                     }
 
-                                    $this->aSpecs[$oSpec->Path][$oSpec->HttpMethod] = $sFullClass;
+                                    $this->aSpecs[$sPath][$sHttpMethod] = $sFullClass;
                                 }
                             }
                         }

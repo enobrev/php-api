@@ -19,51 +19,57 @@
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
         public function spec(): Spec {
-            $oSpec = new Spec();
-            $oSpec->HttpMethod      = Method\{{ spec.http_method }};
-            $oSpec->Path            = '{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}';
-            $oSpec->Summary         = 'Get `{{ table.name }}`';
+            return Spec::create()
+                ->httpMethod      (Method\{{ spec.http_method }})
+                ->path            ('{{ spec.path_prefix}}/{{ table.name }}/{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}')
+                ->summary         ('Get `{{ table.name }}`')
 {% if primary|length > 1 %}
-            $oSpec->Description     = 'Get `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %}';
+                ->description     ('Get `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %}')
 {% else %}
-            $oSpec->Description     = 'Get `{{ table.name }}` designated by comma separated list of `{{ primary.0.short }}`';
+                ->description     ('Get `{{ table.name }}` designated by comma separated list of `{{ primary.0.short }}`')
 {% endif %}
-            $oSpec->Scopes          = {{ spec.scopes|raw }};
-            $oSpec->Tags            = ['{{ table.name }}'];
-
+                ->scopes          ({{ spec.scopes|raw }})
+                ->tag             ('{{ table.name }}')
+                ->pathParams      ([
 {% if primary|length > 1 %}
-{% for field in primary %}
-            $oSpec->PathParams['{{ field.short }}'] = new Param\{{ field.param_class }}('{{ field.short }}', Param::REQUIRED);
+{% for field in fields %}
+{% if field.primary %}
+                    '{{ field.short }}'{{ field.short_pad }}=> new Param\{{ field.param_class }}('{{ field.short }}',{{ field.short_pad }}Param::REQUIRED){% if not loop.last %},{% endif %}
+
+{% endif %}
 {% endfor %}
 {% else %}
-            $oSpec->PathParams['{{ primary.0.short }}']  = new Param\_Array('{{ primary.0.short }}', Param::REQUIRED, ['items' => ['type' => '{{ primary.0.param_list_type }}']]);
+{% for field in fields %}
+{% if field.primary %}
+                    '{{ field.short }}' => new Param\_Array('{{ field.short }}', Param::REQUIRED, ['items' => ['type' => '{{ field.param_list_type }}']])
 {% endif %}
-
-            $oSpec->ResponseSchema = [
-                'type' => 'object',
-                'properties' => [
-                    '{{ table.name }}' => [
-                        'type' => 'object',
-                        'properties' => [
-                            '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
-                                'type' => 'object',
-                                'properties' => Spec::paramsToJsonSchema(Spec::tableToParams(new {{ table.class }}))
+{% endfor %}
+{% endif %}
+                ])
+                ->ResponseSchema([
+                    'type' => 'object',
+                    'properties' => [
+                        '{{ table.name }}' => [
+                            'type' => 'object',
+                            'properties' => [
+                                '{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => [
+                                    'type' => 'object',
+                                    'properties' => Spec::tableToJsonSchema(new {{ table.class }})
+                                ]
                             ]
                         ]
                     ]
-                ]
-            ];
-
-            return $oSpec;
+                ]);
         }
 
         /**
          * @param array|null $aPathParams   Params from Request Path
          * @param array|null $aQueryParams  Params from Request Query
+         * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
          * @return Dot
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, Dot $oResponse): Dot {
+        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
 {% if primary|length > 1 %}
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }}) {
@@ -96,6 +102,7 @@
                     $this->getResponse(
                         FastRoute::getPathParams($oRequest),
                         $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
                         ResponseBuilder::get($oRequest)
                     )
                 )

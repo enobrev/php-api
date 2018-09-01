@@ -4,12 +4,13 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
-    use Enobrev\API\RequestAttribute;
-    use Enobrev\API\RequestAttributeInterface;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
+
+    use Enobrev\API\RequestAttribute;
+    use Enobrev\API\RequestAttributeInterface;
 
     /**
      * @package Enobrev\API\Middleware
@@ -17,7 +18,7 @@
     class ResponseBuilder implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
-        public static function get(ServerRequestInterface $oRequest): Dot {
+        public static function get(ServerRequestInterface $oRequest): ?Dot {
             return self::getAttribute($oRequest);
         }
 

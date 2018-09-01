@@ -9,6 +9,8 @@
     use Psr\Http\Server\RequestHandlerInterface;
     use RuntimeException;
 
+    use function Enobrev\dbg;
+
     /**
      * @package Enobrev\API\Middleware
      */

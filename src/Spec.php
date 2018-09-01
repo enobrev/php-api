@@ -2,9 +2,11 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
+    use function Enobrev\array_not_associative;
+    use function Enobrev\dbg;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
-    
+
     use Enobrev\API\Exception\InvalidRequest;
     use Enobrev\ORM\Table;
     use Enobrev\ORM\Field;
@@ -13,145 +15,222 @@
         const SKIP_PRIMARY = 1;
 
         /** @var string */
-        public $Summary;
+        private $sSummary;
 
         /** @var string */
-        public $Description;
+        private $sDescription;
 
         /** @var boolean */
-        public $RequestValidated = false;
+        private $bRequestValidated = false;
 
         /** @var boolean */
-        public $Deprecated;
+        private $bDeprecated;
 
         /** @var string */
-        public $Path;
+        private $sPath;
 
         /** @var boolean */
-        public $Public = false;
+        private $bPublic = false;
 
         /** @var string */
-        public $HttpMethod;
+        private $sHttpMethod;
 
         /** @var string */
-        public $Method;
+        private $sMethod;
 
         /** @var string[] */
-        public $Scopes;
+        private $aScopes;
 
         /** @var Param[] */
-        public $PathParams = [];
+        private $aPathParams = [];
 
         /** @var Param[] */
-        public $QueryParams = [];
+        private $aQueryParams = [];
+
+        /** @var Param[] */
+        private $aPostParams = [];
 
         /** @var array */
-        public $ResponseSchema;
+        private $aResponseSchema;
 
         /** @var string */
-        public $ResponseReference;
+        private $sResponseReference;
 
         /** @var Param[] */
-        public $InHeaders = [];
+        private $aInHeaders = [];
 
         /** @var Param[] */
-        public $OutHeaders = [];
+        private $aOutHeaders = [];
 
         /** @var array */
-        public $CodeSamples = [];
+        private $aCodeSamples = [];
 
         /** @var array */
-        public $ResponseHeaders = [];
+        private $aResponseHeaders = [];
+
+        /** @var string[] */
+        private $aTags = [];
 
         /** @var array */
-        public $Responses = [
+        private $aResponses = [
             HTTP\OK => 'Success',
         ];
-
-        /** @var string[] */
-        public $Tags = [];
 
         public static function create() {
             return new self();
         }
 
-        public function handle(Request $oRequest, Response $oResponse) {
-            // Override Me
+        public function getPath():string {
+            return $this->sPath;
+        }
+
+        public function getHttpMethod():string {
+            return $this->sHttpMethod;
+        }
+
+        public function getLowerHttpMethod():string {
+            return strtolower($this->sHttpMethod);
+        }
+
+        public function getScopeList(string $sDivider = ' '): string {
+            return implode($sDivider, $this->aScopes);
+        }
+
+        public function hasAnyOfTheseScopes(array $aScopes): bool {
+            if (count($this->aScopes) === 0) {
+                return false;
+            }
+
+            return count(array_intersect($aScopes, $this->aScopes)) > 0;
+        }
+
+        public function hasAllOfTheseScopes(array $aScopes): bool {
+            if (count($this->aScopes)) {
+                return false;
+            }
+
+            return count(array_intersect($aScopes, $this->aScopes)) == count($aScopes);
+        }
+
+        /**
+         * @return Param[]
+         */
+        public function getPathParams(): array {
+            return $this->aPathParams;
+        }
+
+        /**
+         * @return Param[]
+         */
+        public function getQueryParams(): array {
+            return $this->aQueryParams;
+        }
+
+        /**
+         * @return Param[]
+         */
+        public function getPostParams(): array {
+            return $this->aPostParams;
+        }
+
+        public function isPublic():bool {
+            return $this->bPublic;
+        }
+
+        public function queryParamsToJsonSchema():array {
+            return self::paramsToJsonSchema($this->aQueryParams)->all();
+        }
+
+        public function pathParamsToJsonSchema():array {
+            return self::paramsToJsonSchema($this->aPathParams)->all();
         }
 
         public function summary(string $sSummary):self {
-            $this->Summary = $sSummary;
+            $this->sSummary = $sSummary;
             return $this;
         }
 
         public function description(string $sDescription):self {
-            $this->Description = $sDescription;
+            $this->sDescription = $sDescription;
             return $this;
         }
 
         public function deprecated(?bool $bDeprecated = true):self {
-            $this->Deprecated = $bDeprecated;
+            $this->bDeprecated = $bDeprecated;
             return $this;
         }
 
         public function path(string $sPath):self {
-            $this->Path = $sPath;
+            $this->sPath = $sPath;
             return $this;
         }
 
         public function httpMethod(string $sHttpMethod):self {
-            $this->HttpMethod = $sHttpMethod;
+            $this->sHttpMethod = $sHttpMethod;
             return $this;
         }
 
         public function method(string $sMethod):self {
-            $this->Method = $sMethod;
+            $this->sMethod = $sMethod;
             return $this;
         }
 
+        /**
+         * @param array $aScopes
+         * @return Spec
+         * @throws Exception
+         */
         public function scopes(array $aScopes):self {
-            $this->Scopes = $aScopes;
+            if (!array_not_associative($aScopes)) {
+                throw new Exception('Please define Scopes as a non-Associative Array');
+            }
+            $this->aScopes = $aScopes;
             return $this;
         }
 
-        public function isPublic(bool $bPublic = true):self {
-            $this->Public = $bPublic;
+        public function setPublic(bool $bPublic = true):self {
+            $this->bPublic = $bPublic;
             return $this;
         }
 
         public function pathParams(array $aParams):self {
-            $this->PathParams = $aParams;
+            $this->aPathParams = $aParams;
             return $this;
         }
 
         public function queryParams(array $aParams):self {
-            $this->QueryParams = $aParams;
+            $this->aQueryParams = $aParams;
+            return $this;
+        }
+
+        public function postParams(array $aParams):self {
+            $this->aPostParams = $aParams;
             return $this;
         }
 
         public function responseHeader(string $sHeader, string $sValue):self {
-            $this->ResponseHeaders[$sHeader] = $sValue;
+            $this->aResponseHeaders[$sHeader] = $sValue;
             return $this;
         }
 
         public function removeResponse(int $iStatus):self {
-            unset($this->Responses[$iStatus]);
+            unset($this->aResponses[$iStatus]);
             return $this;
         }
 
         public function response(int $iStatus, string $sDescription):self {
-            $this->Responses[$iStatus] = $sDescription;
+            $this->aResponses[$iStatus] = $sDescription;
             return $this;
         }
 
         public function tags(array $aTags):self {
-            $this->Tags += $aTags;
-            $this->Tags = array_unique($aTags);
+            $this->aTags += $aTags;
+            $this->aTags = array_unique($aTags);
             return $this;
         }
 
         public function tag(string $sName):self {
-            $this->Tags[] = $sName;
+            $this->aTags[] = $sName;
             return $this;
         }
 
@@ -160,13 +239,17 @@
         }
 
         public function responseSchema(array $aSchema):self {
-            $this->ResponseSchema = $aSchema;
+            $this->aResponseSchema = $aSchema;
             return $this;
         }
 
         public function responseReference(string $aReference):self {
-            $this->ResponseReference = $aReference;
+            $this->sResponseReference = $aReference;
             return $this;
+        }
+
+        public static function tableToJsonSchema(Table $oTable, int $iOptions = 0) {
+            return self::paramsToJsonSchema(self::tableToParams($oTable, $iOptions));
         }
 
         /**
@@ -236,24 +319,28 @@
             }
 
             if ($oField->hasDefault()) {
-                $aValidations['default'] = $oField->sDefault;
+                if ($oField instanceof Field\Boolean) {
+                    $aValidations['default'] = (bool) $oField->sDefault;
+                } else {
+                    $aValidations['default'] = $oField->sDefault;
+                }
             }
 
             return new Param($sField, $iType, $aValidations);
         }
 
         public function inHeaders(array $aHeaders):self {
-            $this->InHeaders = $aHeaders;
+            $this->aInHeaders = $aHeaders;
             return $this;
         }
 
         public function outHeaders(array $aHeaders):self {
-            $this->OutHeaders = $aHeaders;
+            $this->aOutHeaders = $aHeaders;
             return $this;
         }
 
         public function codeSample(string $sLanguage, string $sSource):self {
-            $this->CodeSamples[$sLanguage] = $sSource;
+            $this->aCodeSamples[$sLanguage] = $sSource;
             return $this;
         }
 
@@ -263,7 +350,7 @@
          * @throws InvalidRequest
          */
         public function validateRequest(Request $oRequest,  Response $oResponse) {
-            $this->RequestValidated = true;
+            $this->bRequestValidated = true;
 
             $this->validatePathParameters($oRequest, $oResponse);
             $this->validateQueryParameters($oRequest, $oResponse);
@@ -277,7 +364,7 @@
         private function validatePathParameters(Request $oRequest, Response $oResponse) {
             $aParameters = $oRequest->pathParams();
 
-            $this->validateParameters($this->PathParams, $aParameters, $oResponse);
+            $this->validateParameters($this->aPathParams, $aParameters, $oResponse);
         }
 
         /**
@@ -288,7 +375,7 @@
         private function validateQueryParameters(Request $oRequest, Response $oResponse) {
             $aParameters = $oRequest->queryParams();
 
-            $this->validateParameters($this->QueryParams, $aParameters, $oResponse);
+            $this->validateParameters($this->aQueryParams, $aParameters, $oResponse);
         }
 
         /**
@@ -391,39 +478,22 @@
 
         public function generateOpenAPI(): array {
             $aMethod = [
-                'summary'       => $this->Summary ?? $this->Path,
-                'description'   => $this->Description ?? $this->Summary ?? $this->Path,
-                'tags'          => $this->Tags
+                'summary'       => $this->sSummary ?? $this->sPath,
+                'description'   => $this->sDescription ?? $this->sSummary ?? $this->sPath,
+                'tags'          => $this->aTags
             ];
 
-            if (!$this->Public && count($this->Scopes)) {
-                $aMethod['security'] = [["OAuth2" => $this->Scopes]];
+            if (!$this->bPublic && count($this->aScopes)) {
+                $aMethod['security'] = [["OAuth2" => $this->aScopes]];
             }
 
-            if ($this->Deprecated) {
+            if ($this->bDeprecated) {
                 $aMethod['deprecated'] = true;
             }
 
-            $oQueryJsonParams = self::paramsToJsonSchema($this->QueryParams);
-            $aParameters   = [];
+            $oPathJsonParams = self::paramsToJsonSchema($this->aPathParams);
 
-            foreach($this->QueryParams as $oParam) {
-                if (strpos($oParam->sName, '.') !== false) {
-                    continue;
-                }
-
-                if ($oParam->is(Param::OBJECT)) {
-                    $aParam = $oParam->OpenAPI('query');
-                    $aParam['schema'] = $oQueryJsonParams->get("properties.{$oParam->sName}");
-                    $aParameters[] = $aParam;
-                } else {
-                    $aParameters[] = $oParam->OpenAPI('query');
-                }
-            }
-
-            $oPathJsonParams = self::paramsToJsonSchema($this->PathParams);
-
-            foreach($this->PathParams as $oParam) {
+            foreach($this->aPathParams as $oParam) {
                 if (strpos($oParam->sName, '.') !== false) {
                     continue;
                 }
@@ -438,25 +508,72 @@
                 }
             }
 
+            $oQueryJsonParams = self::paramsToJsonSchema($this->aQueryParams);
+            $aParameters   = [];
+
+            foreach($this->aQueryParams as $oParam) {
+                if (strpos($oParam->sName, '.') !== false) {
+                    continue;
+                }
+
+                if ($oParam->is(Param::OBJECT)) {
+                    $aParam = $oParam->OpenAPI('query');
+                    $aParam['schema'] = $oQueryJsonParams->get("properties.{$oParam->sName}");
+                    $aParameters[] = $aParam;
+                } else {
+                    $aParameters[] = $oParam->OpenAPI('query');
+                }
+            }
+
             if (count($aParameters)) {
                 $aMethod['parameters'] = $aParameters;
             }
 
+            $oPostJsonParams = self::paramsToJsonSchema($this->aPostParams);
+            $aPost = [];
+
+            foreach($this->aPostParams as $oParam) {
+                if (strpos($oParam->sName, '.') !== false) {
+                    continue;
+                }
+
+                if ($oParam->is(Param::OBJECT)) {
+                    $aParam = $oParam->OpenAPI(null);
+                    $aParam['schema'] = $oPostJsonParams->get("properties.{$oParam->sName}");
+                    $aPost[] = $aParam;
+                } else {
+                    $aPost[] = $oParam->OpenAPI(null);
+                }
+            }
+            
+            if (count($aPost)) {
+                $aMethod['requestBody'] = [
+                    "content" => [
+                        'multipart/form-data' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'properties' => $aPost
+                            ]
+                        ]
+                    ]
+                ];
+            }
+
             $aMethod['responses'] = [];
 
-            foreach($this->Responses as $iStatus => $sDescription) {
+            foreach($this->aResponses as $iStatus => $sDescription) {
                 if ($iStatus === HTTP\OK) {
-                    if ($this->ResponseSchema) {
+                    if ($this->aResponseSchema) {
                         $aMethod['responses'][$iStatus] = [
                             "description" => $sDescription,
                             "content" => [
                                 "application/json" => [
-                                    "schema" => $this->ResponseSchema
+                                    "schema" => $this->aResponseSchema
                                 ]
                             ]
                         ];
-                    } else if ($this->ResponseReference) {
-                        $aMethod['responses'][$iStatus] = ['$ref' => $this->ResponseReference];
+                    } else if ($this->sResponseReference) {
+                        $aMethod['responses'][$iStatus] = ['$ref' => $this->sResponseReference];
                     } else {
                         $aMethod['responses'][$iStatus] = [
                             "description" => $sDescription,
@@ -481,11 +598,11 @@
                 ];
             }
 
-            if (count($this->CodeSamples)) {
-                foreach($this->CodeSamples as $sLanguage => $sSource) {
+            if (count($this->aCodeSamples)) {
+                foreach($this->aCodeSamples as $sLanguage => $sSource) {
                     $aMethod['x-code-samples'][] = [
                         'lang'   => $sLanguage,
-                        'source' => str_replace('{{PATH}}', $this->Path, $sSource)
+                        'source' => str_replace('{{PATH}}', $this->sPath, $sSource)
                     ];
                 }
             }
@@ -495,35 +612,41 @@
 
         public function toArray() {
             $aPathParams = [];
-            foreach($this->PathParams as $sParam => $oParam) {
+            foreach($this->aPathParams as $sParam => $oParam) {
                 $aPathParams[$sParam] = $oParam->JsonSchema();
             }
             
             $aQueryParams = [];
-            foreach($this->QueryParams as $sParam => $oParam) {
+            foreach($this->aQueryParams as $sParam => $oParam) {
                 $aQueryParams[$sParam] = $oParam->JsonSchema();
+            }
+
+            $aPostParams = [];
+            foreach($this->aPostParams as $sParam => $oParam) {
+                $aPostParams[$sParam] = $oParam->JsonSchema();
             }
             
             return [
-                'Summary'           => $this->Summary,
-                'Description'       => $this->Description,
-                'RequestValidated'  => $this->RequestValidated,
-                'Deprecated'        => $this->Deprecated,
-                'Path'              => $this->Path,
-                'Public'            => $this->Public,
-                'HttpMethod'        => $this->HttpMethod,
-                'Method'            => $this->Method,
-                'Scopes'            => $this->Scopes,
+                'Summary'           => $this->sSummary,
+                'Description'       => $this->sDescription,
+                'RequestValidated'  => $this->bRequestValidated,
+                'Deprecated'        => $this->bDeprecated,
+                'Path'              => $this->sPath,
+                'Public'            => $this->bPublic,
+                'HttpMethod'        => $this->sHttpMethod,
+                'Method'            => $this->sMethod,
+                'Scopes'            => $this->aScopes,
                 'PathParams'        => $aPathParams,
                 'QueryParams'       => $aQueryParams,
-                'ResponseSchema'    => $this->ResponseSchema,
-                'ResponseReference' => $this->ResponseReference,
-                'InHeaders'         => $this->InHeaders,
-                'OutHeaders'        => $this->OutHeaders,
-                'CodeSamples'       => $this->CodeSamples,
-                'ResponseHeaders'   => $this->ResponseHeaders,
-                'Responses'         => $this->Responses,
-                'Tags'              => $this->Tags
+                'PostParams'        => $aPostParams,
+                'ResponseSchema'    => $this->aResponseSchema,
+                'ResponseReference' => $this->sResponseReference,
+                'InHeaders'         => $this->aInHeaders,
+                'OutHeaders'        => $this->aOutHeaders,
+                'CodeSamples'       => $this->aCodeSamples,
+                'ResponseHeaders'   => $this->aResponseHeaders,
+                'Responses'         => $this->aResponses,
+                'Tags'              => $this->aTags
             ];
         }
         

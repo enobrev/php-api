@@ -96,6 +96,34 @@
             'scopes'        => $sAuthScopes, // "[Table\AuthScopes::CMS]",
         ];
 
+        foreach($aTable['fields'] as &$aField) {
+            if (!$aField['primary']) {
+                continue;
+            }
+
+            switch($aField['php_type']) {
+                case 'string':
+                    $aField['param_list_type'] = 'string';
+                    $aField['param_class']     = '_String';
+                    break;
+
+                case 'bool':
+                    $aField['param_list_type'] = 'boolean';
+                    $aField['param_class']     = '_Boolean';
+                    break;
+
+                case 'int':
+                    $aField['param_list_type'] = 'integer';
+                    $aField['param_class']     = '_Integer';
+                    break;
+
+                case 'float':
+                    $aField['param_list_type'] = 'number';
+                    $aField['param_class']     = '_Number';
+                    break;
+            }
+        }
+
         foreach($aTable['primary'] as &$aField) {
             switch($aField['php_type']) {
                 case 'string':
@@ -120,7 +148,8 @@
             }
         }
 
-        $sRenderedFile = $sRenderedPath . '/get.php';
+
+            $sRenderedFile = $sRenderedPath . '/get.php';
 
         file_put_contents($sRenderedFile, $oGetTemplate->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";

@@ -12,10 +12,9 @@
 
     use Enobrev\API\HTTP;
     use Enobrev\API\Spec;
-    use Enobrev\API\SpecInterface;
+    use Enobrev\API\Middleware\Request\AttributeSpec;
 
     use function Enobrev\dbg;
-
 
     class ValidateSpec implements MiddlewareInterface {
 
@@ -27,7 +26,7 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oSpec = RequestAttributeSpec::getSpec($oRequest);
+            $oSpec = AttributeSpec::getSpec($oRequest);
 
             if ($oSpec instanceof Spec === false) {
                 return $oHandler->handle($oRequest);
@@ -50,13 +49,13 @@
          * @return ServerRequestInterface
          */
         private function validatePathParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
-            $oSpec       = RequestAttributeSpec::getSpec($oRequest);
+            $oSpec       = AttributeSpec::getSpec($oRequest);
             $aParameters = FastRoute::getPathParams($oRequest);
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                Spec::paramsToJsonSchema($oSpec->PathParams)->all(),
+                $oSpec->pathParamsToJsonSchema(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
@@ -76,13 +75,13 @@
          * @return ServerRequestInterface
          */
         private function validateQueryParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
-            $oSpec       = RequestAttributeSpec::getSpec($oRequest);
+            $oSpec       = AttributeSpec::getSpec($oRequest);
             $aParameters = $oRequest->getQueryParams();
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                Spec::paramsToJsonSchema($oSpec->QueryParams)->all(),
+                $oSpec->queryParamsToJsonSchema(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
