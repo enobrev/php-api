@@ -3,13 +3,14 @@
 
     namespace Enobrev\API\Middleware;
 
-    use Adbar\Dot;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
     use Zend\Diactoros\Response\JsonResponse;
+
     use Enobrev\API\HTTP;
+    use Enobrev\Log;
 
     /**
      * @package Enobrev\API\Middleware
@@ -22,6 +23,14 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
+            $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
+
+            Log::i('Enobrev.Middleware.ResponseBuilderDone', [
+                '#status'  => $oResponse->getStatusCode(),
+                '#headers' => json_encode($oResponse->getHeaders()),
+                'body'     => json_encode($oResponse->getBody())
+            ]);
+
+            return $oResponse;
         }
     }
