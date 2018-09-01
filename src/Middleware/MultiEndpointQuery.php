@@ -61,9 +61,12 @@
                 }
 
                 $oUri         = new Uri($sEndpoint);
+                $aQueryParams = [];
+                parse_str($oUri->getQuery(), $aQueryParams);
                 $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\GET)
-                    ->withUri($oUri)
-                    ->withParsedBody(null);
+                                                                   ->withUri($oUri)
+                                                                   ->withQueryParams($aQueryParams)
+                                                                   ->withParsedBody(null);
 
                 $oSubResponse = $this->oHandler->handle($oSubRequest);
                 if ($oSubResponse instanceof JsonResponse) {
