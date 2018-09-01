@@ -6,6 +6,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\Log;
     use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
@@ -18,11 +19,15 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.CoerceParams');
             $oSpec = AttributeSpec::getSpec($oRequest);
 
             if ($oSpec instanceof Spec === false) {
+                Log::dt($oTimer);
                 return $oHandler->handle($oRequest);
             }
+
+            $aCoerced = [];
 
             $aPathParams = FastRoute::getPathParams($oRequest);
             if ($aPathParams) {
@@ -30,6 +35,7 @@
                     if ($oParam->is(Param::ARRAY) && isset($aPathParams[$oParam->sName])) {
                         $aPathParams[$oParam->sName] = explode(',', $aPathParams[$oParam->sName]);
                         $aPathParams[$oParam->sName] = array_map('trim', $aPathParams[$oParam->sName]);
+                        $aCoerced[] = $oParam->sName;
                     }
                 }
                 
@@ -42,6 +48,7 @@
                     if ($oParam->is(Param::ARRAY) && isset($aQueryParams[$oParam->sName]) && is_string($aQueryParams[$oParam->sName])) {
                         $aQueryParams[$oParam->sName] = explode(',', $aQueryParams[$oParam->sName]);
                         $aQueryParams[$oParam->sName] = array_map('trim', $aQueryParams[$oParam->sName]);
+                        $aCoerced[] = $oParam->sName;
                     }
                 }
 
@@ -54,12 +61,14 @@
                     if ($oParam->is(Param::ARRAY) && isset($aPostParams[$oParam->sName]) && is_string($aPostParams[$oParam->sName])) {
                         $aPostParams[$oParam->sName] = explode(',', $aPostParams[$oParam->sName]);
                         $aPostParams[$oParam->sName] = array_map('trim', $aPostParams[$oParam->sName]);
+                        $aCoerced[] = $oParam->sName;
                     }
                 }
 
                 $oRequest = $oRequest->withParsedBody($aPostParams);
             }
 
+            Log::dt($oTimer, ['coerced' => $aCoerced]);
             return $oHandler->handle($oRequest);
         }
     }

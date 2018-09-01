@@ -9,6 +9,8 @@
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\Middleware\ResponseBuilder;
+    use Enobrev\Log;
+
     use function Enobrev\dbg;
 
     class MetadataServer implements MiddlewareInterface {
@@ -19,6 +21,7 @@
          * response creation to a handler.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.MetadataServer');
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
                 $oNow = new DateTime;
@@ -31,6 +34,7 @@
                 ResponseBuilder::update($oRequest, $oBuilder);
             }
 
+            Log::dt($oTimer);
             return $oHandler->handle($oRequest);
         }
     }

@@ -1,13 +1,14 @@
 <?php
     namespace Enobrev\API\Middleware\Response;
 
-    use Enobrev\API\Middleware\FastRoute;
-    use Enobrev\API\Middleware\ResponseBuilder;
-
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
+
+    use Enobrev\API\Middleware\FastRoute;
+    use Enobrev\API\Middleware\ResponseBuilder;
+    use Enobrev\Log;
 
     class MetadataRequest implements MiddlewareInterface {
         /**
@@ -15,6 +16,7 @@
          * response creation to a handler.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.MetadataRequest');
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
                 $oBuilder->set('_request', [
@@ -30,6 +32,7 @@
                 ResponseBuilder::update($oRequest, $oBuilder);
             }
 
+            Log::dt($oTimer);
             return $oHandler->handle($oRequest);
         }
     }

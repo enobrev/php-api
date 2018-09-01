@@ -9,6 +9,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
     use RuntimeException;
 
+    use Enobrev\Log;
     use function Enobrev\dbg;
 
     /**
@@ -19,6 +20,7 @@
          * Process a server request and return a response.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.RequestHandler');
             $sClass = FastRoute::getRouteClassName($oRequest);
 
             if (!$sClass) {
@@ -29,13 +31,17 @@
             $oClass = new $sClass;
 
             if ($oClass instanceof MiddlewareInterface) {
+                Log::dt($oTimer, ['class' => $sClass, 'type' => 'MiddlewareInterface']);
                 return $oClass->process($oRequest, $oHandler);
             }
 
             if ($oClass instanceof RequestHandlerInterface) {
+                Log::dt($oTimer, ['class' => $sClass, 'type' => 'RequestHandlerInterface']);
                 return $oClass->handle($oRequest);
             }
 
+            Log::dt($oTimer, ['class' => $sClass, 'type' => gettype($oClass)]);
+            Log::e('Enobrev.Middleware.RequestHandler.Error');
             throw new RuntimeException(sprintf('Invalid request handler: %s', gettype($oClass)));
         }
     }

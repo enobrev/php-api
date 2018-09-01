@@ -1,14 +1,15 @@
 <?php
     namespace Enobrev\API\Middleware\Request;
 
-    use Enobrev\API\FullSpec;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\FullSpec;
     use Enobrev\API\RequestAttribute;
     use Enobrev\API\RequestAttributeInterface;
+    use Enobrev\Log;
 
     use function Enobrev\dbg;
 
@@ -32,9 +33,9 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oFullSpec = FullSpec::generateLiveForDevelopment();
-
+            $oTimer = Log::startTimer('Enobrev.Middleware.FullSpecRoutes');
             $oRequest = self::setAttribute($oRequest, $this->oFullSpec->getRoutes());
+            Log::dt($oTimer);
 
             return $oHandler->handle($oRequest);
         }

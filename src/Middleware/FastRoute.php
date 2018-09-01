@@ -15,6 +15,7 @@
     use Enobrev\API\Middleware\Request\AttributeFullSpecRoutes;
     use Enobrev\API\RequestAttribute;
     use Enobrev\API\RequestAttributeInterface;
+    use Enobrev\Log;
 
     use function Enobrev\dbg;
 
@@ -24,12 +25,6 @@
      */
     class FastRoute implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
-
-        private $sOptionsHandlerClass;
-
-        public function __construct($sOptionsHandlerClass) {
-            $this->sOptionsHandlerClass = $sOptionsHandlerClass;
-        }
 
         public static function getRouteClassName(ServerRequestInterface $oRequest): ?string {
             $oRoute = self::getAttribute($oRequest);
@@ -54,6 +49,8 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer            = Log::startTimer('Enobrev.Middleware.FastRoute');
+            $oTimerDispatcher  = Log::startTimer('Enobrev.Middleware.FastRoute.Dispatcher');
             $oRouter = FastRouteLib\simpleDispatcher(function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
                 $aRoutes = AttributeFullSpecRoutes::getRoutes($oRequest);
                 foreach($aRoutes as $sPath => $aMethods) {
@@ -62,10 +59,17 @@
                     }
                 }
             });
+            Log::dt($oTimerDispatcher);
+            Log::d('Enobrev.Middleware.FastRoute', [
+                'method'     => $oRequest->getMethod(),
+                'path'       => $oRequest->getUri()->getPath()
+            ]);
 
             $aRoute = $oRouter->dispatch($oRequest->getMethod(), $oRequest->getUri()->getPath());
 
             if ($aRoute[0] === FastRouteLib\Dispatcher::NOT_FOUND) {
+                Log::w('Enobrev.Middleware.FastRoute.NotFound');
+                Log::dt($oTimer);
                 return (new Response())->withStatus(HTTP\NOT_FOUND);
             }
 
@@ -76,9 +80,11 @@
                 if ($oRequest->getMethod() === Method\OPTIONS) {
                     $oResponse = $oResponse->withStatus(HTTP\NO_CONTENT);
                 } else {
+                    Log::d('Enobrev.Middleware.FastRoute.MethodNotAllowed');
                     $oResponse = $oResponse->withStatus(HTTP\METHOD_NOT_ALLOWED);
                 }
 
+                Log::dt($oTimer);
                 return $oResponse;
             }
 
@@ -87,6 +93,12 @@
                 'pathParams' => $aRoute[2]
             ]);
 
+            Log::dt($oTimer, [
+                'method'     => $oRequest->getMethod(),
+                'path'       => $oRequest->getUri()->getPath(),
+                'class'      => $aRoute[1],
+                'pathParams' => $aRoute[2]
+            ]);
             return $oHandler->handle($oRequest);
         }
     }

@@ -2,6 +2,7 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
+    use Enobrev\Log;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Psr\Http\Message\ResponseInterface;
@@ -26,26 +27,30 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.ValidateSpec');
             $oSpec = AttributeSpec::getSpec($oRequest);
 
             if ($oSpec instanceof Spec === false) {
+                Log::dt($oTimer);
                 return $oHandler->handle($oRequest);
             }
 
             $oRequest = $this->validatePathParameters($oRequest);
             $oRequest = $this->validateQueryParameters($oRequest);
-            // FIXME: Needs to be POST params as well
+            $oRequest = $this->validatePostParameters($oRequest);
 
             if (!$this->bValid) {
+                Log::setProcessIsError(true);
+                Log::dt($oTimer, ['valid' => false]);
                 return new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\BAD_REQUEST);
             }
 
+            Log::dt($oTimer, ['valid' => true]);
             return $oHandler->handle($oRequest);
         }
 
         /**
          * @param ServerRequestInterface $oRequest
-         * @param Spec $oSpec
          * @return ServerRequestInterface
          */
         private function validatePathParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
@@ -71,7 +76,6 @@
 
         /**
          * @param ServerRequestInterface $oRequest
-         * @param Spec $oSpec
          * @return ServerRequestInterface
          */
         private function validateQueryParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
@@ -87,6 +91,27 @@
 
             $oRequest = $this->adjustValidationPayload($oRequest, $oValidator, new Dot($aParameters));
             $oRequest = $oRequest->withQueryParams((array) $oParameters);
+
+            return $oRequest;
+        }
+
+        /**
+         * @param ServerRequestInterface $oRequest
+         * @return ServerRequestInterface
+         */
+        private function validatePostParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
+            $oSpec       = AttributeSpec::getSpec($oRequest);
+            $aParameters = $oRequest->getParsedBody();
+            $oParameters = (object) $aParameters;
+            $oValidator  = new Validator;
+            $oValidator->validate(
+                $oParameters,
+                $oSpec->postParamsToJsonSchema(),
+                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
+            );
+
+            $oRequest = $this->adjustValidationPayload($oRequest, $oValidator, new Dot($aParameters));
+            $oRequest = $oRequest->withParsedBody((array) $oParameters);
 
             return $oRequest;
         }

@@ -11,6 +11,7 @@
     use Enobrev\API\RequestAttributeInterface;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
+    use Enobrev\Log;
 
     use function Enobrev\dbg;
 
@@ -27,6 +28,7 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.AttributeSpec');
             $sClass = FastRoute::getRouteClassName($oRequest);
 
             if (!$sClass) {
@@ -42,6 +44,7 @@
 
             $oRequest = self::setAttribute($oRequest, $oClass->spec());
 
+            Log::dt($oTimer);
             return $oHandler->handle($oRequest);
         }
 

@@ -137,12 +137,16 @@
             return $this->bPublic;
         }
 
+        public function pathParamsToJsonSchema():array {
+            return self::paramsToJsonSchema($this->aPathParams)->all();
+        }
+
         public function queryParamsToJsonSchema():array {
             return self::paramsToJsonSchema($this->aQueryParams)->all();
         }
 
-        public function pathParamsToJsonSchema():array {
-            return self::paramsToJsonSchema($this->aPathParams)->all();
+        public function postParamsToJsonSchema():array {
+            return self::paramsToJsonSchema($this->aPostParams)->all();
         }
 
         public function summary(string $sSummary):self {

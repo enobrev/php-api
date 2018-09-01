@@ -46,6 +46,7 @@
          * @throws Exception\NoTemplateValues
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointQuery');
             $oBuilder = ResponseBuilder::get($oRequest);
             $aQuery   = $this->aEndpoints;
 
@@ -84,7 +85,10 @@
             }
 
             $oBuilder->mergeRecursiveDistinct($this->oData->all());
-            return $oHandler->handle(ResponseBuilder::update($oRequest, $oBuilder));
+            $oResponse = ResponseBuilder::update($oRequest, $oBuilder);
+
+            Log::dt($oTimer, ['endpoints' => $this->aEndpoints]);
+            return $oHandler->handle($oResponse);
         }
 
         const NO_VALUE = '~~NO_VALUE~~';

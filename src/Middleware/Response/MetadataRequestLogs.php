@@ -15,6 +15,7 @@
          * response creation to a handler.
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $oTimer = Log::startTimer('Enobrev.Middleware.MetadataRequestLogs');
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
                 $oBuilder->set('_request.logs', [
@@ -24,6 +25,7 @@
                 ResponseBuilder::update($oRequest, $oBuilder);
             }
 
+            Log::dt($oTimer);
             return $oHandler->handle($oRequest);
         }
     }

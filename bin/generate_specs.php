@@ -149,7 +149,7 @@
         }
 
 
-            $sRenderedFile = $sRenderedPath . '/get.php';
+        $sRenderedFile = $sRenderedPath . '/get.php';
 
         file_put_contents($sRenderedFile, $oGetTemplate->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";

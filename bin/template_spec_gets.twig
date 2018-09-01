@@ -63,7 +63,6 @@
             $oBaseTable = new {{ table.class }};
             $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']);
             $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort']);
-            $aSorts     = [];
 
             /** @var {{ table.class }}[] $a{{ table.plural }} */
             $a{{ table.plural }} = {{ table.class_plural }}::getForCMS(
@@ -78,15 +77,14 @@
             foreach($a{{ table.plural }} as $o{{ table.title }}) {
 {% if primary|length > 1 %}
                 $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
-                $aSorts[] = "{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}";
+                $oResponse->push("sorts.{{ table.name }}", "{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}");
 {% else %}
                 $oResponse->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
-                $aSorts[] = $o{{ table.title }}->{{ primary.0.name }}->getValue();
+                $oResponse->push('sorts.{{ table.name }}', $o{{ table.title }}->{{ primary.0.name }}->getValue());
 {% endif %}
             }
 
             $oResponse->set('counts.{{ table.name }}', {{ table.class_plural }}::countForCMS());
-            $oResponse->set('sorts.{{ table.name }}',  $aSorts);
 
             return $oResponse;
         }
