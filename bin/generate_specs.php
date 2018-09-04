@@ -164,6 +164,8 @@
 
         $aTable['spec']['non_post'] = '[' . implode(', ', $aNonPost) . ']';
         $aTable['spec']['non_keyless_post'] = '[' . implode(', ', $aNonKeylessPost) . ']';
+        $aTable['spec']['show_post'] = count($aTable['fields']) > count($aNonPost);
+        $aTable['spec']['show_keyless_post'] = count($aTable['fields']) > count($aNonKeylessPost);
 
         /// ------------------------
 

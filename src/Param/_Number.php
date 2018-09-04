@@ -4,7 +4,35 @@
     use Enobrev\API\Param;
 
     class _Number extends Param {
-        public function __construct(string $sName, int $iOptions = 0, ?array $aValidation = null, ?string $sDescription = null) {
-            parent::__construct($sName, $iOptions | Param::NUMBER, $aValidation, $sDescription);
+        public static function create(): self {
+            return new self();
+        }
+
+        public function __construct() {
+            parent::__construct(Param::NUMBER);
+        }
+
+        public function getJsonSchema(): array {
+            return parent::getJsonSchema();
+        }
+
+        public function getOpenAPI(): array {
+            return parent::getOpenAPI();
+        }
+
+        public function minimum(int $iMinimum, $bExclusive = false): self {
+            $this->validation(['minimum' => $iMinimum]);
+            if ($bExclusive) {
+                $this->validation(['exclusiveMinimum' => $bExclusive]);
+            }
+            return $this;
+        }
+
+        public function maximum(int $iMaximum, $bExclusive = false): self {
+            $this->validation(['maximum' => $iMaximum]);
+            if ($bExclusive) {
+                $this->validation(['exclusiveMaximum' => $bExclusive]);
+            }
+            return $this;
         }
     }

@@ -2,18 +2,18 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
-    use Enobrev\Log;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
+    use Middlewares;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use Zend\Diactoros\Response\JsonResponse;
 
     use Enobrev\API\HTTP;
-    use Enobrev\API\Spec;
     use Enobrev\API\Middleware\Request\AttributeSpec;
+    use Enobrev\API\Spec;
+    use Enobrev\Log;
 
     use function Enobrev\dbg;
 
@@ -39,10 +39,11 @@
             $oRequest = $this->validateQueryParameters($oRequest);
             $oRequest = $this->validatePostParameters($oRequest);
 
+
             if (!$this->bValid) {
                 Log::setProcessIsError(true);
                 Log::dt($oTimer, ['valid' => false]);
-                return new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\BAD_REQUEST);
+                //return new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\BAD_REQUEST);
             }
 
             Log::dt($oTimer, ['valid' => true]);
@@ -64,11 +65,10 @@
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
-            if ($this->bValid && $oValidator->isValid() === false) {
-                $this->bValid = false;
+            if ($oValidator->isValid() === false) {
+                throw Middlewares\HttpErrorException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
             }
 
-            $oRequest = $this->adjustValidationPayload($oRequest, $oValidator, new Dot($aParameters));
             $oRequest = FastRoute::updatePathParams($oRequest, (array) $oParameters);
 
             return $oRequest;
@@ -89,7 +89,10 @@
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
-            $oRequest = $this->adjustValidationPayload($oRequest, $oValidator, new Dot($aParameters));
+            if ($oValidator->isValid() === false) {
+                throw Middlewares\HttpErrorException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+            }
+
             $oRequest = $oRequest->withQueryParams((array) $oParameters);
 
             return $oRequest;
@@ -111,40 +114,34 @@
                 Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
             );
 
-            $oRequest = $this->adjustValidationPayload($oRequest, $oValidator, new Dot($aParameters));
+            if ($oValidator->isValid() === false) {
+                throw Middlewares\HttpErrorException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+            }
+
             $oRequest = $oRequest->withParsedBody((array) $oParameters);
 
             return $oRequest;
         }
 
-        /**
-         * @param Validator $oValidator
-         * @param array $aParameters
-         * @param Dot $oPayload
-         * @return Dot
-         */
-        private function adjustValidationPayload(ServerRequestInterface $oRequest, Validator $oValidator, Dot $oParameters): ServerRequestInterface {
-            $oBuilder = ResponseBuilder::get($oRequest);
-
-            if (!$oValidator->isValid()) {
-                $aErrors = [];
-                foreach($oValidator->getErrors() as $aError) {
-                    // convert from array property `param[index]` to `param.index`
-                    $sProperty = str_replace('[', '.', $aError['property']);
-                    $sProperty = str_replace(']', '',  $sProperty);
-
-                    $aError['value'] = $oParameters->get($sProperty);
-                    $aErrors[]       = $aError;
-                }
-
-                $oBuilder->set('_request.validation.status', 'FAIL');
-                $oBuilder->set('_request.validation.errors', $aErrors);
-
-                $this->bValid = false;
-            } else if ($this->bValid) { // Could have been set by last Validation
-                $oBuilder->set('_request.validation.status', 'PASS');
+        private function getErrorsWithValues(Validator $oValidator, ?array $aParameters): ?array {
+            if ($oValidator->isValid()) {
+                return null;
             }
 
-            return ResponseBuilder::update($oRequest, $oBuilder);
+            $aErrors = [];
+            $oParameters = new Dot($aParameters);
+
+            foreach ($oValidator->getErrors() as $aError) {
+                // convert from array property `param[index]` to `param.index`
+                $sProperty = str_replace('[', '.', $aError['property']);
+                $sProperty = str_replace(']', '', $sProperty);
+
+                $aError['value'] = $oParameters->get($sProperty);
+                $aErrors[] = $aError;
+            }
+
+            $this->bValid = false;
+
+            return $aErrors;
         }
     }

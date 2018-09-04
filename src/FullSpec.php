@@ -1,6 +1,13 @@
 <?php
     namespace Enobrev\API;
 
+    use Enobrev\API\FullSpec\ComponentInterface;
+    use Enobrev\API\FullSpec\ComponentListInterface;
+    use Enobrev\API\FullSpec\Component;
+    use Enobrev\API\Spec\JsonResponse;
+    use Enobrev\API\Spec\ProcessErrorResponse;
+    use Enobrev\API\Spec\ServerErrorResponse;
+    use Enobrev\API\Spec\ValidationErrorResponse;
     use function Enobrev\dbg;
     use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
@@ -13,9 +20,9 @@
     use Zend\Diactoros\ServerRequest;
 
     class FullSpec {
-        const SCHEMA_ANY                    = 'schemas/_any';
-        const SCHEMA_DEFAULT                = 'schemas/_default';
 
+        const _ANY                          = '_any';
+        const _DEFAULT                      = '_default';
         const _CREATED                      = 'Created';
         const _BAD_REQUEST                  = 'BadRequest';
         const _UNAUTHORIZED                 = 'Unauthorized';
@@ -24,6 +31,10 @@
         const _SERVER_ERROR                 = 'ServerError';
         const _MULTI_STATUS                 = 'MultiStatus';
 
+        const SCHEMA_ANY                    = 'schemas/' . self::_ANY;
+        const SCHEMA_DEFAULT                = 'schemas/' . self::_DEFAULT;
+
+        const RESPONSE_DEFAULT              = 'responses/' . self::_DEFAULT;
         const RESPONSE_CREATED              = 'responses/' . self::_CREATED;
         const RESPONSE_BAD_REQUEST          = 'responses/' . self::_BAD_REQUEST;
         const RESPONSE_UNAUTHORIZED         = 'responses/' . self::_UNAUTHORIZED;
@@ -55,6 +66,9 @@
 
         /** @var array */
         private $aResponses;
+
+        /** @var OpenApiInterface[] */
+        private $aComponents;
 
         /** @var Spec[] */
         private $aPaths;
@@ -174,6 +188,14 @@
         }
 
         /**
+         * @param Component\Reference $oReference
+         * @return Component\Response
+         */
+        public function getComponent(Component\Reference $oReference) {
+            return $this->aComponents[$oReference->getName()];
+        }
+
+        /**
          * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
          * @param array $aScopes
          * @return Dot
@@ -189,32 +211,68 @@
                 'components' => [
                     'schemas' => self::DEFAULT_RESPONSE_SCHEMAS,
                     'responses' => [
-                        self::_CREATED => FullSpecComponent::response(self::RESPONSE_CREATED,
-                                            'New record was created.  If a new key was generated for the record, See Location header',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
-                        self::_BAD_REQUEST => FullSpecComponent::response(self::RESPONSE_BAD_REQUEST,
-                                            'Request Validation Error.  See `_request.validation` in the response for more information',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
-                        self::_UNAUTHORIZED => FullSpecComponent::response(self::RESPONSE_UNAUTHORIZED,
-                                            'Access Token Invalid.  Client should Re-authenticate',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
-                        self::_FORBIDDEN => FullSpecComponent::response(self::RESPONSE_FORBIDDEN,
-                                            'Access Denied.  Authenticated Profile does not have access.',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
-                        self::_UNPROCESSABLE_ENTITY => FullSpecComponent::response(self::RESPONSE_UNPROCESSABLE_ENTITY,
-                                            'Request was Valid and Server handled properly, but something else went wrong.  See `_request.errors` in the response for more infomration.',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
-                        self::_SERVER_ERROR => FullSpecComponent::response(self::RESPONSE_SERVER_ERROR,
-                                            'Something went wrong on the server.  Contact an API developer for info.  `_server.errors` will have details, and `_request.logs` will have references for the developers to find what happened.',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
-                        self::_MULTI_STATUS => FullSpecComponent::response(self::RESPONSE_MULTI_STATUS,
-                                            'The overall multi-endpoint query was successful, but some endpoints were not.  See `_request.multiquery` in the response for more information',
-                                            [FullSpecComponent::MIME_JSON => FullSpecComponent::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI(),
+                        self::_DEFAULT => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->description('Default Response')
+                            ->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
+                            ->getOpenAPI(),
+                        self::_CREATED => Component\Response::create(self::RESPONSE_CREATED)->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
+                            ->description('New record was created.  If a new key was generated for the record, See Location header')
+                            ->getOpenAPI(),
+                        self::_BAD_REQUEST => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->description('Request Validation Error.  See `_errors.validation` in the response for more information')
+                            ->json(
+                                ValidationErrorResponse::create()
+                                    ->message('Request Validation Error.  See `_errors.validation` in the response for more information')
+                                    ->code(HTTP\BAD_REQUEST)
+                            )
+                            ->getOpenAPI(),
+                        self::_UNAUTHORIZED => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->description('Access Token Invalid.  Client should Re-authenticate')
+                            ->json(
+                                ProcessErrorResponse::create()
+                                    ->message('Unauthorized')
+                                    ->code(HTTP\UNAUTHORIZED)
+                            )
+                            ->getOpenAPI(),
+                        self::_FORBIDDEN => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->description('Access Denied.  Authenticated Profile does not have access.')
+                            ->json(
+                                ProcessErrorResponse::create()
+                                    ->message('Forbidden')
+                                    ->code(HTTP\FORBIDDEN)
+                            )
+                            ->getOpenAPI(),
+                        self::_UNPROCESSABLE_ENTITY => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->description('Request was Valid and Server handled properly, but something else went wrong.  See `_errors.process` in the response for more infomration.')
+                            ->json(
+                                ProcessErrorResponse::create()
+                                    ->message('Request was Valid and Server handled properly, but something else went wrong.  See `_errors.validation` in the response for more infomration.')
+                                    ->code(HTTP\BAD_REQUEST)
+                            )
+                            ->getOpenAPI(),
+                        self::_SERVER_ERROR => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->description('Something went wrong on the server.  Contact an API developer for info.  `_errors.process` will have details, and `_request.logs` will have references for the developers to find what happened.')
+                            ->json(
+                                ServerErrorResponse::create()
+                                    ->message('Something went wrong on the server.  Contact an API developer for info.  `_errors.server` will have details, and `_request.logs` will have references for the developers to find what happened.')
+                                    ->code(HTTP\INTERNAL_SERVER_ERROR)
+                            )
+                            ->getOpenAPI(),
+                        self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_DEFAULT)
+                            ->json(
+                                JsonResponse::create()->allOf([
+                                    Component\Reference::create(FullSpec::SCHEMA_DEFAULT),
+                                    [
+                                        '_request.multiquery' => Component\Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI()
+
+                                    ]
+                                ])
+                            )
+                            ->description('The overall multi-endpoint query was successful, but some endpoints were not.  See `_request.multiquery` in the response for more information')
+                            ->getOpenAPI()
                     ]
                 ]
             ]);
-
-
 
             $oData->set('components.schemas._any', (object) []);
 
@@ -300,7 +358,7 @@
 
                 $sTemplatedId = "{{$sId}}";
 
-                $this->schemas("table-$sTable", Spec::paramsToJsonSchema(Spec::tableToParams($oTable)));
+                $this->schemas("table-$sTable", Spec::toJsonSchema(Spec::tableToParams($oTable)));
                 $this->schemas("collection-$sTable", [
                     'type' => 'object',
                     'additionalProperties' => false,
@@ -419,33 +477,37 @@
 
                     foreach($aFiles as $oFile) {
                         $sContents = file_get_contents($oFile->getPathname());
-                        if (preg_match('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
-                            $sClass = $aMatchesClass[1];
-
-                            if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
-                                $sNamespace = $aMatchesNamespace[1];
-                                $sFullClass = implode('\\', [$sNamespace, $sClass]);
-
-                                $oReflectionClass = new ReflectionClass($sFullClass);
-
-                                if ($oReflectionClass->implementsInterface(SpecInterface::class)) {
-                                    /** @var SpecInterface $oClass */
-                                    $oClass      = new $sFullClass();
-                                    $oSpec       = $oClass->spec();
-                                    $sPath       = $oSpec->getPath();
-                                    $sHttpMethod = $oSpec->getHttpMethod();
-
-                                    if (!isset($this->aSpecs[$sPath])) {
-                                        $this->aSpecs[$sPath] = [];
+                        if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
+                            if (preg_match_all('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
+                                foreach($aMatchesClass[1] as $sClass) {
+                                    if (strpos($sClass, 'Exception')) {
+                                        continue;
                                     }
 
-                                    $this->aSpecs[$sPath][$sHttpMethod] = $sFullClass;
-                                } else if ($oReflectionClass->implementsInterface(FullSpecComponentInterface::class)) {
-                                    /** @var FullSpecComponentInterface $oClass */
-                                    $oClass      = new $sFullClass();
-                                    $aComponents = $oClass->components();
-                                    foreach($aComponents as $oComponent) {
-                                        $this->aComponents[$oComponent->getName()] = $oComponent;
+                                    $sNamespace = $aMatchesNamespace[1];
+                                    $sFullClass = implode('\\', [$sNamespace, $sClass]);
+
+                                    $oReflectionClass = new ReflectionClass($sFullClass);
+
+                                    if ($oReflectionClass->implementsInterface(SpecInterface::class)) {
+                                        /** @var SpecInterface $oClass */
+                                        $oClass      = new $sFullClass();
+                                        $oSpec       = $oClass->spec();
+                                        $sPath       = $oSpec->getPath();
+                                        $sHttpMethod = $oSpec->getHttpMethod();
+
+                                        if (!isset($this->aSpecs[$sPath])) {
+                                            $this->aSpecs[$sPath] = [];
+                                        }
+
+                                        $this->aSpecs[$sPath][$sHttpMethod] = $sFullClass;
+                                    } else if ($oReflectionClass->implementsInterface(ComponentListInterface::class)) {
+                                        /** @var ComponentListInterface $oClass */
+                                        $oClass      = new $sFullClass();
+                                        $aComponents = $oClass->components();
+                                        foreach($aComponents as $oComponent) {
+                                            $this->aComponents[$oComponent->getName()] = $oComponent;
+                                        }
                                     }
                                 }
                             }
@@ -480,18 +542,31 @@
             "_request" => [
                 "type" => "object",
                 "properties"=> [
-                    "validation" => [
+                    "method"        => [
+                        "type" => "string",
+                        "enum" => ["GET", "POST", "PUT", "DELETE"]
+                    ],
+                    "path"          => ["type" => "string"],
+                    "params"         => [
                         "type" => "object",
                         "properties" => [
-                            "status" => [
-                                "type" => "string",
-                                "enum" => ["PASS", "FAIL"]
+                            "path" => [
+                                "type" => "object",
+                                "description" => "Parameters that were found in the URI Path"
                             ],
-                            "errors" => [
-                                "type" => "array",
-                                "items" => ['$ref' => "#/components/schemas/_validation_error"]
+                            "query" => [
+                                "type" => "object",
+                                "description" => "Parameters that were found in the URI Search"
+                            ],
+                            "post" => [
+                                "type" => "object",
+                                "description" => "Parameters that were found in the Request Body"
                             ]
                         ]
+                    ],
+                    "headers"   => [
+                        "type" => "string",
+                        "description" => "JSON Encoded String of request headers"
                     ],
                     "logs"      => [
                         "type" => "object",
@@ -506,24 +581,7 @@
                             ]
                         ]
                     ],
-                    "method"        => [
-                        "type" => "string",
-                        "enum" => ["GET", "POST", "PUT", "DELETE"]
-                    ],
-                    "path"          => ["type" => "string"],
-                    "attributes"    => [
-                        "type" => "array",
-                        "description" => "Parameters pulled from the path",
-                        "items" => ["type" => "string"]
-                    ],
-                    "query"         => [
-                        "type" => "array",
-                        "items" => ["type" => "string"]
-                    ],
-                    "data"          => [
-                        '$ref' => '#/components/schemas/_any',
-                        "description" => "POSTed Data"
-                    ]
+                    "status" => ["type" => "integer"]
                 ],
                 "additionalProperties"=> false
             ],
@@ -536,29 +594,11 @@
                             "status" => [
                                 "type" => "string",
                                 "enum" => ["PASS", "FAIL"]
-                            ],
-                            "errors" => [
-                                "type" => "array",
-                                "items" => ['$ref' => "#/components/schemas/_validation_error"]
                             ]
                         ]
                     ]
                 ],
                 "additionalProperties"=> false
-            ],
-            "_validation_error" => [
-                "type" => "object",
-                "properties" => [
-                    "property"      => ["type" => "string"],
-                    "pointer"       => ["type" => "string"],
-                    "message"       => ["type" => "string"],
-                    "constraint"    => ["type" => "string"],
-                    "context"       => ["type" => "number"],
-                    "minimum"       => ["type" => "number"],
-                    "value"         => [
-                        '$ref' => '#/components/schemas/_any'
-                    ]
-                ]
             ]
         ];
     }

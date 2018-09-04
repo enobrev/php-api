@@ -1,12 +1,14 @@
 <?php
-    namespace Enobrev\API;
+    namespace Enobrev\API\FullSpec;
 
 
     use Adbar\Dot;
+    use Enobrev\API\FullSpec;
+    use Enobrev\API\Param;
     use function Enobrev\array_not_associative;
     use function Enobrev\dbg;
 
-    class FullSpecComponent {
+    class Component {
         const SCHEMA_DEFAULT = self::TYPE_SCHEMA . '/_default';
 
         const MIME_JSON      = 'application/json';
@@ -43,46 +45,62 @@
         /** @var mixed */
         private $mSchema;
 
-        public function __construct(string $sName, ?string $sType = null) {
-            $this->sName = $sName;
-            $this->sType = $sType ?? $this->getTypeFromName();
-
-            if (!in_array($this->sType, self::TYPES)) {
-                throw new Exception('Invalid Component Type');
-            }
+        private function __construct(string $sType, string $sName) {
+            $this->sType = $sType;
+            $this->sName = self::ensureNameHasType($sType, $sName);
         }
 
-        private function getTypeFromName():string {
-            $aName = explode('/', $this->sName);
-            return $aName[0];
+        private static function ensureNameHasType(string $sType, string $sName):string {
+            if ($sType == self::TYPE_REFERENCE) {
+                return $sName;
+            }
+
+            $aName = explode('/', $sName);
+            if (count($aName) === 1) {
+                array_unshift($aName, $sType);
+            } else if ($aName[0] !== $sType) {
+                array_unshift($aName, $sType);
+            }
+
+            return implode('/', $aName);
         }
 
         public function getName() {
             return $this->sName;
         }
 
-        public static function schema(string $sName, $mSchema):self {
-            $oComponent = new self($sName);
-            $oComponent->mSchema = $mSchema;
+        public function getDescription() {
+            return $this->sDescription;
+        }
+
+        public static function schema(string $sName, Component\Schema $oSchema):self {
+            $oComponent = new self(self::TYPE_SCHEMA, $sName);
+            $oComponent->mSchema = $oSchema;
             return $oComponent;
         }
 
-        public static function request(string $sName, string $sDescription, $mSchema):self {
-            $oComponent = new self($sName);
+        public static function request(string $sName, string $sDescription, Component\Request $oRequest):self {
+            $oComponent = new self(self::TYPE_REQUEST, $sName);
             $oComponent->sDescription = $sDescription;
-            $oComponent->mSchema = $mSchema;
+            $oComponent->mSchema = $oRequest;
             return $oComponent;
         }
 
-        public static function response(string $sName, string $sDescription, $mSchema):self {
-            $oComponent = new self($sName);
+        /**
+         * Defines a Response Schema or Reference.  If no Schema is given, it will use the schema for the default response as defined in FullSpecComponent
+         *
+         */
+        public static function response(string $sName, string $sDescription, ?Component\Response $oResponse = null):self {
+            $oComponent = new self(self::TYPE_RESPONSE, $sName);
             $oComponent->sDescription = $sDescription;
-            $oComponent->mSchema = $mSchema;
+            if ($oResponse) {
+                $oComponent->mSchema = $oResponse;
+            }
             return $oComponent;
         }
 
-        public static function ref(string $sName):self {
-            return new self($sName, self::TYPE_REFERENCE);
+        public static function ref(string $sName, Component):self {
+            return new self(self::TYPE_REFERENCE, $sName);
         }
 
         /**
@@ -124,8 +142,12 @@
                 'properties' => $aOutput
             ];
         }
-        
+
+        /**
+         * @return array|mixed
+         */
         public function getOpenAPI() {
+
             switch($this->sType) {
                 case self::TYPE_REFERENCE:
                     return ['$ref' => "#/components/{$this->sName}"];
@@ -136,7 +158,7 @@
                         $aResponse = [];
                         foreach($this->mSchema as $sName => $mSubSchema) {
                             if ($mSubSchema instanceof Param) {
-                                $aResponse[$sName] = $mSubSchema->JsonSchema();
+                                $aResponse[$sName] = $mSubSchema->getJsonSchema();
                             } else if ($mSubSchema instanceof self) {
                                 $aResponse[$sName] = $mSubSchema->getOpenAPI();
                             } else if (is_array($mSubSchema)) {
@@ -170,6 +192,11 @@
                     break;
 
                 case self::TYPE_RESPONSE:
+                    if (!$this->mSchema) {
+                        // If No schema is given, then simply apply the name and description to the default
+                        return self::response($this->sName, $this->sDescription, [Component::MIME_JSON => Component::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI();
+                    }
+                    
                     $oResponse = new Dot([
                         'description' => $this->sDescription,
                         'content' => []
@@ -184,7 +211,11 @@
                             case is_array($mSubSchema) && count($mSubSchema) > 1:
                                 $aSubSchemas = [];
                                 foreach($mSubSchema as $mSubSub) {
-                                    $aSubSchemas[] = $mSubSub->getOpenAPI();
+                                    if ($mSubSub instanceof self) {
+                                        $aSubSchemas[] = $mSubSub->getOpenAPI();
+                                    } else {
+                                        $aSubSchemas[] = $mSubSub;
+                                    }
                                 }
                                 $oResponse->set("content.$sMimeType.schema.allOf", $aSubSchemas);
                                 break;

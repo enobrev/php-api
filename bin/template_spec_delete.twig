@@ -1,13 +1,13 @@
 <?php
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
+    use Middlewares;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
-    use Enobrev\API\FullSpec;
-    use Enobrev\API\FullSpecComponent as FSC;
+    use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\FastRoute;
@@ -18,6 +18,8 @@
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        const ERROR_NOT_FOUND = '{{ table.title }} Not Found';
+
         public function spec(): Spec {
             return Spec::create()
                 ->httpMethod      (Method\{{ spec.http_method }})
@@ -27,20 +29,13 @@
                 ->scopes          ({{ spec.scopes|raw }})
                 ->tag             ('{{ table.name }}')
                 ->pathParams      ([
-{% for field in fields %}
-{% if field.primary %}
-                    '{{ field.short }}'{{ field.short_pad }}=> new Param\{{ field.param_class }}('{{ field.short }}',{{ field.short_pad }}Param::REQUIRED){% if not loop.last %},{% endif %}
+{% for field in primary %}
+                    '{{ field.short }}'{{ field.short_pad }}=> Param\{{ field.param_class }}::create()->required(){% if not loop.last %},{% endif %}
 
-{% endif %}
 {% endfor %}
                 ])
-                ->response(HTTP\OK,                    FSC::ref(components::RESPONSE_DELETED))
-                ->response(HTTP\NOT_FOUND,             FSC::ref(components::RESPONSE_NOT_FOUND))
-                ->response(HTTP\BAD_REQUEST,           FSC::ref(FullSpec::RESPONSE_BAD_REQUEST))           // See _request.validation
-                ->response(HTTP\UNAUTHORIZED,          FSC::ref(FullSpec::RESPONSE_UNAUTHORIZED))          // Client Should Re-Auth
-                ->response(HTTP\FORBIDDEN,             FSC::ref(FullSpec::RESPONSE_FORBIDDEN))             // Authed Client Not Allowed Access
-                ->response(HTTP\UNPROCESSABLE_ENTITY,  FSC::ref(FullSpec::RESPONSE_UNPROCESSABLE_ENTITY))  // See _request.errors
-                ->response(HTTP\INTERNAL_SERVER_ERROR, FSC::ref(FullSpec::RESPONSE_SERVER_ERROR));         // See _server.errors;
+                ->response(HTTP\OK)
+                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::create()->message(self::ERROR_NOT_FOUND));
         }
 
         /**
@@ -60,7 +55,7 @@
 
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                return $oResponse->withStatus(HTTP\NOT_FOUND, '{{ table.name }} Not Found');
+                throw Middlewares\HttpErrorException::create(HTTP\NOT_FOUND, [self::ERROR_NOT_FOUND]);
             } else {
                 $o{{ table.title }}->delete();
                 return $oResponse->withStatus(HTTP\OK);

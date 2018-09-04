@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Middleware;
 
+    use Middlewares;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -42,8 +43,6 @@
                 return $oHandler->handle($oRequest);
             }
 
-            $oBuilder = ResponseBuilder::get($oRequest);
-
             if ($oSpec->isPublic()) {
                 Log::dt($oTimer, ['public' => true]);
                 return $oHandler->handle($oRequest);
@@ -64,42 +63,8 @@
             $iStatusCode = $oResponse->getStatusCode();
 
             if ($iStatusCode >= HTTP\BAD_REQUEST) {
-                $oBuilder->set('_request.auth.error.code',     $iStatusCode . ' Error');
-                $oBuilder->set('_request.auth.error.message',  $oResponse->getStatusText());
-
-                if ($oResponse->getParameter('error')) {
-                    $sErrorCode     = $oResponse->getParameter('error');
-                    $sErrorMessage  = $oResponse->getParameter('error_description');
-
-                    if ($iStatusCode == HTTP\UNAUTHORIZED && $sErrorCode == 'invalid_token' && strpos($sErrorMessage, 'expired') !== false) {
-                        $sErrorMessage = 'Expired Token';
-                    }
-
-                    $oBuilder->set('_request.auth.error.code',     $sErrorCode);
-                    $oBuilder->set('_request.auth.error.message',  $sErrorMessage);
-
-                    Log::e('Enobrev.Middleware.OAuthVerifyResourceRequest.Error', [
-                        'status' => $iStatusCode,
-                        'error'  => [
-                            'code'    => $sErrorCode,
-                            'message' => $sErrorMessage
-                        ]
-                    ]);
-                } else {
-                    Log::e('Enobrev.Middleware.OAuthVerifyResourceRequest.Error', [
-                        'status' => $iStatusCode,
-                        'error'  => [
-                            'code'    => $iStatusCode,
-                            'message' => $oResponse->getStatusText()
-                        ]
-                    ]);
-                }
-
-                ResponseBuilder::update($oRequest, $oBuilder);
-
-                Log::setProcessIsError(true);
                 Log::dt($oTimer, ['public' => false]);
-                return new Response\JsonResponse(ResponseBuilder::get($oRequest)->all(), $iStatusCode);
+                throw Middlewares\HttpErrorException::create($iStatusCode, [$oResponse->getStatusText()]);
             }
 
             Log::dt($oTimer, ['public' => false]);

@@ -18,7 +18,7 @@
             $oTimer = Log::startTimer('Enobrev.Middleware.MetadataRequestLogs');
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
-                $oBuilder->set('_request.logs', [
+                $oBuilder->mergeRecursiveDistinct('_request.logs', [
                     'thread'  => Log::getThreadHashForOutput(),
                     'request' => Log::getRequestHashForOutput()
                 ]);

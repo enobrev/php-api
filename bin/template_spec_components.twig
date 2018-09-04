@@ -1,64 +1,70 @@
 <?php
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
+    use Enobrev\API\Exception;
     use Enobrev\API\FullSpec;
+    use Enobrev\API\FullSpec\ComponentListInterface;
+    use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\FullSpec\Component\Request;
+    use Enobrev\API\FullSpec\Component\Response;
+    use Enobrev\API\FullSpec\Component\Schema;
+
+    use Enobrev\API\HTTP;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
-    use Enobrev\API\FullSpecComponentInterface;
-    use Enobrev\API\FullSpecComponent as FSC;
 
     use {{ spec.namespace.table }};
 
-    class components implements FullSpecComponentInterface {
-        const SCHEMA_TABLE         = FSC::TYPE_SCHEMA . '/table-{{ table.name }}';
-        const SCHEMA_POST          = FSC::TYPE_SCHEMA . '/post-{{ table.name }}';
-        const SCHEMA_KEYLESS_POST  = FSC::TYPE_SCHEMA . '/post-keyless_{{ table.name }}';
-        const SCHEMA_COLLECTION    = FSC::TYPE_SCHEMA . '/collection-{{ table.name }}';
-        const SCHEMA_CMS           = FSC::TYPE_SCHEMA . '/cms-{{ table.name }}';
-        const REQUEST_POST         = FSC::TYPE_REQUEST . '/{{ table.name }}';
-        const REQUEST_KEYLESS_POST = FSC::TYPE_REQUEST . '/keyless_{{ table.name }}';
-        const RESPONSE_SUCCESS     = FSC::TYPE_RESPONSE . '/cms-{{ table.name }}';
-        const RESPONSE_DELETED     = FSC::TYPE_RESPONSE . '/deleted-{{ table.name }}';
-        const RESPONSE_NOT_FOUND   = FSC::TYPE_RESPONSE . '/not_found-{{ table.name }}';
+    class components implements ComponentListInterface {
+{% if spec.show_post %}
+        const SCHEMA_POST          = Schema::PREFIX    . '/{{ table.name }}-post';
+{% endif %}
+{% if spec.show_keyless_post %}
+        const SCHEMA_KEYLESS_POST  = Schema::PREFIX    . '/{{ table.name }}-post-keyless';
+{% endif %}
+{% if spec.show_post %}
+        const REQUEST_POST         = Request::PREFIX   . '/{{ table.name }}';
+{% endif %}
+{% if spec.show_keyless_post %}
+        const REQUEST_KEYLESS_POST = Request::PREFIX   . '/{{ table.name }}-keyless';
+{% endif %}
+        const RESPONSE_SUCCESS     = Response::PREFIX  . '/{{ table.name }}-cms';
 
-        /** @return FSC[] */
+        /** @return ComponentListInterface[] */
         public function components(): array {
             return [
-                FSC::schema(self::SCHEMA_TABLE, Spec::tableToJsonSchema(new {{ table.class }})),
-                FSC::schema(self::SCHEMA_POST, Spec::tableToJsonSchema(new {{ table.class }}, 0, {{ spec.non_post|raw }})),
-                FSC::schema(self::SCHEMA_KEYLESS_POST, Spec::tableToJsonSchema(new {{ table.class }}, 0, {{ spec.non_keyless_post|raw }})),
-                FSC::request(self::REQUEST_POST, '`{{ table.name }}` Request', [
-                    FSC::MIME_FORM => FSC::ref(self::SCHEMA_POST),
-                    FSC::MIME_JSON => FSC::ref(self::SCHEMA_POST)
-                ]),
-                FSC::request(self::REQUEST_KEYLESS_POST, '`{{ table.name }}` Request', [
-                    FSC::MIME_FORM => FSC::ref(self::SCHEMA_KEYLESS_POST),
-                    FSC::MIME_JSON => FSC::ref(self::SCHEMA_KEYLESS_POST)
-                ]),
-                FSC::schema(self::SCHEMA_COLLECTION, FSC::arrayToOAObject([
-                    '{{ table.name }}.{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => FSC::ref(self::SCHEMA_TABLE)
-                ])),
-                FSC::schema(self::SCHEMA_CMS, FSC::arrayToOAObject([
-                    'counts.{{ table.name }}' => new Param\_Integer('{{ table.name }}'),
-                    'sorts.{{ table.name }}'  => new Param\_Array('{{ table.name }}', 0, ['items' => new Param\{{ primary.0.param_class }}('items')])
-                ])),
-                FSC::response(self::RESPONSE_SUCCESS, 'Successful `{{ table.name }}` Response', [
-                    FSC::MIME_JSON => [
-                        FSC::ref(FullSpec::SCHEMA_DEFAULT),
-                        FSC::ref(self::SCHEMA_CMS),
-                        FSC::ref(self::SCHEMA_COLLECTION)
-                    ]
-                ]),
-                FSC::response(self::RESPONSE_DELETED, '`{{ table.name }}` Deleted', [
-                    FSC::MIME_JSON => [
-                        FSC::ref(FullSpec::SCHEMA_DEFAULT)
-                    ]
-                ]),
-                FSC::response(self::RESPONSE_NOT_FOUND, '`{{ table.name }}` Not Found', [
-                    FSC::MIME_JSON => [
-                        FSC::ref(FullSpec::SCHEMA_DEFAULT)
-                    ]
-                ])
+{% if spec.show_post %}
+                Schema::create(self::SCHEMA_POST)->schema(Spec::tableToJsonSchema(new {{ table.class }}, 0, {{ spec.non_post|raw }})),
+{% endif %}
+{% if spec.show_keyless_post %}
+                Schema::create(self::SCHEMA_KEYLESS_POST)->schema(Spec::tableToJsonSchema(new {{ table.class }}, 0, {{ spec.non_keyless_post|raw }})),
+{% endif %}
+{% if spec.show_post %}
+                Request::create(self::REQUEST_POST)
+                    ->description('`{{ table.name }}` Request')
+                    ->post(Reference::create(self::SCHEMA_POST))
+                    ->json(Reference::create(self::SCHEMA_POST)),
+
+{% endif %}
+{% if spec.show_keyless_post %}
+                Request::create(self::REQUEST_KEYLESS_POST)
+                    ->description('`{{ table.name }}` Request')
+                    ->post(Reference::create(self::SCHEMA_KEYLESS_POST))
+                    ->json(Reference::create(self::SCHEMA_KEYLESS_POST)),
+
+{% endif %}
+                Response::create(self::RESPONSE_SUCCESS)
+                    ->description('Successful `{{ table.name }}` Response')
+                    ->json(
+                        Spec\JsonResponse::allOf([
+                            Reference::create(FullSpec::SCHEMA_DEFAULT),
+                            [
+                                'counts.{{ table.name }}' => Param\_Integer::create(),
+                                'sorts.{{ table.name }}'  => Param\_Array::create()->items(new Param\_String()),
+                                '{{ table.name }}.{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => Spec::tableToJsonSchema(new {{ table.class }})
+                            ]
+                        ])
+                    )
             ];
         }
     }

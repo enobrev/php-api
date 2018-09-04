@@ -19,7 +19,7 @@
             $oTimer = Log::startTimer('Enobrev.Middleware.MetadataRequest');
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
-                $oBuilder->set('_request', [
+                $oBuilder->mergeRecursiveDistinct('_request', [
                     'method'     => $oRequest->getMethod(),
                     'path'       => $oRequest->getUri()->getPath(),
                     'params'     => [

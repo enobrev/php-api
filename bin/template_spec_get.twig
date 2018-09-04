@@ -2,14 +2,14 @@
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
     use Adbar\Dot;
+    use Middlewares;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\DataMap;
-    use Enobrev\API\FullSpec;
-    use Enobrev\API\FullSpecComponent as FSC;
+    use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\FastRoute;
@@ -21,6 +21,8 @@
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        const ERROR_NOT_FOUND = '{{ table.title }} Not Found';
+
         public function spec(): Spec {
             return Spec::create()
                 ->httpMethod      (Method\{{ spec.http_method }})
@@ -35,27 +37,18 @@
                 ->tag             ('{{ table.name }}')
                 ->pathParams      ([
 {% if primary|length > 1 %}
-{% for field in fields %}
-{% if field.primary %}
-                    '{{ field.short }}'{{ field.short_pad }}=> new Param\{{ field.param_class }}('{{ field.short }}',{{ field.short_pad }}Param::REQUIRED){% if not loop.last %},{% endif %}
+{% for field in primary %}
+                    '{{ field.short }}'{{ field.short_pad }}=> Param\{{ field.param_class }}::create()->required(){% if not loop.last %},{% endif %}
 
-{% endif %}
 {% endfor %}
 {% else %}
-{% for field in fields %}
-{% if field.primary %}
-                    '{{ field.short }}' => new Param\_Array('{{ field.short }}', Param::REQUIRED, ['items' => new Param\{{ field.param_class }}('items')])
-{% endif %}
+{% for field in primary %}
+                    '{{ field.short }}' => Param\_Array::create()->required()->items(new Param\{{ field.param_class }})
 {% endfor %}
 {% endif %}
                 ])
-                ->response(HTTP\OK,                     FSC::ref(components::RESPONSE_SUCCESS))
-                ->response(HTTP\NOT_FOUND,              FSC::ref(components::RESPONSE_NOT_FOUND))
-                ->response(HTTP\BAD_REQUEST,            FSC::ref(FullSpec::RESPONSE_BAD_REQUEST))           // See _request.validation
-                ->response(HTTP\UNAUTHORIZED,           FSC::ref(FullSpec::RESPONSE_UNAUTHORIZED))          // Client Should Re-Auth
-                ->response(HTTP\FORBIDDEN,              FSC::ref(FullSpec::RESPONSE_FORBIDDEN))             // Authed Client Not Allowed Access
-                ->response(HTTP\UNPROCESSABLE_ENTITY,   FSC::ref(FullSpec::RESPONSE_UNPROCESSABLE_ENTITY))  // See _request.errors
-                ->response(HTTP\INTERNAL_SERVER_ERROR,  FSC::ref(FullSpec::RESPONSE_SERVER_ERROR));         // See _server.errors
+                ->response(HTTP\OK,        Reference::create(components::RESPONSE_SUCCESS))
+                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::create()->message(self::ERROR_NOT_FOUND));
         }
 
         /**
@@ -64,15 +57,24 @@
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
          * @return Dot
+         * @throws NotFoundException
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
 {% if primary|length > 1 %}
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
-            if ($o{{ table.title }} instanceof {{ table.class }}) {
-                $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+
+            if ($o{{ table.title }} instanceof {{ table.class }} === false) {
+                throw Middlewares\HttpErrorException::create(HTTP\NOT_FOUND, [self::ERROR_NOT_FOUND]);
             }
+
+            $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
 {% else %}
             $a{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+
+            if (!count($a{{ table.plural }})) {
+                throw Middlewares\HttpErrorException::create(HTTP\NOT_FOUND, [self::ERROR_NOT_FOUND]);
+            }
+
             foreach($a{{ table.plural }} as $o{{ table.title }}) {
                 $oResponse->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
             }

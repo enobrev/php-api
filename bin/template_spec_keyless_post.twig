@@ -7,8 +7,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
-    use Enobrev\API\FullSpec;
-    use Enobrev\API\FullSpecComponent as FSC;
+    use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\FastRoute;
@@ -27,14 +26,11 @@
                 ->description       ('Create or Update `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %} in POST body')
                 ->scopes            ({{ spec.scopes|raw }})
                 ->tag               ('{{ table.name }}')
-                ->postBodyReference (FSC::ref(components::REQUEST_KEYLESS_POST))
-                ->response(HTTP\OK,                     FSC::ref(components::RESPONSE_SUCCESS))
-                ->response(HTTP\CREATED,                FSC::ref(FullSpec::RESPONSE_CREATED))               // Created (Location may be in Header)
-                ->response(HTTP\BAD_REQUEST,            FSC::ref(FullSpec::RESPONSE_BAD_REQUEST))           // See _request.validation
-                ->response(HTTP\UNAUTHORIZED,           FSC::ref(FullSpec::RESPONSE_UNAUTHORIZED))          // Re-Auth
-                ->response(HTTP\FORBIDDEN,              FSC::ref(FullSpec::RESPONSE_FORBIDDEN))             // Access Not Allowed
-                ->response(HTTP\UNPROCESSABLE_ENTITY,   FSC::ref(FullSpec::RESPONSE_UNPROCESSABLE_ENTITY))  // See _request.errors
-                ->response(HTTP\INTERNAL_SERVER_ERROR,  FSC::ref(FullSpec::RESPONSE_SERVER_ERROR));         // See _server.errors
+{% if spec.show_keyless_post %}
+                ->postBodyReference (Reference::create(components::REQUEST_KEYLESS_POST))
+{% endif %}
+                ->response(HTTP\OK,      Reference::create(components::RESPONSE_SUCCESS))
+                ->response(HTTP\CREATED, Reference::create(components::RESPONSE_SUCCESS));
         }
 
 {% if primary|length == 1 %}

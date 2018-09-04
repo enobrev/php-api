@@ -18,9 +18,7 @@
             $oTimer = Log::startTimer('Enobrev.Middleware.MetadataResponse');
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
-                $oBuilder->set('_response', [
-                    'status' => $oHandler->handle($oRequest)->getStatusCode()
-                ]);
+                $oBuilder->set('_request.status', $oHandler->handle($oRequest)->getStatusCode());
                 ResponseBuilder::update($oRequest, $oBuilder);
             }
 

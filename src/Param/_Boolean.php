@@ -4,7 +4,23 @@
     use Enobrev\API\Param;
 
     class _Boolean extends Param {
-        public function __construct(string $sName, int $iOptions = 0, ?array $aValidation = null, ?string $sDescription = null) {
-            parent::__construct($sName, $iOptions | Param::BOOLEAN, $aValidation, $sDescription);
+        public static function create(): self {
+            return new self();
+        }
+
+        public function __construct() {
+            parent::__construct(Param::BOOLEAN);
+        }
+
+        public function default($bDefault):Param {
+            return $this->validation(['default' => (bool) $bDefault]);
+        }
+
+        public function getJsonSchema(): array {
+            return parent::getJsonSchema();
+        }
+
+        public function getOpenAPI(): array {
+            return parent::getOpenAPI();
         }
     }

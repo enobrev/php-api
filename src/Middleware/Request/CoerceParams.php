@@ -31,11 +31,11 @@
 
             $aPathParams = FastRoute::getPathParams($oRequest);
             if ($aPathParams) {
-                foreach ($oSpec->getPathParams() as $oParam) {
-                    if ($oParam->is(Param::ARRAY) && isset($aPathParams[$oParam->sName])) {
-                        $aPathParams[$oParam->sName] = explode(',', $aPathParams[$oParam->sName]);
-                        $aPathParams[$oParam->sName] = array_map('trim', $aPathParams[$oParam->sName]);
-                        $aCoerced[] = $oParam->sName;
+                foreach ($oSpec->getPathParams() as $sParam => $oParam) {
+                    if ($oParam instanceof Param\_Array && isset($aPathParams[$sParam])) {
+                        $aPathParams[$sParam] = explode(',', $aPathParams[$sParam]);
+                        $aPathParams[$sParam] = array_map('trim', $aPathParams[$sParam]);
+                        $aCoerced[] = $sParam;
                     }
                 }
                 
@@ -44,11 +44,11 @@
 
             $aQueryParams = $oRequest->getQueryParams();
             if ($aQueryParams) {
-                foreach ($oSpec->getQueryParams() as $oParam) {
-                    if ($oParam->is(Param::ARRAY) && isset($aQueryParams[$oParam->sName]) && is_string($aQueryParams[$oParam->sName])) {
-                        $aQueryParams[$oParam->sName] = explode(',', $aQueryParams[$oParam->sName]);
-                        $aQueryParams[$oParam->sName] = array_map('trim', $aQueryParams[$oParam->sName]);
-                        $aCoerced[] = $oParam->sName;
+                foreach ($oSpec->getQueryParams() as $sParam => $oParam) {
+                    if ($oParam instanceof Param\_Array && isset($aQueryParams[$sParam]) && is_string($aQueryParams[$sParam])) {
+                        $aQueryParams[$sParam] = explode(',', $aQueryParams[$sParam]);
+                        $aQueryParams[$sParam] = array_map('trim', $aQueryParams[$sParam]);
+                        $aCoerced[] = $sParam;
                     }
                 }
 
@@ -57,11 +57,11 @@
 
             $aPostParams = $oRequest->getParsedBody();
             if ($aPostParams) {
-                foreach ($oSpec->getPostParams() as $oParam) {
-                    if ($oParam->is(Param::ARRAY) && isset($aPostParams[$oParam->sName]) && is_string($aPostParams[$oParam->sName])) {
-                        $aPostParams[$oParam->sName] = explode(',', $aPostParams[$oParam->sName]);
-                        $aPostParams[$oParam->sName] = array_map('trim', $aPostParams[$oParam->sName]);
-                        $aCoerced[] = $oParam->sName;
+                foreach ($oSpec->getPostParams() as $sParam => $oParam) {
+                    if ($oParam instanceof Param\_Array && isset($aPostParams[$sParam]) && is_string($aPostParams[$sParam])) {
+                        $aPostParams[$sParam] = explode(',', $aPostParams[$sParam]);
+                        $aPostParams[$sParam] = array_map('trim', $aPostParams[$sParam]);
+                        $aCoerced[] = $sParam;
                     }
                 }
 
