@@ -3,20 +3,17 @@
     
     use Enobrev\API\Exception;
     use Enobrev\API\Param;
+    use Enobrev\API\ParamTrait;
     use function Enobrev\dbg;
 
     class _Array extends Param {
-        public static function create(): self {
-            return new self();
-        }
+        use ParamTrait;
 
-        public function __construct() {
-            parent::__construct(Param::ARRAY);
-        }
+        /** @var string */
+        protected $sType = Param::ARRAY;
 
         public function items(Param $oItems): self {
-            $this->validation(['items' => $oItems]);
-            return $this;
+            return $this->validation(['items' => $oItems]);
         }
 
         protected function getValidationForSchema():array {

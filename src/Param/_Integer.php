@@ -2,15 +2,13 @@
     namespace Enobrev\API\Param;
     
     use Enobrev\API\Param;
+    use Enobrev\API\ParamTrait;
 
     class _Integer extends Param {
-        public static function create(): self {
-            return new self();
-        }
+        use ParamTrait;
 
-        public function __construct() {
-            parent::__construct(Param::INTEGER);
-        }
+        /** @var string */
+        protected $sType = Param::INTEGER;
 
         public function getJsonSchema(): array {
             return parent::getJsonSchema();
@@ -21,18 +19,16 @@
         }
 
         public function minimum(int $iMinimum, $bExclusive = false): self {
-            $this->validation(['minimum' => $iMinimum]);
             if ($bExclusive) {
-                $this->validation(['exclusiveMinimum' => $bExclusive]);
+                return $this->validation(['minimum' => $iMinimum])->validation(['exclusiveMinimum' => $bExclusive]);
             }
-            return $this;
+            return $this->validation(['minimum' => $iMinimum]);
         }
 
         public function maximum(int $iMaximum, $bExclusive = false): self {
-            $this->validation(['maximum' => $iMaximum]);
             if ($bExclusive) {
-                $this->validation(['exclusiveMaximum' => $bExclusive]);
+                return $this->validation(['maximum' => $iMaximum])->validation(['exclusiveMaximum' => $bExclusive]);
             }
-            return $this;
+            return $this->validation(['maximum' => $iMaximum]);
         }
     }

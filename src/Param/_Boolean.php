@@ -2,15 +2,13 @@
     namespace Enobrev\API\Param;
     
     use Enobrev\API\Param;
+    use Enobrev\API\ParamTrait;
 
     class _Boolean extends Param {
-        public static function create(): self {
-            return new self();
-        }
+        use ParamTrait;
 
-        public function __construct() {
-            parent::__construct(Param::BOOLEAN);
-        }
+        /** @var string */
+        protected $sType = Param::BOOLEAN;
 
         public function default($bDefault):Param {
             return $this->validation(['default' => (bool) $bDefault]);

@@ -73,6 +73,9 @@
         /** @var Spec[] */
         private $aPaths;
 
+        /** @var Spec[] */
+        private $aSpecs;
+
         public function __construct() {
             $this->aComponents      = [];
             $this->aSpecs           = [];
@@ -334,6 +337,7 @@
 
         /**
          * @throws Exception\Response
+         * @deprecated
          */
         private function tablesFromFile() {
             $aDatabase  = self::getDatabaseSchema();
@@ -388,6 +392,7 @@
 
         /**
          * @throws Exception\Response
+         * @deprecated
          */
         private function specsFromSQLFile() {
             $aDatabase  = self::getDatabaseSchema();
@@ -412,6 +417,7 @@
 
         /**
          * @throws ReflectionException
+         * @deprecated
          */
         private function specsFromClasses() {
             foreach (self::$aVersions as $sVersion) {

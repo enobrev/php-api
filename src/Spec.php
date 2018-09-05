@@ -25,7 +25,10 @@
         /** @var string */
         private $sDescription;
 
-        /** @var boolean */
+        /**
+         * @var boolean
+         * @deprecated
+         */
         private $bRequestValidated = false;
 
         /** @var boolean */
@@ -800,7 +803,6 @@
             return [
                 'Summary'           => $this->sSummary,
                 'Description'       => $this->sDescription,
-                'RequestValidated'  => $this->bRequestValidated,
                 'Deprecated'        => $this->bDeprecated,
                 'Path'              => $this->sPath,
                 'Public'            => $this->bPublic,

@@ -2,14 +2,26 @@
     namespace Enobrev\API\Param;
     
     use Enobrev\API\Param;
+    use Enobrev\API\ParamTrait;
 
     class _Number extends Param {
-        public static function create(): self {
-            return new self();
+        use ParamTrait;
+
+        /** @var string */
+        protected $sType = Param::NUMBER;
+
+        public function minimum(int $iMinimum, $bExclusive = false): self {
+            if ($bExclusive) {
+                return $this->validation(['minimum' => $iMinimum])->validation(['exclusiveMinimum' => $bExclusive]);
+            }
+            return $this->validation(['minimum' => $iMinimum]);
         }
 
-        public function __construct() {
-            parent::__construct(Param::NUMBER);
+        public function maximum(int $iMaximum, $bExclusive = false): self {
+            if ($bExclusive) {
+                return $this->validation(['maximum' => $iMaximum])->validation(['exclusiveMaximum' => $bExclusive]);
+            }
+            return $this->validation(['maximum' => $iMaximum]);
         }
 
         public function getJsonSchema(): array {
@@ -18,21 +30,5 @@
 
         public function getOpenAPI(): array {
             return parent::getOpenAPI();
-        }
-
-        public function minimum(int $iMinimum, $bExclusive = false): self {
-            $this->validation(['minimum' => $iMinimum]);
-            if ($bExclusive) {
-                $this->validation(['exclusiveMinimum' => $bExclusive]);
-            }
-            return $this;
-        }
-
-        public function maximum(int $iMaximum, $bExclusive = false): self {
-            $this->validation(['maximum' => $iMaximum]);
-            if ($bExclusive) {
-                $this->validation(['exclusiveMaximum' => $bExclusive]);
-            }
-            return $this;
         }
     }

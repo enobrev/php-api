@@ -4,24 +4,21 @@
     use Enobrev\API\Exception;
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\Param;
+    use Enobrev\API\ParamTrait;
     use Enobrev\API\Spec;
 
     class _Object extends Param {
-        public static function create(): self {
-            return new self();
-        }
+        use ParamTrait;
 
-        public function __construct() {
-            parent::__construct(Param::OBJECT);
-        }
+        /** @var string */
+        protected $sType = Param::OBJECT;
 
         /**
          * @param Param[] $aItems
          * @return _Object
          */
         public function items(array $aItems): self {
-            $this->validation(['items' => $aItems]);
-            return $this;
+            return $this->validation(['items' => $aItems]);
         }
 
         public function getJsonSchema(): array {

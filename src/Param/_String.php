@@ -2,23 +2,13 @@
     namespace Enobrev\API\Param;
 
     use Enobrev\API\Param;
+    use Enobrev\API\ParamTrait;
 
     class _String extends Param {
-        public static function create(): self {
-            return new self();
-        }
+        use ParamTrait;
 
-        public function __construct() {
-            parent::__construct(Param::STRING);
-        }
-
-        public function getJsonSchema(): array {
-            return parent::getJsonSchema();
-        }
-
-        public function getOpenAPI(): array {
-            return parent::getOpenAPI();
-        }
+        /** @var string */
+        protected $sType = Param::STRING;
 
         /**
          *
@@ -32,22 +22,26 @@
          * @return _String
          */
         public function format(string $sFormat): self {
-            $this->validation(['format' => $sFormat]);
-            return $this;
+            return $this->validation(['format' => $sFormat]);
         }
 
         public function pattern(string $sFormat): self {
-            $this->validation(['pattern' => $sFormat]);
-            return $this;
+            return $this->validation(['pattern' => $sFormat]);
         }
 
         public function minLength(int $iMinimum): self {
-            $this->validation(['minLength' => $iMinimum]);
-            return $this;
+            return $this->validation(['minLength' => $iMinimum]);
         }
 
         public function maxLength(int $iMaximum): self {
-            $this->validation(['maxLength' => $iMaximum]);
-            return $this;
+            return $this->validation(['maxLength' => $iMaximum]);
+        }
+
+        public function getJsonSchema(): array {
+            return parent::getJsonSchema();
+        }
+
+        public function getOpenAPI(): array {
+            return parent::getOpenAPI();
         }
     }
