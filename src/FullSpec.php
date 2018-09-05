@@ -266,7 +266,7 @@
                                 JsonResponse::create()->allOf([
                                     Component\Reference::create(FullSpec::SCHEMA_DEFAULT),
                                     [
-                                        '_request.multiquery' => Component\Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI()
+                                        '_request.multiquery' => Component\Reference::create(FullSpec::RESPONSE_DEFAULT)
 
                                     ]
                                 ])
