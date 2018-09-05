@@ -32,8 +32,4 @@
 
             return parent::getJsonSchema();
         }
-
-        public function getOpenAPI(): array {
-            return parent::getOpenAPI();
-        }
     }

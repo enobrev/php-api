@@ -14,10 +14,6 @@
             return parent::getJsonSchema();
         }
 
-        public function getOpenAPI(): array {
-            return parent::getOpenAPI();
-        }
-
         public function minimum(int $iMinimum, $bExclusive = false): self {
             if ($bExclusive) {
                 return $this->validation(['minimum' => $iMinimum])->validation(['exclusiveMinimum' => $bExclusive]);

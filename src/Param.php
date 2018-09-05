@@ -1,7 +1,7 @@
 <?php
     namespace Enobrev\API;
 
-    abstract class Param implements OpenApiInterface, JsonSchemaInterface {
+    abstract class Param implements JsonSchemaInterface {
         const STRING     = 'string';
         const NUMBER     = 'number';
         const INTEGER    = 'integer';
@@ -69,6 +69,8 @@
         public function getJsonSchema(): array {
             $aSchema = $this->getValidationForSchema();
             $aSchema['type'] = $this->getType();
+            /*
+             * This generates errors on OpenAPI Spec, though it's valid JsonSchema
             if ($this->isNullable()) {
                 return [
                     'anyOf' => [
@@ -77,6 +79,7 @@
                     ]
                 ];
             }
+            */
 
             if ($this->sDescription) {
                 $aSchema['description'] = $this->sDescription;

@@ -47,8 +47,4 @@
 
             return $aSchema;
         }
-
-        public function getOpenAPI(): array {
-            return parent::getOpenAPI();
-        }
     }
