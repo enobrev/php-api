@@ -537,20 +537,21 @@
             ],
             "_server" => [
                 "type" => "object",
+                "additionalProperties"=> false,
                 "properties"=> [
-                    "timezone"      => ["type" => "string"],
-                    "timezone_gmt"  => ["type" => "string"],
-                    "date"          => ["type" => "string"],
-                    "date_w3c"      => ["type" => "string"]
-                ],
-                "additionalProperties"=> false
+                    "timezone"      => ["type" => "string", "example" => 'CDT'],
+                    "timezone_gmt"  => ["type" => "string", "example" => '-05:00'],
+                    "date"          => ["type" => "string", "example" => '2018-08-31 16:57:21'],
+                    "date_w3c"      => ["type" => "string", "example" => '2018-08-31T16:57:21-05:00']
+                ]
             ],
             "_request" => [
                 "type" => "object",
-                "properties"=> [
+                "additionalProperties"=> false,
+                "properties" => [
                     "method"        => [
                         "type" => "string",
-                        "enum" => ["GET", "POST", "PUT", "DELETE"]
+                        "enum" => ["GET", "POST", "DELETE"]
                     ],
                     "path"          => ["type" => "string"],
                     "params"         => [
@@ -587,12 +588,12 @@
                             ]
                         ]
                     ],
-                    "status" => ["type" => "integer"]
-                ],
-                "additionalProperties"=> false
+                    "status" => ["type" => "integer", "default" => 200]
+                ]
             ],
             "_response" => [
                 "type" => "object",
+                "additionalProperties"=> false,
                 "properties"=> [
                     "validation" => [
                         "type" => "object",
@@ -603,8 +604,7 @@
                             ]
                         ]
                     ]
-                ],
-                "additionalProperties"=> false
+                ]
             ]
         ];
     }

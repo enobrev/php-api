@@ -1,10 +1,6 @@
 <?php
     namespace Enobrev\API;
 
-
-    use function Enobrev\dbg;
-    use function Enobrev\trace;
-
     abstract class Param implements OpenApiInterface, JsonSchemaInterface {
         const STRING     = 'string';
         const NUMBER     = 'number';
