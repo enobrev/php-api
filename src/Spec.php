@@ -55,26 +55,29 @@
         /** @var Param[] */
         private $aPostParams = [];
 
+        /** @var Param[] */
+        private $aHeaderParams = [];
+
         /** @var OpenApiInterface */
         private $oPostBodyReference;
 
-        /** @var array */
+        /**
+         * @var array
+         * @deprecated
+         */
         private $aResponseSchema;
 
-        /** @var string */
+        /**
+         * @var string
+         * @deprecated
+         */
         private $sResponseReference;
-
-        /** @var Param[] */
-        private $aInHeaders = [];
-
-        /** @var Param[] */
-        private $aOutHeaders = [];
-
-        /** @var array */
-        private $aCodeSamples = [];
 
         /** @var array */
         private $aResponseHeaders = [];
+
+        /** @var array */
+        private $aCodeSamples = [];
 
         /** @var string[] */
         private $aTags = [];
@@ -186,33 +189,39 @@
         }
 
         public function summary(string $sSummary):self {
-            $this->sSummary = $sSummary;
-            return $this;
+            $oClone = clone $this;
+            $oClone->sSummary = $sSummary;
+            return $oClone;
         }
 
         public function description(string $sDescription):self {
-            $this->sDescription = $sDescription;
-            return $this;
+            $oClone = clone $this;
+            $oClone->sDescription = $sDescription;
+            return $oClone;
         }
 
         public function deprecated(?bool $bDeprecated = true):self {
-            $this->bDeprecated = $bDeprecated;
-            return $this;
+            $oClone = clone $this;
+            $oClone->bDeprecated = $bDeprecated;
+            return $oClone;
         }
 
         public function path(string $sPath):self {
-            $this->sPath = $sPath;
-            return $this;
+            $oClone = clone $this;
+            $oClone->sPath = $sPath;
+            return $oClone;
         }
 
         public function httpMethod(string $sHttpMethod):self {
-            $this->sHttpMethod = $sHttpMethod;
-            return $this;
+            $oClone = clone $this;
+            $oClone->sHttpMethod = $sHttpMethod;
+            return $oClone;
         }
 
         public function method(string $sMethod):self {
-            $this->sMethod = $sMethod;
-            return $this;
+            $oClone = clone $this;
+            $oClone->sMethod = $sMethod;
+            return $oClone;
         }
 
         /**
@@ -224,77 +233,130 @@
             if (!array_not_associative($aScopes)) {
                 throw new Exception('Please define Scopes as a non-Associative Array');
             }
-            $this->aScopes = $aScopes;
-            return $this;
+
+            $oClone = clone $this;
+            $oClone->aScopes = $aScopes;
+            return $oClone;
         }
 
         public function setPublic(bool $bPublic = true):self {
-            $this->bPublic = $bPublic;
-            return $this;
+            $oClone = clone $this;
+            $oClone->bPublic = $bPublic;
+            return $oClone;
         }
 
+        /**
+         * @param Param[] $aParams
+         * @return Spec
+         */
         public function pathParams(array $aParams):self {
-            $this->aPathParams = $aParams;
-            return $this;
+            $oClone = clone $this;
+            $oClone->aPathParams = $aParams;
+            return $oClone;
         }
 
+        /**
+         * @param Param[] $aParams
+         * @return Spec
+         */
         public function queryParams(array $aParams):self {
-            $this->aQueryParams = $aParams;
-            return $this;
+            $oClone = clone $this;
+            $oClone->aQueryParams = $aParams;
+            return $oClone;
+        }
+
+        /**
+         * @param Param[] $aParams
+         * @return Spec
+         */
+        public function headerParams(array $aParams):self {
+            $oClone = clone $this;
+            $oClone->aHeaderParams = $aParams;
+            return $oClone;
         }
 
         public function postBodyReference(ComponentInterface $oReference):self {
-            $this->oPostBodyReference = $oReference;
-            return $this;
+            $oClone = clone $this;
+            $oClone->oPostBodyReference = $oReference;
+            return $oClone;
         }
 
         public function postParams(array $aParams):self {
-            $this->aPostParams = $aParams;
-            return $this;
+            $oClone = clone $this;
+            $oClone->aPostParams = $aParams;
+            return $oClone;
         }
 
         public function responseHeader(string $sHeader, string $sValue):self {
-            $this->aResponseHeaders[$sHeader] = $sValue;
-            return $this;
+            $oClone = clone $this;
+            $oClone->aResponseHeaders[$sHeader] = $sValue;
+            return $oClone;
         }
 
-        public function removeResponse(int $iStatus):self {
-            unset($this->aResponses[$iStatus]);
-            return $this;
+        /**
+         * @param int $iStatus
+         * @return Spec
+         * @deprecated
+         */
+        public function withoutResponse(int $iStatus):self {
+            $oClone = clone $this;
+            unset($oClone->aResponses[$iStatus]);
+            return $oClone;
         }
 
         public function response($iStatus, $mResponse = null):self {
+            $oClone = clone $this;
             if (!isset($this->aResponses[$iStatus])) {
-                $this->aResponses[$iStatus] = [];
+                $oClone->aResponses[$iStatus] = [];
             }
 
-            $this->aResponses[$iStatus][] = $mResponse;
-            return $this;
+            $oClone->aResponses[$iStatus][] = $mResponse;
+            return $oClone;
         }
 
         public function tags(array $aTags):self {
-            $this->aTags += $aTags;
-            $this->aTags = array_unique($aTags);
-            return $this;
+            $oClone = clone $this;
+            $oClone->aTags += $aTags;
+            $oClone->aTags = array_unique($aTags);
+            return $oClone;
         }
 
         public function tag(string $sName):self {
-            $this->aTags[] = $sName;
-            return $this;
+            $oClone = clone $this;
+            $oClone->aTags[] = $sName;
+            return $oClone;
+        }
+
+        public function codeSample(string $sLanguage, string $sSource):self {
+            $oClone = clone $this;
+            $oClone->aCodeSamples[$sLanguage] = $sSource;
+            return $oClone;
         }
 
         public function inTable(Table $oTable):self {
             return $this->queryParams(self::tableToParams($oTable));
         }
 
+        /**
+         * @param array $aSchema
+         * @return Spec
+         * @deprecated
+         */
         public function responseSchema(array $aSchema):self {
-            $this->aResponseSchema = $aSchema;
-            return $this;
+            $oClone = clone $this;
+            $oClone->aResponseSchema = $aSchema;
+            return $oClone;
         }
 
+        /**
+         * @param string $aReference
+         * @return Spec
+         * @deprecated
+         */
         public function responseReference(string $aReference):self {
-            $this->sResponseReference = $aReference;
-            return $this;
+            $oClone = clone $this;
+            $oClone->sResponseReference = $aReference;
+            return $oClone;
         }
 
         public static function tableToJsonSchema(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
@@ -381,25 +443,11 @@
             return $oParam;
         }
 
-        public function inHeaders(array $aHeaders):self {
-            $this->aInHeaders = $aHeaders;
-            return $this;
-        }
-
-        public function outHeaders(array $aHeaders):self {
-            $this->aOutHeaders = $aHeaders;
-            return $this;
-        }
-
-        public function codeSample(string $sLanguage, string $sSource):self {
-            $this->aCodeSamples[$sLanguage] = $sSource;
-            return $this;
-        }
-
         /**
          * @param Request $oRequest
          * @param Response $oResponse
          * @throws InvalidRequest
+         * @deprecated
          */
         public function validateRequest(Request $oRequest,  Response $oResponse) {
             $this->bRequestValidated = true;
@@ -423,6 +471,7 @@
          * @param Request $oRequest
          * @param Response $oResponse
          * @throws InvalidRequest
+         * @deprecated
          */
         private function validateQueryParameters(Request $oRequest, Response $oResponse) {
             $aParameters = $oRequest->queryParams();
@@ -434,6 +483,7 @@
          * @param array $aParameters
          * @param Response $oResponse
          * @throws InvalidRequest
+         * @deprecated
          */
         private function validateParameters(array $aSpecParameters, array $aParameters, Response $oResponse) {
             // Coerce CSV Params
@@ -471,19 +521,6 @@
                 $oResponse->add('_request.validation.status', 'PASS');
                 //$oRequest->ValidatedParams = (array) $oParameters;
             }
-        }
-
-        public function paramsToResponseSchema(array $aParams): Dot {
-            if (count($aParams) && isset($aParams['type']) && isset($aParams['properties'])) { // JSONSchema
-                $oSchema = new Dot($aParams);
-            } else {
-                $oSchema = new Dot(self::toJsonSchema($aParams));
-            }
-
-            $oSchema->set("properties._server", ['$ref' => "#/components/schemas/_server"]);
-            $oSchema->set("properties._request", ['$ref' => "#/components/schemas/_request"]);
-
-            return $oSchema;
         }
 
         /**
@@ -578,6 +615,22 @@
                     $aParameters[] = $aParam;
                 } else {
                     $aParameters[] = $oParam->OpenAPI($sParam, 'query');
+                }
+            }
+
+            $oHeaderJsonParams = new Dot(self::toJsonSchema($this->aHeaderParams));
+
+            foreach($this->aHeaderParams as $sParam => $oParam) {
+                if (strpos($sParam, '.') !== false) {
+                    continue;
+                }
+
+                if ($oParam instanceof Param\_Object) {
+                    $aParam = $oParam->OpenAPI($sParam, 'header');
+                    $aParam['schema'] = $oHeaderJsonParams->get("properties.{$sParam}");
+                    $aParameters[] = $aParam;
+                } else {
+                    $aParameters[] = $oParam->OpenAPI($sParam, 'header');
                 }
             }
 
@@ -691,6 +744,10 @@
                         $aMethod['responses'][$iStatus] = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
                     }
                 }
+
+                if ($this->aResponseHeaders) {
+                    $aMethod['responses'][$iStatus]['headers'] = $this->aResponseHeaders;
+                }
             }
 
 
@@ -753,10 +810,7 @@
                 'PathParams'        => $aPathParams,
                 'QueryParams'       => $aQueryParams,
                 'PostParams'        => $aPostParams,
-                'ResponseSchema'    => $this->aResponseSchema,
-                'ResponseReference' => $this->sResponseReference,
-                'InHeaders'         => $this->aInHeaders,
-                'OutHeaders'        => $this->aOutHeaders,
+                'InHeaders'         => $this->aHeaderParams,
                 'CodeSamples'       => $this->aCodeSamples,
                 'ResponseHeaders'   => $this->aResponseHeaders,
                 'Responses'         => $this->aResponses,
