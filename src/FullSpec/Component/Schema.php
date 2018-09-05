@@ -4,6 +4,8 @@
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\OpenApiInterface;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
     use function Enobrev\dbg;
 
     class Schema implements ComponentInterface, OpenApiInterface {
@@ -45,15 +47,7 @@
             } else if ($this->aSchema instanceof JsonSchemaInterface) {
                 return $this->aSchema->getJsonSchema();
             } else if (is_array($this->aSchema)) {
-                $aResponse = [];
-                foreach($this->aSchema as $sName => $mSchema) {
-                    if (is_scalar($mSchema)) {
-                        $aResponse[$sName] = $mSchema;
-                    } else {
-                        $aResponse[$sName] = self::create($sName)->schema($mSchema)->getOpenAPI();
-                    }
-                }
-                return $aResponse;
+                return Spec::toJsonSchema($this->aSchema);
             } else {
                 return $this->aSchema;
             }
