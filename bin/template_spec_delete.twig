@@ -35,7 +35,7 @@
 {% endfor %}
                 ])
                 ->response(HTTP\OK)
-                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::create()->message(self::ERROR_NOT_FOUND));
+                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new {{ table.title }}NotFoundException));
         }
 
         /**
@@ -48,6 +48,7 @@
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
          * @return ResponseInterface
+         * @throws {{ table.title }}NotFoundException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $aPathParams = FastRoute::getPathParams($oRequest);
@@ -55,7 +56,7 @@
 
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                throw Middlewares\HttpErrorException::create(HTTP\NOT_FOUND, [self::ERROR_NOT_FOUND]);
+                throw new {{ table.title }}NotFoundException;
             } else {
                 $o{{ table.title }}->delete();
                 return $oResponse->withStatus(HTTP\OK);

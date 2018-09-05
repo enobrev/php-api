@@ -4,6 +4,7 @@
     use Enobrev\API\Exception;
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\Param;
+    use Enobrev\API\Spec;
 
     class _Object extends Param {
         public static function create(): self {
@@ -32,14 +33,21 @@
             $aSchema['type'] = $this->getType();
             $aSchema['additionalProperties'] = false;
             $aSchema['properties'] = [];
-            foreach($aSchema['items'] as $sParam => $oItem) {
-                if ($oItem instanceof JsonSchemaInterface) {
-                    $aSchema['properties'][$sParam] = $oItem->getJsonSchema();
+            foreach($aSchema['items'] as $sParam => $mItem) {
+                if ($mItem instanceof JsonSchemaInterface) {
+                    $aSchema['properties'][$sParam] = $mItem->getJsonSchema();
+                } else if (is_array($mItem)) {
+                    $aSchema['properties'][$sParam] = Spec::toJsonSchema($mItem);
                 } else {
-                    $aSchema['properties'][$sParam] = $oItem;
+                    $aSchema['properties'][$sParam] = $mItem;
                 }
             }
             unset($aSchema['items']);
+
+            if ($this->sDescription) {
+                $aSchema['description'] = $this->sDescription;
+            }
+
             return $aSchema;
         }
 

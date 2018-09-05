@@ -2,7 +2,6 @@
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
     use Adbar\Dot;
-    use Middlewares;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -43,12 +42,12 @@
 {% endfor %}
 {% else %}
 {% for field in primary %}
-                    '{{ field.short }}' => Param\_Array::create()->required()->items(new Param\{{ field.param_class }})
+                    '{{ field.short }}' => Param\_Array::create()->items(new Param\{{ field.param_class }})->required()
 {% endfor %}
 {% endif %}
                 ])
                 ->response(HTTP\OK,        Reference::create(components::RESPONSE_SUCCESS))
-                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::create()->message(self::ERROR_NOT_FOUND));
+                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new {{ table.title }}NotFoundException));
         }
 
         /**
@@ -57,14 +56,14 @@
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
          * @return Dot
-         * @throws NotFoundException
+         * @throws {{ table.title }}NotFoundException
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
 {% if primary|length > 1 %}
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
 
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                throw Middlewares\HttpErrorException::create(HTTP\NOT_FOUND, [self::ERROR_NOT_FOUND]);
+                throw new {{ table.title }}NotFoundException;
             }
 
             $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
@@ -72,7 +71,7 @@
             $a{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
 
             if (!count($a{{ table.plural }})) {
-                throw Middlewares\HttpErrorException::create(HTTP\NOT_FOUND, [self::ERROR_NOT_FOUND]);
+                throw new {{ table.title }}NotFoundException;
             }
 
             foreach($a{{ table.plural }} as $o{{ table.title }}) {

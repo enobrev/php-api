@@ -2,19 +2,19 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use Enobrev\API\FullSpec\ComponentInterface;
-    use Enobrev\API\FullSpec\Component\Reference;
-    use Enobrev\API\FullSpec\Component\Response;
-    use Enobrev\API\Spec\JsonResponse;
     use function Enobrev\array_not_associative;
     use function Enobrev\dbg;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
 
     use Enobrev\API\Exception\InvalidRequest;
-    use Enobrev\ORM\Table;
-    use Enobrev\ORM\Field;
+    use Enobrev\API\FullSpec\ComponentInterface;
+    use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\HTTP;
+    use Enobrev\API\Spec\ErrorResponseInterface;
+    use Enobrev\ORM\Field;
+    use Enobrev\ORM\Table;
 
     class Spec {
         const SKIP_PRIMARY = 1;
@@ -113,6 +113,16 @@
                 return $mResponse->getDescription();
             } else if (is_string($mResponse)) {
                 return $mResponse;
+            } else if (is_array($mResponse)) {
+                $aDescription = [];
+                foreach($mResponse as $mSubResponse) {
+                    if ($mSubResponse instanceof Response) {
+                        $aDescription[] = $mSubResponse->getDescription();
+                    } else if (is_string($mSubResponse)) {
+                        $aDescription[] = $mSubResponse;
+                    }
+                }
+                return $aDescription;
             }
 
             throw new Exception('Not Sure What the Response Description Is');
@@ -254,7 +264,11 @@
         }
 
         public function response($iStatus, $mResponse = null):self {
-            $this->aResponses[$iStatus] = $mResponse;
+            if (!isset($this->aResponses[$iStatus])) {
+                $this->aResponses[$iStatus] = [];
+            }
+
+            $this->aResponses[$iStatus][] = $mResponse;
             return $this;
         }
 
@@ -498,20 +512,20 @@
                     $oDot->set(implode('.', $aName), $mValue);
                     $aValue = $oDot->all();
 
-                    $oResponse->set("properties.$sSubName", self::toJsonSchema($aValue));
+                    $oResponse->mergeRecursiveDistinct("properties.$sSubName", self::toJsonSchema($aValue));
                 } else if ($mValue instanceof JsonSchemaInterface) {
-                    $oResponse->set("properties.$sName", $mValue->getJsonSchema());
+                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getJsonSchema());
 
                     if ($mValue instanceof Param && $mValue->isRequired()) {
                         $oResponse->push('required', $sName);
                     }
                 } else if ($mValue instanceof Dot) {
                     $aValue = $mValue->all();
-                    $oResponse->set("properties.$sName", self::toJsonSchema($aValue));
+                    $oResponse->mergeRecursiveDistinct("properties.$sName", self::toJsonSchema($aValue));
                 } else if (is_array($mValue)) {
-                    $oResponse->set("properties.$sName", self::toJsonSchema($mValue));
+                    $oResponse->mergeRecursiveDistinct("properties.$sName", self::toJsonSchema($mValue));
                 } else {
-                    $oResponse->set("properties.$sName", $mValue);
+                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue);
                 }
             }
 
@@ -605,36 +619,78 @@
                 }
             }
 
+            // There's a bit of magic going on here.  The issue at hand is that the OpenAPI spec does not allow
+            // us to define multiple instances for a status, but it _does_ allow us to define multiple schemas
+            // for a status.  This seems to occur more often for multiple error responses (x not found, y not found, etc)
+            // So what this does...
+            // If the status has just one response, fine, well, and good, generate the response and carry on
+            // If the status has multiple responses, collect those responses as `schemas` and then output them as an "anyof" stanza
+            // The swagger UI does not handle this properly, but the Redoc UI does, which is correct as this is allowed in the Spec.
             $aMethod['responses'] = [];
+            foreach($this->aResponses as $iStatus => $aResponses) {
+                if (count($aResponses) > 1) {
+                    $aDescription = [];
+                    $aSchemas     = [];
+                    foreach ($aResponses as $oResponse) {
+                        if ($oResponse instanceof OpenApiResponseSchemaInterface) {
+                            $sDescription = $iStatus . ' Response';
+                            if ($oResponse instanceof ErrorResponseInterface) {
+                                $sDescription = $oResponse->getMessage();
+                            }
 
-            foreach($this->aResponses as $iStatus => $oResponse) {
-                if ($oResponse instanceof OpenApiResponseSchemaInterface) {
+                            $aDescription[] = $sDescription;
+                            $aSchemas[]     = $oResponse->getOpenAPI();
+                        } else if ($oResponse instanceof OpenApiInterface) {
+                            $aSchemas[]     = $oResponse->getOpenAPI();
+                        } else {
+                            $aSchemas[]     = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
+                        }
+                    }
+
+                    if (count($aSchemas) > 1) {
+                        $aSchemas = [
+                            'oneOf' => $aSchemas
+                        ];
+                    }
+
+                    if (count($aDescription) == 0) {
+                        $sDescription = $iStatus . ' Response';
+                    } else if (count($aDescription) == 1) {
+                        $sDescription = array_shift($aDescription);
+                    } else {
+                        $sDescription = implode(', ', array_unique($aDescription));
+                    }
+
                     $aMethod['responses'][$iStatus] = [
-                        "description" => $iStatus . ' Response',
+                        "description" => $sDescription,
                         "content" => [
                             "application/json" => [
-                                'schema' => $oResponse->getOpenAPI()
+                                'schema' => $aSchemas
                             ]
                         ]
                     ];
-                } else if ($oResponse instanceof OpenApiInterface) {
-                    $aMethod['responses'][$iStatus] = $oResponse->getOpenAPI();
-                } else  {
-                    $aMethod['responses'][$iStatus] = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
+                } else {
+                    $oResponse = $aResponses[0];
+                    if ($oResponse instanceof OpenApiResponseSchemaInterface) {
+                        $sDescription = $iStatus . ' Response';
+                        if ($oResponse instanceof ErrorResponseInterface) {
+                            $sDescription = $oResponse->getMessage();
+                        }
+
+                        $aMethod['responses'][$iStatus] = [
+                            "description" => $sDescription,
+                            "content" => [
+                                "application/json" => [
+                                    'schema' => $oResponse->getOpenAPI()
+                                ]
+                            ]
+                        ];
+                    } else if ($oResponse instanceof OpenApiInterface) {
+                        $aMethod['responses'][$iStatus] = $oResponse->getOpenAPI();
+                    } else  {
+                        $aMethod['responses'][$iStatus] = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
+                    }
                 }
-                    /*
-                } else if ($this->aResponseSchema) {
-                    $aMethod['responses'][$iStatus] = [
-                        "description" => $mStatus,
-                        "content" => [
-                            "application/json" => [
-                                "schema" => $this->aResponseSchema
-                            ]
-                        ]
-                    ];
-                } else if ($this->sResponseReference) {
-                    $aMethod['responses'][$iStatus] = ['$ref' => $this->sResponseReference];
-                */
             }
 
 

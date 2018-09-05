@@ -3,27 +3,20 @@
 
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\HTTP;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\OpenApiResponseSchemaInterface;
     use Enobrev\API\Param;
-    use Enobrev\API\HTTP;
-    use Middlewares\HttpErrorException;
 
-    class ProcessErrorResponse implements OpenApiInterface, OpenApiResponseSchemaInterface, ErrorResponseInterface {
+    class ServerErrorResponse implements OpenApiInterface, OpenApiResponseSchemaInterface, ErrorResponseInterface {
         /** @var number */
-        private $iCode = HTTP\UNPROCESSABLE_ENTITY;
+        private $iCode = HTTP\INTERNAL_SERVER_ERROR;
         
         /** @var string */
         private $sMessage;
+
         public static function create():self {
             return new self();
-        }
-
-        public static function createFromException(HttpErrorException $oException):self {
-            $oResponse = new self();
-            $oResponse->message($oException->getMessage());
-            $oResponse->code($oException->getCode());
-            return $oResponse;
         }
 
         public function getMessage(): string {
@@ -45,7 +38,7 @@
                 Reference::create(FullSpec::SCHEMA_DEFAULT),
                 [
                     '_errors' => [
-                        'process' => [
+                        'server' => [
                             'code'    => Param\_Integer::create()->minimum(100)->maximum(511)->default($this->iCode)->example($this->iCode),
                             'message' => Param\_String::create()->default($this->sMessage)->example($this->sMessage)
                         ]

@@ -1,19 +1,24 @@
 <?php
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
-    use Enobrev\API\Exception;
+    use Middlewares;
+
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Request;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\FullSpec\Component\Schema;
-
     use Enobrev\API\HTTP;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
 
     use {{ spec.namespace.table }};
+
+    class {{ table.title }}NotFoundException extends Middlewares\HttpErrorException {
+        protected $message = '{{ table.title }} Not Found';
+        protected $code    = HTTP\NOT_FOUND;
+    }
 
     class components implements ComponentListInterface {
 {% if spec.show_post %}
