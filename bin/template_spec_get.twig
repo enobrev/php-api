@@ -20,8 +20,6 @@
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
-        const ERROR_NOT_FOUND = '{{ table.title }} Not Found';
-
         public function spec(): Spec {
             return Spec::create()
                 ->httpMethod      (Method\{{ spec.http_method }})
@@ -48,6 +46,30 @@
                 ])
                 ->response(HTTP\OK,        Reference::create(components::RESPONSE_SUCCESS))
                 ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new {{ table.title }}NotFoundException));
+        }
+
+        /**
+         * Middleware
+         * Use the ServerRequestInterface to figure out what is needed
+         * Either return a ResponseInterface (and stop processing other Middleware)
+         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
+         * The ResponseBuilder data should match the Schema defined in spec();
+
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
+         */
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            return $oHandler->handle(
+                ResponseBuilder::update($oRequest,
+                    $this->getResponse(
+                        FastRoute::getPathParams($oRequest),
+                        $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
+                        ResponseBuilder::get($oRequest)
+                    )
+                )
+            );
         }
 
         /**
@@ -80,29 +102,5 @@
 {% endif %}
 
             return $oResponse;
-        }
-
-        /**
-         * Middleware
-         * Use the ServerRequestInterface to figure out what is needed
-         * Either return a ResponseInterface (and stop processing other Middleware)
-         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
-         * The ResponseBuilder data should match the Schema defined in spec();
-
-         * @param ServerRequestInterface $oRequest
-         * @param RequestHandlerInterface $oHandler
-         * @return ResponseInterface
-         */
-        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
-                )
-            );
         }
     }

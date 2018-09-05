@@ -1,13 +1,11 @@
 <?php
     namespace {{ spec.namespace.spec }}\{{ table.name }};
 
-    use Middlewares;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
-    use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\FastRoute;
@@ -18,8 +16,6 @@
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
-        const ERROR_NOT_FOUND = '{{ table.title }} Not Found';
-
         public function spec(): Spec {
             return Spec::create()
                 ->httpMethod      (Method\{{ spec.http_method }})

@@ -42,6 +42,30 @@
         }
 
         /**
+         * Middleware
+         * Use the ServerRequestInterface to figure out what is needed
+         * Either return a ResponseInterface (and stop processing other Middleware)
+         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
+         * The ResponseBuilder data should match the Schema defined in spec();
+
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
+         */
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            return $oHandler->handle(
+                ResponseBuilder::update($oRequest,
+                    $this->getResponse(
+                        FastRoute::getPathParams($oRequest),
+                        $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
+                        ResponseBuilder::get($oRequest)
+                    )
+                )
+            );
+        }
+
+        /**
          * @param array|null $aPathParams   Params from Request Path
          * @param array|null $aQueryParams  Params from Request Query
          * @param array|null $aPostParams   Params from Request Body
@@ -76,29 +100,5 @@
             $oResponse->set('counts.{{ table.name }}', {{ table.class_plural }}::countForCMS());
 
             return $oResponse;
-        }
-
-        /**
-         * Middleware
-         * Use the ServerRequestInterface to figure out what is needed
-         * Either return a ResponseInterface (and stop processing other Middleware)
-         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
-         * The ResponseBuilder data should match the Schema defined in spec();
-
-         * @param ServerRequestInterface $oRequest
-         * @param RequestHandlerInterface $oHandler
-         * @return ResponseInterface
-         */
-        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
-                )
-            );
         }
     }
