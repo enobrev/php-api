@@ -9,6 +9,10 @@
     use function Enobrev\dbg;
 
     class Schema implements ComponentInterface, OpenApiInterface {
+        const TYPE_ALLOF = 'allOf';
+        const TYPE_ANYOF = 'anyOf';
+        const TYPE_ONEOF = 'oneOf';
+
         const PREFIX = 'schemas';
 
         /** @var string */
@@ -16,6 +20,9 @@
 
         /** @var OpenApiInterface|JsonSchemaInterface|array */
         private $aSchema;
+
+        /** @var string */
+        private $sType;
 
         public static function create(string $sName) {
             return new self($sName);
@@ -41,8 +48,43 @@
             return $this;
         }
 
+        public function allOf(array $aSchemas):self {
+            $this->aSchema = $aSchemas;
+            $this->sType   = self::TYPE_ALLOF;
+            return $this;
+        }
+
+        public function anyOf(array $aSchemas):self {
+            $this->aSchema = $aSchemas;
+            $this->sType   = self::TYPE_ANYOF;
+            return $this;
+        }
+
+        public function oneOf(array $aSchemas):self {
+            $this->aSchema = $aSchemas;
+            $this->sType   = self::TYPE_ONEOF;
+            return $this;
+        }
+
+
         public function getOpenAPI(): array {
-            if ($this->aSchema instanceof OpenApiInterface) {
+            if ($this->sType) {
+                $aResponse = [];
+
+                foreach ($this->aSchema as $mSchemaItem) {
+                    if ($mSchemaItem instanceof OpenApiInterface) {
+                        $aResponse[] = $mSchemaItem->getOpenAPI();
+                    } else if (is_array($mSchemaItem)) {
+                        $aResponse[] = Spec::toJsonSchema($mSchemaItem);
+                    } else {
+                        $aResponse[] = $mSchemaItem;
+                    }
+                }
+
+                return [
+                    $this->sType => $aResponse
+                ];
+            } else if ($this->aSchema instanceof OpenApiInterface) {
                 return $this->aSchema->getOpenAPI();
             } else if ($this->aSchema instanceof JsonSchemaInterface) {
                 return $this->aSchema->getJsonSchema();

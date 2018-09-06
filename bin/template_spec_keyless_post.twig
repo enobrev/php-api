@@ -7,6 +7,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
@@ -87,17 +88,19 @@
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                $o{{ table.title }} = new {{ table.class }};
+                /** @var {{ table.class }} $o{{ table.title }} */
+                $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
 {% for field in primary %}
                 $o{{ table.title }}->{{ field.name }}->setValue($aPathParams['{{ field.short }}']);
 {% endfor %}
-                $o{{ table.title }}->setFromArray($aPostParams);
+
                 $o{{ table.title }}->insert();
 {% if primary|length == 1 %}
                 $this->mInsertKey = $o{{ table.title }}->{{ primary.0.name }}->getValue();
 {% endif %}
+
             } else {
-                $o{{ table.title }}->setFromArray($aPostParams);
+                $o{{ table.title }} = DataMap::applyPostParamsToTable($o{{ table.title }}, $aPostParams);
                 $o{{ table.title }}->update();
             }
 

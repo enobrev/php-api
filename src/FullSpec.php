@@ -198,6 +198,18 @@
             return $this->aComponents[$oReference->getName()];
         }
 
+        public function followTheYellowBrickRoad(Component\Reference $oReference) {
+            $oComponent = $this->getComponent($oReference);
+            if ($oComponent instanceof Component\Request) {
+                $oSubReference = $oComponent->getJson();
+                if ($oSubReference instanceof Component\Reference) {
+                    return $this->followTheYellowBrickRoad($oSubReference);
+                }
+            }
+
+            return $oComponent;
+        }
+
         /**
          * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
          * @param array $aScopes

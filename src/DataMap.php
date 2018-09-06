@@ -142,6 +142,17 @@
 
         /**
          * @param ORM\Table $oTable
+         * @param array $aPostParams
+         * @return ORM\Table
+         */
+        public static function applyPostParamsToTable(ORM\Table $oTable, array $aPostParams): ORM\Table {
+            $aMap   = DataMap::getResponseMap($oTable->getTitle(), $oTable);
+            $oTable->mapArrayToFields($aPostParams, $aMap);
+            return $oTable;
+        }
+
+        /**
+         * @param ORM\Table $oTable
          * @return array
          */
         public static function convertTableToResponseArray(ORM\Table $oTable): array {

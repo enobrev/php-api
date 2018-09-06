@@ -2,6 +2,7 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
+    use Enobrev\API\Spec\ProcessErrorResponse;
     use function Enobrev\array_not_associative;
     use function Enobrev\dbg;
     use JsonSchema\Constraints\Constraint;
@@ -15,6 +16,7 @@
     use Enobrev\API\Spec\ErrorResponseInterface;
     use Enobrev\ORM\Field;
     use Enobrev\ORM\Table;
+    use Middlewares\HttpErrorException;
 
     class Spec {
         const SKIP_PRIMARY = 1;
@@ -187,7 +189,20 @@
             return self::toJsonSchema($this->aQueryParams);
         }
 
+        public function hasAPostBodyReference(): bool {
+            return $this->oPostBodyReference instanceof Reference;
+        }
+
         public function postParamsToJsonSchema():array {
+            if ($this->oPostBodyReference && $this->oPostBodyReference instanceof Reference) {
+                // FIXME: This is a big fat hack
+                $oFullSpec  = FullSpec::getFromCache();
+                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                if ($oComponent instanceof OpenApiInterface) {
+                    return $oComponent->getOpenAPI();
+                }
+            }
+
             return self::toJsonSchema($this->aPostParams);
         }
 
@@ -315,6 +330,11 @@
 
             $oClone->aResponses[$iStatus][] = $mResponse;
             return $oClone;
+        }
+
+        public function responseFromException(HttpErrorException $oException) {
+            $oResponse = ProcessErrorResponse::createFromException($oException);
+            return $this->response($oResponse->getCode(), $oResponse);
         }
 
         public function tags(array $aTags):self {
@@ -745,6 +765,8 @@
                         ];
                     } else if ($oResponse instanceof OpenApiInterface) {
                         $aMethod['responses'][$iStatus] = $oResponse->getOpenAPI();
+                    } else if (is_string($oResponse)) {
+                        $aMethod['responses'][$iStatus] = ['description' => $oResponse];
                     } else  {
                         $aMethod['responses'][$iStatus] = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
                     }
@@ -754,7 +776,6 @@
                     $aMethod['responses'][$iStatus]['headers'] = $this->aResponseHeaders;
                 }
             }
-
 
             if (count($aParameters) && !isset($aMethod['responses'][HTTP\BAD_REQUEST])) {
                 $aMethod['responses'][HTTP\BAD_REQUEST] = Reference::create(FullSpec::RESPONSE_BAD_REQUEST)->getOpenAPI();

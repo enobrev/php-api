@@ -26,6 +26,10 @@
             return $oResponse;
         }
 
+        public function getCode(): int {
+            return $this->iCode;
+        }
+
         public function getMessage(): string {
             return $this->sMessage;
         }

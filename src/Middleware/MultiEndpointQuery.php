@@ -56,37 +56,45 @@
             while (count($aQuery) > 0) {
                 /** @var string $sEndpoint */
                 $sEndpoint = array_shift($aQuery);
-                $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
-                $sEscaped  = $sEndpoint;
-                if (strpos($sEndpoint, '.') !== false) {
-                    $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
-                }
-
-                $oUri         = new Uri($sEndpoint);
-                $aQueryParams = [];
-                parse_str($oUri->getQuery(), $aQueryParams);
-                $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\GET)
-                                                                   ->withUri($oUri)
-                                                                   ->withQueryParams($aQueryParams)
-                                                                   ->withBody(new Stream('php://memory'))
-                                                                   ->withParsedBody(null);
-
-
-                Log::startChildRequest();
-                $oSubResponse = $this->oHandler->handle($oSubRequest);
-                Log::endChildRequest();
-
-                if ($oSubResponse instanceof JsonResponse) {
-                    $aPayload = $oSubResponse->getPayload();
-                    foreach($aPayload as $sTable => $aData) {
-                        if (strpos($sTable, '_') === 0) {
-                            $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped.$sTable", $aData);
-                        } else {
-                            $this->oData->mergeRecursiveDistinct($sTable, $aData);
-                        }
+                try {
+                    $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
+                    $sEscaped  = $sEndpoint;
+                    if (strpos($sEndpoint, '.') !== false) {
+                        $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
                     }
-                } else {
-                    $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped._response.status", $oSubResponse->getStatusCode());
+
+                    $oUri         = new Uri($sEndpoint);
+                    $aQueryParams = [];
+                    parse_str($oUri->getQuery(), $aQueryParams);
+                    $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\GET)
+                                                                       ->withUri($oUri)
+                                                                       ->withQueryParams($aQueryParams)
+                                                                       ->withBody(new Stream('php://memory'))
+                                                                       ->withParsedBody(null);
+
+
+                    Log::startChildRequest();
+                    $oSubResponse = $this->oHandler->handle($oSubRequest);
+                    Log::endChildRequest();
+
+                    if ($oSubResponse instanceof JsonResponse) {
+                        $aPayload = $oSubResponse->getPayload();
+                        foreach($aPayload as $sTable => $aData) {
+                            if (strpos($sTable, '_') === 0) {
+                                $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped.$sTable", $aData);
+                            } else {
+                                $this->oData->mergeRecursiveDistinct($sTable, $aData);
+                            }
+                        }
+                    } else {
+                        $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped._response.status", $oSubResponse->getStatusCode());
+                    }
+                } catch (Exception\NoTemplateValues $e) {
+                    $sEscaped  = $sEndpoint;
+                    if (strpos($sEndpoint, '.') !== false) {
+                        $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
+                    }
+                    $oBuilder->set("_request.multiquery.$sEscaped", 'Template Unresolved');
                 }
             }
 

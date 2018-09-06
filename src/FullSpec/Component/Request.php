@@ -40,6 +40,10 @@
             return $this->sName;
         }
 
+        public function getJson(): OpenApiInterface {
+            return $this->mJson;
+        }
+
         public function description(string $sDescription):self {
             $this->sDescription = $sDescription;
             return $this;

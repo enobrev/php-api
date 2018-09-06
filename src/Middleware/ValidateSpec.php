@@ -104,6 +104,12 @@
          */
         private function validatePostParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);
+
+            if ($oSpec->hasAPostBodyReference()) {
+                // FIXME: Validation Skipped because validating against references is pretty hacky
+                return $oRequest;
+            }
+
             $aParameters = $oRequest->getParsedBody();
             $oParameters = (object) $aParameters;
 
