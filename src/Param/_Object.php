@@ -47,4 +47,8 @@
 
             return $aSchema;
         }
+
+        public function getJsonSchemaForOpenAPI(): array {
+            return parent::getJsonSchemaForOpenAPI();
+        }
     }

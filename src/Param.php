@@ -69,8 +69,7 @@
         public function getJsonSchema(): array {
             $aSchema = $this->getValidationForSchema();
             $aSchema['type'] = $this->getType();
-            /*
-             * This generates errors on OpenAPI Spec, though it's valid JsonSchema
+
             if ($this->isNullable()) {
                 return [
                     'anyOf' => [
@@ -79,10 +78,32 @@
                     ]
                 ];
             }
-            */
 
             if ($this->sDescription) {
                 $aSchema['description'] = $this->sDescription;
+            }
+
+            return $aSchema;
+        }
+
+        public function getJsonSchemaForOpenAPI(): array {
+            $aSchema = $this->getJsonSchema();
+
+            if (isset($aSchema['anyOf']) && is_array($aSchema['anyOf'])) {
+                foreach($aSchema['anyOf'] as $iIndex => $aAnySchema) {
+                    if (isset($aAnySchema['type']) && $aAnySchema['type'] == 'null') {
+                        unset($aSchema['anyOf'][$iIndex]);
+                        break;
+                    }
+                }
+
+                if (count($aSchema['anyOf']) === 1) {
+                    $aSchema = array_shift($aSchema['anyOf']);
+                }
+
+                if ($this->isNullable()) {
+                    $aSchema['nullable'] = true;
+                }
             }
 
             return $aSchema;
@@ -94,9 +115,6 @@
          * @return array
          */
         public function OpenAPI(string $sName, ?string $sIn = 'query'): array {
-            $aSchema = $this->getValidationForSchema();
-            $aSchema['type'] = $this->getType();
-
             $aOutput = [
                 'name'   => $sName,
                 'schema' => $this->getJsonSchema()

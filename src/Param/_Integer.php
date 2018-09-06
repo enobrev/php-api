@@ -27,4 +27,8 @@
             }
             return $this->validation(['maximum' => $iMaximum]);
         }
+
+        public function getJsonSchemaForOpenAPI(): array {
+            return parent::getJsonSchemaForOpenAPI();
+        }
     }

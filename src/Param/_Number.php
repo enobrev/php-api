@@ -27,4 +27,8 @@
         public function getJsonSchema(): array {
             return parent::getJsonSchema();
         }
+
+        public function getJsonSchemaForOpenAPI(): array {
+            return parent::getJsonSchemaForOpenAPI();
+        }
     }

@@ -554,7 +554,7 @@
 
                     $oResponse->mergeRecursiveDistinct("properties.$sSubName", self::toJsonSchema($aValue));
                 } else if ($mValue instanceof JsonSchemaInterface) {
-                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getJsonSchema());
+                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getJsonSchemaForOpenAPI());
 
                     if ($mValue instanceof Param && $mValue->isRequired()) {
                         $oResponse->push('required', $sName);
