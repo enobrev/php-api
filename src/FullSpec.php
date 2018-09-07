@@ -4,6 +4,7 @@
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component;
+    use Enobrev\API\Spec\AuthenticationErrorResponse;
     use Enobrev\API\Spec\JsonResponse;
     use Enobrev\API\Spec\ProcessErrorResponse;
     use Enobrev\API\Spec\ServerErrorResponse;
@@ -227,53 +228,122 @@
                     'schemas' => self::DEFAULT_RESPONSE_SCHEMAS,
                     'responses' => [
                         self::_DEFAULT => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->description('Default Response')
+                            ->summary('OK')
                             ->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
                             ->getOpenAPI(),
-                        self::_CREATED => Component\Response::create(self::RESPONSE_CREATED)->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
+                        self::_CREATED => Component\Response::create(self::RESPONSE_CREATED)
+                            ->summary('Created')
+                            ->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
                             ->description('New record was created.  If a new key was generated for the record, See Location header')
                             ->getOpenAPI(),
-                        self::_BAD_REQUEST => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->description('Request Validation Error.  See `_errors.validation` in the response for more information')
+                        self::_BAD_REQUEST => Component\Response::create(self::RESPONSE_BAD_REQUEST)
+                            ->summary('Bad Request')
+                            ->description(<<<DESCRIPTION
+### Validation Errors
+
+See `_errors.validation` in the response for details
+
+Validation errors are handled by comparing the data that was sent by the client against the code from which these API documents are generated.
+
+The input parameters in this documentation you're presently reading are documented using `JSONSchema`, and the API utilizes a `JSONSchema`
+validation library to ensure the request was formatted according to our specifications.  Because of this, the output of any validation errors 
+is a bit different from our standard error / message error responses. 
+
+When dealing with these errors, first look at the `constraint` portion of the error to figure out why what the client sent was not found
+acceptable.  If it should be, contact an API developer to adjust the specification to meet the needs of the client in question. 
+DESCRIPTION
+                            )
                             ->json(
                                 ValidationErrorResponse::create()
-                                    ->message('Request Validation Error.  See `_errors.validation` in the response for more information')
+                                    ->message('Request Validation Error')
                                     ->code(HTTP\BAD_REQUEST)
                             )
                             ->getOpenAPI(),
-                        self::_UNAUTHORIZED => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->description('Access Token Invalid.  Client should Re-authenticate')
+                        self::_UNAUTHORIZED => Component\Response::create(self::RESPONSE_UNAUTHORIZED)
+                            ->summary('Unauthorized')
+                            ->description(<<<DESCRIPTION
+### Unauthorized Access
+
+See `_errors.authentication` in the response for details
+
+The Access Token in the request was invalid. The client should re-authenticate in order to use this endpoint.
+DESCRIPTION
+                            )
                             ->json(
-                                ProcessErrorResponse::create()
+                                AuthenticationErrorResponse::create()
                                     ->message('Unauthorized')
                                     ->code(HTTP\UNAUTHORIZED)
                             )
                             ->getOpenAPI(),
-                        self::_FORBIDDEN => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->description('Access Denied.  Authenticated Profile does not have access.')
+                        self::_FORBIDDEN => Component\Response::create(self::RESPONSE_FORBIDDEN)
+                            ->summary('Forbidden')
+                            ->description(<<<DESCRIPTION
+## Forbidden Access
+
+See `_errors.authentication` in the response for details
+
+The authenticated profile does not have access to this endpoint.  The auth token may be for a different scope (like trying 
+to use a `cms` token for an `ios` action, or there may be some other reason described in the error output.
+DESCRIPTION
+                            )
                             ->json(
-                                ProcessErrorResponse::create()
+                                AuthenticationErrorResponse::create()
                                     ->message('Forbidden')
                                     ->code(HTTP\FORBIDDEN)
                             )
                             ->getOpenAPI(),
-                        self::_UNPROCESSABLE_ENTITY => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->description('Request was Valid and Server handled properly, but something else went wrong.  See `_errors.process` in the response for more infomration.')
+                        self::_UNPROCESSABLE_ENTITY => Component\Response::create(self::RESPONSE_UNPROCESSABLE_ENTITY)
+                            ->summary('Error while Processing Request')
+                            ->description(<<<DESCRIPTION
+### Process Errors
+
+See `_errors.process` in the response for details
+
+Process errors occur when everything is working as expected, but something went wrong anyway.  This may include validation that runs beyond the
+scope of our validation library, which has its own explicit output format (see `400` Request Validation Error documentation for details).
+  
+When trying to figure out what happened in these cases, keep in mind that process errors were explicitly written into the endpoint source, and are
+not part of the standard validation.  If the client developer can't figure out what's going wrong, reviewing the code of the endpoint or discussing it
+with the backend team is the best way to resolve the issue.
+  
+One example of error that falls under this category is when groups of parameters are required 
+
+> `city_id` OR (`latitude` AND `longitude`)  
+
+Our validation library does not enable us to check for this sort of requirement automatically, and so the source of the endpoint would handle that.
+Technically the request would have passed validation, and now, as the endpoint tried to process the request, it was not able to for some reason.
+DESCRIPTION
+                            )
                             ->json(
                                 ProcessErrorResponse::create()
-                                    ->message('Request was Valid and Server handled properly, but something else went wrong.  See `_errors.validation` in the response for more infomration.')
-                                    ->code(HTTP\BAD_REQUEST)
+                                    ->message('Request was Valid and Server OK, but something else went wrong')
+                                    ->code(HTTP\UNPROCESSABLE_ENTITY)
                             )
                             ->getOpenAPI(),
-                        self::_SERVER_ERROR => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->description('Something went wrong on the server.  Contact an API developer for info.  `_errors.process` will have details, and `_request.logs` will have references for the developers to find what happened.')
+                        self::_SERVER_ERROR => Component\Response::create(self::RESPONSE_SERVER_ERROR)
+                            ->summary('Server Error')
+                            ->description(<<<DESCRIPTION
+### Server Errors
+
+See `_errors.server` in the response
+
+Server errors are meant for unexpected issues on the API server.  Things like uncaught exceptions, database connection issues, and generally
+anything that was not foreseen by the backend team.  Basically this is the category of errors that "should not happen" in production.  
+
+In these cases, the client developer should report the error to the backend team.  If the client received a JSON formatted response, 
+sending the contents of `_request.logs` to the backend team will help them find the details of the request in order to figure out what went wrong. 
+
+If the contents of the response are empty, send as much information to the backend team as you can gather - including the path, the parameters
+and headers and what ever information you have about the response.  A timestamp will also help in this case since there is no log request hash to report.
+DESCRIPTION
+                            )
                             ->json(
                                 ServerErrorResponse::create()
-                                    ->message('Something went wrong on the server.  Contact an API developer for info.  `_errors.server` will have details, and `_request.logs` will have references for the developers to find what happened.')
+                                    ->message('Something went wrong on the server')
                                     ->code(HTTP\INTERNAL_SERVER_ERROR)
                             )
                             ->getOpenAPI(),
-                        self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_DEFAULT)
+                        self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_MULTI_STATUS)
                             ->json(
                                 JsonResponse::create()->allOf([
                                     Component\Reference::create(FullSpec::SCHEMA_DEFAULT),
@@ -523,7 +593,7 @@
                                         /** @var ComponentListInterface $oClass */
                                         $oClass      = new $sFullClass();
                                         $aComponents = $oClass->components();
-                                        foreach($aComponents as $oComponent) {
+                                        foreach($aComponents as $sComponent => $oComponent) {
                                             $this->aComponents[$oComponent->getName()] = $oComponent;
                                         }
                                     }
@@ -555,7 +625,13 @@
                     "timezone_gmt"  => ["type" => "string", "example" => '-05:00'],
                     "date"          => ["type" => "string", "example" => '2018-08-31 16:57:21'],
                     "date_w3c"      => ["type" => "string", "example" => '2018-08-31T16:57:21-05:00']
-                ]
+                ],
+                "description" => <<<DESCRIPTION
+The `_server` object lists the current time on our backend.  This is useful when trying to use `sync` functionality, 
+as well as for converting timestamps returned by the server to the client's local time.  The times given are
+retrieved from the database which should ensure that they are consistent, regardless of clock-skew between
+multiple servers.
+DESCRIPTION
             ],
             "_request" => [
                 "type" => "object",
@@ -600,23 +676,25 @@
                             ]
                         ]
                     ],
-                    "status" => ["type" => "integer", "default" => 200]
-                ]
-            ],
-            "_response" => [
-                "type" => "object",
-                "additionalProperties"=> false,
-                "properties"=> [
-                    "validation" => [
+                    "status" => ["type" => "integer", "default" => 200, "description" => "This will not always show up, but is most useful when trying to find out what happened in `multiquery` requests"],
+                    "multiquery" => [
                         "type" => "object",
+                        "additionalProperties" => false,
                         "properties" => [
-                            "status" => [
-                                "type" => "string",
-                                "enum" => ["PASS", "FAIL"]
-                            ]
-                        ]
+                            "_request" => ['$ref' => '#/components/schemas/_request'],
+                            "_server"  => ['$ref' => '#/components/schemas/_server']
+                        ],
+                        "description" => <<<DESCRIPTION
+The `_request.multiquery` object holds a collection of all the `_request` and `_server` objects from every sub-request that was preformed
+helps with finding out why you might not have received the data you were expecting. 
+
+This will only show up in cases of multiquery requests.
+DESCRIPTION
                     ]
-                ]
+                ],
+                "description" => <<<DESCRIPTION
+The `_request` object can help the client developer find out if maybe what was sent was misinterpreted by the server for some reason.
+DESCRIPTION
             ]
         ];
     }

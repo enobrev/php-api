@@ -33,6 +33,11 @@
          */
         private $bRequestValidated = false;
 
+        /**
+         * @var boolean
+         */
+        private $bSkipDefaultResponses = false;
+
         /** @var boolean */
         private $bDeprecated;
 
@@ -221,6 +226,12 @@
         public function deprecated(?bool $bDeprecated = true):self {
             $oClone = clone $this;
             $oClone->bDeprecated = $bDeprecated;
+            return $oClone;
+        }
+
+        public function skipDefaultResponses(?bool $bSkipDefaultResponses = true):self {
+            $oClone = clone $this;
+            $oClone->bSkipDefaultResponses = $bSkipDefaultResponses;
             return $oClone;
         }
 
@@ -777,22 +788,25 @@
                 }
             }
 
-            if (count($aParameters) && !isset($aMethod['responses'][HTTP\BAD_REQUEST])) {
-                $aMethod['responses'][HTTP\BAD_REQUEST] = Reference::create(FullSpec::RESPONSE_BAD_REQUEST)->getOpenAPI();
-            }
+            if (!$this->bSkipDefaultResponses) {
 
-            if (isset($aMethod['security'])) {
-                if (!isset($aMethod['responses'][HTTP\UNAUTHORIZED])) {
-                    $aMethod['responses'][HTTP\UNAUTHORIZED] = Reference::create(FullSpec::RESPONSE_UNAUTHORIZED)->getOpenAPI();
+                if (count($aParameters) && !isset($aMethod['responses'][HTTP\BAD_REQUEST])) {
+                    $aMethod['responses'][HTTP\BAD_REQUEST] = Reference::create(FullSpec::RESPONSE_BAD_REQUEST)->getOpenAPI();
                 }
 
-                if (!isset($aMethod['responses'][HTTP\FORBIDDEN])) {
-                    $aMethod['responses'][HTTP\FORBIDDEN] = Reference::create(FullSpec::RESPONSE_FORBIDDEN)->getOpenAPI();
-                }
-            }
+                if (isset($aMethod['security'])) {
+                    if (!isset($aMethod['responses'][HTTP\UNAUTHORIZED])) {
+                        $aMethod['responses'][HTTP\UNAUTHORIZED] = Reference::create(FullSpec::RESPONSE_UNAUTHORIZED)->getOpenAPI();
+                    }
 
-            if (!isset($aMethod['responses'][HTTP\INTERNAL_SERVER_ERROR])) {
-                $aMethod['responses'][HTTP\INTERNAL_SERVER_ERROR] = Reference::create(FullSpec::RESPONSE_SERVER_ERROR)->getOpenAPI();
+                    if (!isset($aMethod['responses'][HTTP\FORBIDDEN])) {
+                        $aMethod['responses'][HTTP\FORBIDDEN] = Reference::create(FullSpec::RESPONSE_FORBIDDEN)->getOpenAPI();
+                    }
+                }
+
+                if (!isset($aMethod['responses'][HTTP\INTERNAL_SERVER_ERROR])) {
+                    $aMethod['responses'][HTTP\INTERNAL_SERVER_ERROR] = Reference::create(FullSpec::RESPONSE_SERVER_ERROR)->getOpenAPI();
+                }
             }
 
             if (count($this->aCodeSamples)) {

@@ -9,29 +9,13 @@
     use Enobrev\API\Param;
 
     class ValidationErrorResponse implements OpenApiInterface, OpenApiResponseSchemaInterface, ErrorResponseInterface {
+        use ErrorResponseTrait;
+
         /** @var number */
         private $iCode = HTTP\BAD_REQUEST;
         
         /** @var string */
         private $sMessage;
-
-        public static function create():self {
-            return new self();
-        }
-
-        public function getMessage(): string {
-            return $this->sMessage;
-        }
-
-        public function code(int $iCode):self {
-            $this->iCode = $iCode;
-            return $this;
-        }
-
-        public function message($sMessage):self {
-            $this->sMessage = $sMessage;
-            return $this;
-        }
 
         public function getOpenAPI(): array {
             return JsonResponse::allOf([

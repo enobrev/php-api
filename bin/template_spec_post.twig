@@ -52,16 +52,16 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
+            $oRequest = ResponseBuilder::update($oRequest,
+                $this->getResponse(
+                    FastRoute::getPathParams($oRequest),
+                    $oRequest->getQueryParams(),
+                    $oRequest->getParsedBody(),
+                    ResponseBuilder::get($oRequest)
                 )
             );
+
+            return (new get())->process($oRequest, $oHandler);
         }
 
         /**

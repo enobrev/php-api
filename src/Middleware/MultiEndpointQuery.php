@@ -87,7 +87,7 @@
                             }
                         }
                     } else {
-                        $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped._response.status", $oSubResponse->getStatusCode());
+                        $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped._request.status", $oSubResponse->getStatusCode());
                     }
                 } catch (Exception\NoTemplateValues $e) {
                     $sEscaped  = $sEndpoint;

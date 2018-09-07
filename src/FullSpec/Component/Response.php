@@ -13,6 +13,9 @@
         private $sName;
 
         /** @var string */
+        private $sSummary;
+
+        /** @var string */
         private $sDescription;
 
         /** @var OpenApiInterface[] */
@@ -46,6 +49,11 @@
             return $this;
         }
 
+        public function summary(string $sSummary):self {
+            $this->sSummary = $sSummary;
+            return $this;
+        }
+
         public function json(OpenApiInterface $mJson):self {
             $this->aSchemas[] = $mJson;
             return $this;
@@ -61,6 +69,10 @@
                 'description' => $this->sDescription,
                 'content'     => []
             ]);
+
+            if ($this->sSummary) {
+                $oResponse->set('x-summary', $this->sSummary);
+            }
 
             foreach($this->aSchemas as $mSubSchema) {
                 $oResponse->set("content.application/json.schema", $mSubSchema->getOpenAPI());
