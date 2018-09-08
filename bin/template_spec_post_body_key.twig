@@ -32,8 +32,8 @@
                 ->description       ('Create or Update `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %} in POST body')
                 ->scopes            ({{ spec.scopes|raw }})
                 ->tag               ('{{ table.name }}')
-{% if spec.show_keyless_post %}
-                ->postBodyReference (Reference::create(_components\{{ table.name }}::REQUEST_KEYLESS_POST))
+{% if spec.show_post_in_body %}
+                ->postBodyReference (Reference::create(_components\{{ table.name }}::REQUEST_POST_BODY_KEY))
 {% endif %}
                 ->response(HTTP\OK,      Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS))
                 ->response(HTTP\CREATED, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));

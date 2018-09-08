@@ -17,18 +17,18 @@
 
     class {{ table.name }} implements ComponentListInterface {
 {% if spec.show_post %}
-        const SCHEMA_POST          = Schema::PREFIX    . '/{{ table.name }}-post';
+        const SCHEMA_POST           = Schema::PREFIX   . '/generated-{{ table.name }}-post';
 {% endif %}
-{% if spec.show_keyless_post %}
-        const SCHEMA_KEYLESS_POST  = Schema::PREFIX    . '/{{ table.name }}-post-keyless';
+{% if spec.show_post_in_body %}
+        const SCHEMA_POST_IN_BODY   = Schema::PREFIX   . '/generated-{{ table.name }}-post-body_key';
 {% endif %}
 {% if spec.show_post %}
-        const REQUEST_POST         = Request::PREFIX   . '/{{ table.name }}';
+        const REQUEST_POST          = Request::PREFIX  . '/generated-{{ table.name }}';
 {% endif %}
-{% if spec.show_keyless_post %}
-        const REQUEST_KEYLESS_POST = Request::PREFIX   . '/{{ table.name }}-keyless';
+{% if spec.show_post_in_body %}
+        const REQUEST_POST_BODY_KEY = Request::PREFIX  . '/generated-{{ table.name }}-body_key';
 {% endif %}
-        const RESPONSE_SUCCESS     = Response::PREFIX  . '/{{ table.name }}-cms';
+        const RESPONSE_SUCCESS      = Response::PREFIX . '/generated-{{ table.name }}';
 
         /** @return ComponentListInterface[] */
         public function components(): array {
@@ -36,8 +36,8 @@
 {% if spec.show_post %}
                 Schema::create(self::SCHEMA_POST)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_post|raw }})),
 {% endif %}
-{% if spec.show_keyless_post %}
-                Schema::create(self::SCHEMA_KEYLESS_POST)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_keyless_post|raw }})),
+{% if spec.show_post_in_body %}
+                Schema::create(self::SCHEMA_POST_IN_BODY)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_post_in_body|raw }})),
 {% endif %}
 {% if spec.show_post %}
                 Request::create(self::REQUEST_POST)
@@ -46,11 +46,11 @@
                     ->json(Reference::create(self::SCHEMA_POST)),
 
 {% endif %}
-{% if spec.show_keyless_post %}
-                Request::create(self::REQUEST_KEYLESS_POST)
+{% if spec.show_post_in_body %}
+                Request::create(self::REQUEST_POST_BODY_KEY)
                     ->description('`{{ table.name }}` Request')
-                    ->post(Reference::create(self::SCHEMA_KEYLESS_POST))
-                    ->json(Reference::create(self::SCHEMA_KEYLESS_POST)),
+                    ->post(Reference::create(self::SCHEMA_POST_IN_BODY))
+                    ->json(Reference::create(self::SCHEMA_POST_IN_BODY)),
 
 {% endif %}
                 Response::create(self::RESPONSE_SUCCESS)
