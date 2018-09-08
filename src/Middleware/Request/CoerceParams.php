@@ -63,6 +63,9 @@
                         $aPostParams[$sParam] = explode(',', $aPostParams[$sParam]);
                         $aPostParams[$sParam] = array_map('trim', $aPostParams[$sParam]);
                         $aCoerced[] = $sParam;
+                    } else if ($oParam instanceof Param\_Object && isset($aPostParams[$sParam]) && is_array($aPostParams[$sParam])) {
+                        $aPostParams[$sParam] = (object) $aPostParams[$sParam];
+                        $aCoerced[] = $sParam;
                     }
                 }
 

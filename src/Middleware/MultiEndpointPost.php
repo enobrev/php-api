@@ -23,7 +23,7 @@
     /**
      * @package Enobrev\API\Middleware
      */
-    class MultiEndpointQuery implements MiddlewareInterface {
+    class MultiEndpointPost implements MiddlewareInterface {
         /** @var RequestHandlerInterface  */
         private $oHandler;
 
@@ -34,7 +34,7 @@
         private $aEndpoints;
 
         public function __construct(RequestHandlerInterface $oHandler, array $aEndpoints) {
-            $this->oHandler = $oHandler;
+            $this->oHandler   = $oHandler;
             $this->aEndpoints = $aEndpoints;
         }
 
@@ -47,16 +47,17 @@
          * @throws Exception\NoTemplateValues
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointQuery');
+            $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointPost');
             $oBuilder = ResponseBuilder::get($oRequest);
             $aQuery   = $this->aEndpoints;
 
             $this->oData = new Dot();
 
             while (count($aQuery) > 0) {
-                /** @var string $sEndpoint */
-                $sEndpoint = array_shift($aQuery);
+                /** @var array $aPost */
+                $aPost = array_splice($aQuery, 0, 1);
                 try {
+                    $sEndpoint = key($aPost);
                     $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {
@@ -66,11 +67,14 @@
                     $oUri         = new Uri($sEndpoint);
                     $aQueryParams = [];
                     parse_str($oUri->getQuery(), $aQueryParams);
-                    $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\GET)
+
+                    $aPostParams  = self::fillPostTemplateFromData($aPost[$sEndpoint]);
+
+                    $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\POST)
                                                                        ->withUri($oUri)
                                                                        ->withQueryParams($aQueryParams)
                                                                        ->withBody(new Stream('php://memory'))
-                                                                       ->withParsedBody(null);
+                                                                       ->withParsedBody($aPostParams);
 
 
                     Log::startChildRequest();
@@ -81,20 +85,20 @@
                         $aPayload = $oSubResponse->getPayload();
                         foreach($aPayload as $sTable => $aData) {
                             if (strpos($sTable, '_') === 0) {
-                                $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped.$sTable", $aData);
+                                $oBuilder->mergeRecursiveDistinct("_request.multipost.$sEscaped.$sTable", $aData);
                             } else {
                                 $this->oData->mergeRecursiveDistinct($sTable, $aData);
                             }
                         }
                     } else {
-                        $oBuilder->mergeRecursiveDistinct("_request.multiquery.$sEscaped._request.status", $oSubResponse->getStatusCode());
+                        $oBuilder->mergeRecursiveDistinct("_request.multipost.$sEscaped._request.status", $oSubResponse->getStatusCode());
                     }
                 } catch (Exception\NoTemplateValues $e) {
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {
                         $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
                     }
-                    $oBuilder->set("_request.multiquery.$sEscaped", 'Template Unresolved');
+                    $oBuilder->set("_request.multipost.$sEscaped", 'Template Unresolved');
                 }
             }
 
@@ -106,6 +110,30 @@
         }
 
         const NO_VALUE = '~~NO_VALUE~~';
+
+        /**
+         * Turns something like {city_id: {cities.id}} into {city_id: 1} using results of previously called API endpoints
+         *
+         * @param array $aPost
+         * @return array
+         * @throws \Exception
+         */
+        private function fillPostTemplateFromData(array $aPost) {
+            if (count($aPost)) {
+                foreach($aPost as $sParam => $mValue) {
+                    if (is_array($mValue)) {
+                        continue;
+                    }
+
+                    $mTemplateValue = self::getTemplateValue($mValue);
+                    if ($mTemplateValue !== self::NO_VALUE) {
+                        $aPost[$sParam] = $mTemplateValue;
+                    }
+                }
+            }
+
+            return $aPost;
+        }
 
         /**
          * Turns something like /city_fonts/{cities.id} into /city_fonts/1,2,3 using results of previously called API endpoints
@@ -150,7 +178,7 @@
                     try {
                         $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
                     } catch (\RuntimeException $e) {
-                        Log::e('MultiEndpointQuery.getTemplateValue.JMESPath.error', [
+                        Log::e('MultiEndpointPost.getTemplateValue.JMESPath.error', [
                             'template'   => $sTemplate,
                             'expression' => $sExpression,
                             'error'      => $e
@@ -163,7 +191,7 @@
                         if (!is_array($aValues)) {
                             $aValues = [$aValues];
                         } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                            Log::e('MultiEndpointQuery.getTemplateValue.JMESPath', [
+                            Log::e('MultiEndpointPost.getTemplateValue.JMESPath', [
                                 'template'   => $sTemplate,
                                 'expression' => $sExpression,
                                 'values'     => $aValues
@@ -173,7 +201,7 @@
                         }
                     }
 
-                    Log::d('MultiEndpointQuery.getTemplateValue.JMESPath', [
+                    Log::d('MultiEndpointPost.getTemplateValue.JMESPath', [
                         'template'   => $sTemplate,
                         'expression' => $sExpression,
                         'values'     => $aValues
@@ -225,7 +253,7 @@
                                 }
                             }
 
-                            Log::d('MultiEndpointQuery.getTemplateValue.TableField', [
+                            Log::d('MultiEndpointPost.getTemplateValue.TableField', [
                                 'template' => $sTemplate,
                                 'values'   => $aValues
                             ]);
