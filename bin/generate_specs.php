@@ -104,7 +104,6 @@
                 'table' => $sNamespaceTable, // 'TravelGuide\Table',
                 'spec'  => $sNamespaceSpec, // 'TravelGuide\API\v2'
             ],
-            'name'          => 'get',
             'http_method'   => 'GET',
             'path_prefix'   => $sPathPrefix, // '/v3'
             'scopes'        => $sAuthScopes, // "[Table\AuthScopes::CMS]",
@@ -194,6 +193,8 @@
 
         /// ------------------------
 
+        $aTable['spec']['name'] = '_get';
+
         $sRenderedFile = $sRenderedPath . '_get.php';
 
         file_put_contents($sRenderedFile, $oTemplateGet->render($aTable));
@@ -201,7 +202,7 @@
 
         /// ------------------------
 
-        $aTable['spec']['name'] = 'gets';
+        $aTable['spec']['name'] = '_gets';
 
         $sRenderedFile = $sRenderedPath . '_gets.php';
 
