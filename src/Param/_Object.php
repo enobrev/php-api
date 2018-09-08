@@ -22,24 +22,25 @@
         }
 
         public function getJsonSchema(): array {
-            if (!isset($this->aValidation['items'])) {
-                throw new Exception('Object Param requires items definition');
-            }
-
             $aSchema = $this->getValidationForSchema();
             $aSchema['type'] = $this->getType();
-            $aSchema['additionalProperties'] = false;
-            $aSchema['properties'] = [];
-            foreach($aSchema['items'] as $sParam => $mItem) {
-                if ($mItem instanceof JsonSchemaInterface) {
-                    $aSchema['properties'][$sParam] = $mItem->getJsonSchema();
-                } else if (is_array($mItem)) {
-                    $aSchema['properties'][$sParam] = Spec::toJsonSchema($mItem);
-                } else {
-                    $aSchema['properties'][$sParam] = $mItem;
+
+            if (isset($aSchema['items'])) {
+                $aSchema['additionalProperties'] = false;
+                $aSchema['properties'] = [];
+                foreach ($aSchema['items'] as $sParam => $mItem) {
+                    if ($mItem instanceof JsonSchemaInterface) {
+                        $aSchema['properties'][$sParam] = $mItem->getJsonSchema();
+                    } else if (is_array($mItem)) {
+                        $aSchema['properties'][$sParam] = Spec::toJsonSchema($mItem);
+                    } else {
+                        $aSchema['properties'][$sParam] = $mItem;
+                    }
                 }
+                unset($aSchema['items']);
+            } else {
+                $aSchema['additionalProperties'] = true;
             }
-            unset($aSchema['items']);
 
             if ($this->sDescription) {
                 $aSchema['description'] = $this->sDescription;
