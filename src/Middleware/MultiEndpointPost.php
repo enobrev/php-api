@@ -68,7 +68,7 @@
                     $aQueryParams = [];
                     parse_str($oUri->getQuery(), $aQueryParams);
 
-                    $aPostParams  = self::fillPostTemplateFromData($aPost[$sEndpoint]);
+                    $aPostParams  = isset($aPost[$sEndpoint]) ? self::fillPostTemplateFromData($aPost[$sEndpoint]) : [];
 
                     $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\POST)
                                                                        ->withUri($oUri)
