@@ -17,14 +17,16 @@
 
     use function Enobrev\dbg;
 
+    class ValidationException extends Middlewares\HttpErrorException {
+        protected $code    = HTTP\BAD_REQUEST;
+    }
+
     class ValidateSpec implements MiddlewareInterface {
-
-        private $bValid = true;
-
         /**
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
          * @return ResponseInterface
+         * @throws Middlewares\Utils\HttpErrorException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.ValidateSpec');
@@ -39,20 +41,14 @@
             $oRequest = $this->validateQueryParameters($oRequest);
             $oRequest = $this->validatePostParameters($oRequest);
 
-
-            if (!$this->bValid) {
-                Log::setProcessIsError(true);
-                Log::dt($oTimer, ['valid' => false]);
-                //return new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\BAD_REQUEST);
-            }
-
-            Log::dt($oTimer, ['valid' => true]);
+            Log::dt($oTimer);
             return $oHandler->handle($oRequest);
         }
 
         /**
          * @param ServerRequestInterface $oRequest
          * @return ServerRequestInterface
+         * @throws Middlewares\Utils\HttpErrorException
          */
         private function validatePathParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);
@@ -66,7 +62,7 @@
             );
 
             if ($oValidator->isValid() === false) {
-                throw Middlewares\HttpErrorException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
             }
 
             $oRequest = FastRoute::updatePathParams($oRequest, (array) $oParameters);
@@ -77,6 +73,7 @@
         /**
          * @param ServerRequestInterface $oRequest
          * @return ServerRequestInterface
+         * @throws Middlewares\Utils\HttpErrorException
          */
         private function validateQueryParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);
@@ -90,7 +87,7 @@
             );
 
             if ($oValidator->isValid() === false) {
-                throw Middlewares\HttpErrorException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
             }
 
             $oRequest = $oRequest->withQueryParams((array) $oParameters);
@@ -101,15 +98,10 @@
         /**
          * @param ServerRequestInterface $oRequest
          * @return ServerRequestInterface
+         * @throws Middlewares\Utils\HttpErrorException
          */
         private function validatePostParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);
-
-            if ($oSpec->hasAPostBodyReference()) {
-                // FIXME: Validation Skipped because validating against references is pretty hacky
-                return $oRequest;
-            }
-
             $aParameters = $oRequest->getParsedBody();
             $oParameters = (object) $aParameters;
 
@@ -121,7 +113,7 @@
             );
 
             if ($oValidator->isValid() === false) {
-                throw Middlewares\HttpErrorException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
             }
 
             $oRequest = $oRequest->withParsedBody((array) $oParameters);
@@ -145,8 +137,6 @@
                 $aError['value'] = $oParameters->get($sProperty);
                 $aErrors[] = $aError;
             }
-
-            $this->bValid = false;
 
             return $aErrors;
         }

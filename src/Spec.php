@@ -397,6 +397,10 @@
             return self::toJsonSchema(self::tableToParams($oTable, $iOptions, $aExclude));
         }
 
+        public static function tableToRequestBodyJsonSchema(Table $oTable, array $aExclude = []): array {
+            return self::toJsonSchema(self::tableToParams($oTable, 0, $aExclude),true);
+        }
+
         /**
          * @param Table $oTable
          * @param int $iOptions
@@ -558,10 +562,11 @@
         }
 
         /**
-         * @param array|Param[] $aParams
-         * @return Dot
+         * @param array $aArray
+         * @param bool $bAdditionalProperties
+         * @return array
          */
-        public static function toJsonSchema(array $aArray): array {
+        public static function toJsonSchema(array $aArray, $bAdditionalProperties = false): array {
             if (isset($aArray['type']) && in_array($aArray['type'], ['object', 'array', 'integer', 'number', 'boolean', 'string'])) {
                 // this is likely already a jsonschema
                 return $aArray;
@@ -569,7 +574,7 @@
 
             $oResponse = new Dot([
                 'type'                  => 'object',
-                'additionalProperties'  => false,
+                'additionalProperties'  => $bAdditionalProperties,
                 'properties'            => []
             ]);
 
