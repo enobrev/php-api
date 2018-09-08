@@ -17,6 +17,7 @@
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
 
+    use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
@@ -38,7 +39,7 @@
                     'sync'     => Param\_String::create()->description("Get only `{{ table.name }}` with an updated date since the date in `sync`")
 {% endif %}
                 ])
-                ->response(HTTP\OK, Reference::create(components::RESPONSE_SUCCESS));
+                ->response(HTTP\OK, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));
         }
 
         /**
@@ -77,8 +78,8 @@
             $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search'] ?? null);
             $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort'] ?? null);
 
-            /** @var {{ table.class }}[] $a{{ table.plural }} */
-            $a{{ table.plural }} = {{ table.class_plural }}::getForCMS(
+            /** @var {{ table.class_plural }} $o{{ table.plural }} */
+            $o{{ table.plural }} = {{ table.class_plural }}::getForCMS(
                 $aQueryParams['page'],
                 $aQueryParams['per'],
                 $aSearch,
@@ -87,12 +88,12 @@
 {% endif %}
             );
 
-            foreach($a{{ table.plural }} as $o{{ table.title }}) {
+            $oResponse = _components\{{ table.name }}::add{{ table.plural }}ToResponse($oResponse, $o{{ table.plural }});
+
+            foreach($o{{ table.plural }} as $o{{ table.title }}) {
 {% if primary|length > 1 %}
-                $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
                 $oResponse->push("sorts.{{ table.name }}", "{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}");
 {% else %}
-                $oResponse->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
                 $oResponse->push('sorts.{{ table.name }}', $o{{ table.title }}->{{ primary.0.name }}->getValue());
 {% endif %}
             }

@@ -7,7 +7,6 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
-    use Enobrev\API\DataMap;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
@@ -17,6 +16,8 @@
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
 
+    use {{ spec.namespace.spec }}\_components;
+    use {{ spec.namespace.spec }}\_exceptions;
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
@@ -44,8 +45,8 @@
 {% endfor %}
 {% endif %}
                 ])
-                ->response(HTTP\OK,        Reference::create(components::RESPONSE_SUCCESS))
-                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new {{ table.title }}NotFoundException));
+                ->response(HTTP\OK,        Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS))
+                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new _exceptions\{{ table.title }}NotFound));
         }
 
         /**
@@ -58,6 +59,7 @@
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
          * @return ResponseInterface
+         * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             return $oHandler->handle(
@@ -78,27 +80,25 @@
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
          * @return Dot
-         * @throws {{ table.title }}NotFoundException
+         * @throws _exceptions\{{ table.title }}NotFound
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
 {% if primary|length > 1 %}
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
 
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                throw new {{ table.title }}NotFoundException;
+                throw new _exceptions\{{ table.title }}NotFound;
             }
 
-            $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+            $oResponse = _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
 {% else %}
-            $a{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+            $o{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
 
-            if (!count($a{{ table.plural }})) {
-                throw new {{ table.title }}NotFoundException;
+            if (!count($o{{ table.plural }})) {
+                throw new _exceptions\{{ table.title }}NotFound;
             }
 
-            foreach($a{{ table.plural }} as $o{{ table.title }}) {
-                $oResponse->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
-            }
+            $oResponse = _components\{{ table.name }}::add{{ table.plural }}ToResponse($oResponse, $o{{ table.plural }});
 {% endif %}
 
             return $oResponse;

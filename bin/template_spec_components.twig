@@ -1,26 +1,21 @@
 <?php
-    namespace {{ spec.namespace.spec }}\{{ table.name }};
+    namespace {{ spec.namespace.spec }}\_components;
 
-    use Middlewares;
+    use Adbar\Dot;
 
+    use Enobrev\API\DataMap;
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Request;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\FullSpec\Component\Schema;
-    use Enobrev\API\HTTP;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
 
     use {{ spec.namespace.table }};
 
-    class {{ table.title }}NotFoundException extends Middlewares\HttpErrorException {
-        protected $message = '{{ table.title }} Not Found';
-        protected $code    = HTTP\NOT_FOUND;
-    }
-
-    class components implements ComponentListInterface {
+    class {{ table.name }} implements ComponentListInterface {
 {% if spec.show_post %}
         const SCHEMA_POST          = Schema::PREFIX    . '/{{ table.name }}-post';
 {% endif %}
@@ -39,10 +34,10 @@
         public function components(): array {
             return [
 {% if spec.show_post %}
-                Schema::create(self::SCHEMA_POST)->schema(Spec::tableToJsonSchema(new {{ table.class }}, 0, {{ spec.non_post|raw }})),
+                Schema::create(self::SCHEMA_POST)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_post|raw }})),
 {% endif %}
 {% if spec.show_keyless_post %}
-                Schema::create(self::SCHEMA_KEYLESS_POST)->schema(Spec::tableToJsonSchema(new {{ table.class }}, 0, {{ spec.non_keyless_post|raw }})),
+                Schema::create(self::SCHEMA_KEYLESS_POST)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_keyless_post|raw }})),
 {% endif %}
 {% if spec.show_post %}
                 Request::create(self::REQUEST_POST)
@@ -71,5 +66,21 @@
                         ])
                     )
             ];
+        }
+
+        public static function add{{ table.title }}ToResponse(Dot $oResponse, {{ table.class }} $o{{ table.title }}): Dot {
+{% if primary|length > 1 %}
+            $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+{% else %}
+            $oResponse->set("{{ table.name }}.{$o{{ table.title }}->{{ primary.0.name }}->getValue()}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+{% endif %}
+            return $oResponse;
+        }
+
+        public static function add{{ table.plural }}ToResponse(Dot $oResponse, {{ table.class_plural }} $o{{ table.plural }}): Dot {
+            foreach($o{{ table.plural }} as $o{{ table.title }}) {
+                $oResponse = self::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
+            }
+            return $oResponse;
         }
     }

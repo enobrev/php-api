@@ -16,6 +16,7 @@
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
 
+    use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
@@ -32,10 +33,10 @@
                 ->scopes            ({{ spec.scopes|raw }})
                 ->tag               ('{{ table.name }}')
 {% if spec.show_keyless_post %}
-                ->postBodyReference (Reference::create(components::REQUEST_KEYLESS_POST))
+                ->postBodyReference (Reference::create(_components\{{ table.name }}::REQUEST_KEYLESS_POST))
 {% endif %}
-                ->response(HTTP\OK,      Reference::create(components::RESPONSE_SUCCESS))
-                ->response(HTTP\CREATED, Reference::create(components::RESPONSE_SUCCESS));
+                ->response(HTTP\OK,      Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS))
+                ->response(HTTP\CREATED, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));
         }
 
         /**
@@ -51,7 +52,7 @@
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $aPostParams = $oRequest->getParsedBody();
-            $oRequest    = ResponseBuilder::update($oRequest,
+            $oRequest  = ResponseBuilder::update($oRequest,
                 $this->getResponse(
                     FastRoute::getPathParams($oRequest),
                     $oRequest->getQueryParams(),
@@ -60,12 +61,10 @@
                 )
             );
 
-{% if primary|length > 1 %}
-            return (new get())->process($oRequest, $oHandler);
-{% else %}
+{% if primary|length == 1 %}
             if (!$this->mInsertKey) {
                 // Updated Record, carry on as usual
-                return (new get())->process($oRequest, $oHandler);
+                return $oHandler->handle($oRequest);
             }
 
             if (!isset($aPostParams['{{ primary.0.name }}'])) {
@@ -74,7 +73,7 @@
             }
 
             // Created record and key was provided by client
-            return (new get())->process($oRequest, $oHandler)->withStatus(HTTP\CREATED);
+            return $oHandler->handle($oRequest)->withStatus(HTTP\CREATED);
 {% endif %}
         }
 
@@ -104,6 +103,7 @@
                 $o{{ table.title }}->update();
             }
 
+            $oResponse = _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
             return $oResponse;
         }
     }

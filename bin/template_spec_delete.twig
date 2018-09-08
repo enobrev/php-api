@@ -13,6 +13,7 @@
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
 
+    use {{ spec.namespace.spec }}\_exceptions;
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
@@ -31,7 +32,7 @@
 {% endfor %}
                 ])
                 ->response(HTTP\OK)
-                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new {{ table.title }}NotFoundException));
+                ->response(HTTP\NOT_FOUND, Spec\ProcessErrorResponse::createFromException(new _exceptions\{{ table.title }}NotFound));
         }
 
         /**
@@ -44,7 +45,7 @@
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
          * @return ResponseInterface
-         * @throws {{ table.title }}NotFoundException
+         * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $aPathParams = FastRoute::getPathParams($oRequest);
@@ -52,7 +53,7 @@
 
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                throw new {{ table.title }}NotFoundException;
+                throw new _exceptions\{{ table.title }}NotFound;
             } else {
                 $o{{ table.title }}->delete();
                 return $oResponse->withStatus(HTTP\OK);

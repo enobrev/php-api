@@ -66,14 +66,26 @@
         mkdir($sPathOutput, 0777, true);
     }
 
-    $oGetTemplate           = $oTwig->loadTemplate('template_spec_get.twig');
-    $oGetsTemplate          = $oTwig->loadTemplate('template_spec_gets.twig');
-    $oDeleteTemplate        = $oTwig->loadTemplate('template_spec_delete.twig');
-    $oPostTemplate          = $oTwig->loadTemplate('template_spec_post.twig');
-    $oKeylessPostTemplate   = $oTwig->loadTemplate('template_spec_keyless_post.twig');
-    $oComponentsTemplat     = $oTwig->loadTemplate('template_spec_components.twig');
+    $oTemplateGet           = $oTwig->loadTemplate('template_spec_get.twig');
+    $oTemplateGets          = $oTwig->loadTemplate('template_spec_gets.twig');
+    $oTemplateDelete        = $oTwig->loadTemplate('template_spec_delete.twig');
+    $oTemplatePost          = $oTwig->loadTemplate('template_spec_post.twig');
+    $oTemplateKeylessPost   = $oTwig->loadTemplate('template_spec_keyless_post.twig');
+    $oTemplateComponents    = $oTwig->loadTemplate('template_spec_components.twig');
+    $oTemplateExceptions    = $oTwig->loadTemplate('template_spec_exceptions.twig');
 
     $aDatabase  = json_decode(file_get_contents($sPathJsonSQL), true);
+
+    $sComponentsPath = $sPathOutput . '_components/';
+    $sExceptionsPath = $sPathOutput . '_exceptions/';
+
+    if (!file_exists($sComponentsPath)) {
+        mkdir($sComponentsPath, 0755, true);
+    }
+
+    if (!file_exists($sExceptionsPath)) {
+        mkdir($sExceptionsPath, 0755, true);
+    }
 
     foreach($aDatabase['tables'] as $sTable => $aTable) {
         if (count($aTable['primary']) == 0) {
@@ -81,7 +93,7 @@
             continue;
         }
 
-        $sRenderedPath = $sPathOutput . $sTable;
+        $sRenderedPath = $sPathOutput . $sTable . '/';
 
         if (!file_exists($sRenderedPath)) {
             mkdir($sRenderedPath, 0777, true);
@@ -161,33 +173,39 @@
             }
         }
 
-
-        $aTable['spec']['non_post'] = '[' . implode(', ', $aNonPost) . ']';
-        $aTable['spec']['non_keyless_post'] = '[' . implode(', ', $aNonKeylessPost) . ']';
-        $aTable['spec']['show_post'] = count($aTable['fields']) > count($aNonPost);
+        $aTable['spec']['non_post']          = '[' . implode(', ', $aNonPost) . ']';
+        $aTable['spec']['non_keyless_post']  = '[' . implode(', ', $aNonKeylessPost) . ']';
+        $aTable['spec']['show_post']         = count($aTable['fields']) > count($aNonPost);
         $aTable['spec']['show_keyless_post'] = count($aTable['fields']) > count($aNonKeylessPost);
 
         /// ------------------------
 
-        $sRenderedFile = $sRenderedPath . '/components.php';
+        $sRenderedFile = $sComponentsPath . "{$aTable['table']['name']}.php";
 
-        file_put_contents($sRenderedFile, $oComponentsTemplat->render($aTable));
+        file_put_contents($sRenderedFile, $oTemplateComponents->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
         /// ------------------------
 
-        $sRenderedFile = $sRenderedPath . '/get.php';
+        $sRenderedFile = $sExceptionsPath . "{$aTable['table']['title']}NotFound.php";
 
-        file_put_contents($sRenderedFile, $oGetTemplate->render($aTable));
+        file_put_contents($sRenderedFile, $oTemplateExceptions->render($aTable));
+        echo 'Created ' . $sRenderedFile . "\n";
+
+        /// ------------------------
+
+        $sRenderedFile = $sRenderedPath . 'get.php';
+
+        file_put_contents($sRenderedFile, $oTemplateGet->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
         /// ------------------------
 
         $aTable['spec']['name'] = 'gets';
 
-        $sRenderedFile = $sRenderedPath . '/gets.php';
+        $sRenderedFile = $sRenderedPath . 'gets.php';
 
-        file_put_contents($sRenderedFile, $oGetsTemplate->render($aTable));
+        file_put_contents($sRenderedFile, $oTemplateGets->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
         /// ------------------------
@@ -195,9 +213,9 @@
         $aTable['spec']['name']        = 'delete';
         $aTable['spec']['http_method'] = 'DELETE';
 
-        $sRenderedFile = $sRenderedPath . '/delete.php';
+        $sRenderedFile = $sRenderedPath . 'delete.php';
 
-        file_put_contents($sRenderedFile, $oDeleteTemplate->render($aTable));
+        file_put_contents($sRenderedFile, $oTemplateDelete->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
         /// ------------------------
@@ -205,17 +223,17 @@
         $aTable['spec']['name']        = 'post';
         $aTable['spec']['http_method'] = 'POST';
 
-        $sRenderedFile = $sRenderedPath . '/post.php';
+        $sRenderedFile = $sRenderedPath . 'post.php';
 
-        file_put_contents($sRenderedFile, $oPostTemplate->render($aTable));
+        file_put_contents($sRenderedFile, $oTemplatePost->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
         /// ------------------------
         ///
         $aTable['spec']['name']        = 'keyless_post';
 
-        $sRenderedFile = $sRenderedPath . '/keyless_post.php';
+        $sRenderedFile = $sRenderedPath . 'keyless_post.php';
 
-        file_put_contents($sRenderedFile, $oKeylessPostTemplate->render($aTable));
+        file_put_contents($sRenderedFile, $oTemplateKeylessPost->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
     }

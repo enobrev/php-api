@@ -17,6 +17,7 @@
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
 
+    use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
 
     class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
@@ -29,7 +30,7 @@
                 ->scopes            ({{ spec.scopes|raw }})
                 ->tag               ('{{ table.name }}')
 {% if spec.show_post %}
-                ->postBodyReference (Reference::create(components::REQUEST_POST))
+                ->postBodyReference (Reference::create(_components\{{ table.name }}::REQUEST_POST))
 {% endif %}
                 ->pathParams        ([
 {% for field in primary %}
@@ -37,7 +38,7 @@
 
 {% endfor %}
                 ])
-                ->response(HTTP\OK, Reference::create(components::RESPONSE_SUCCESS));
+                ->response(HTTP\OK, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));
         }
 
         /**
@@ -52,16 +53,16 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oRequest = ResponseBuilder::update($oRequest,
-                $this->getResponse(
-                    FastRoute::getPathParams($oRequest),
-                    $oRequest->getQueryParams(),
-                    $oRequest->getParsedBody(),
-                    ResponseBuilder::get($oRequest)
+            return $oHandler->handle(
+                ResponseBuilder::update($oRequest,
+                    $this->getResponse(
+                        FastRoute::getPathParams($oRequest),
+                        $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
+                        ResponseBuilder::get($oRequest)
+                    )
                 )
             );
-
-            return (new get())->process($oRequest, $oHandler);
         }
 
         /**
@@ -86,6 +87,7 @@
                 $o{{ table.title }}->update();
             }
 
+            $oResponse = _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
             return $oResponse;
         }
     }

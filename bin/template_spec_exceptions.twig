@@ -1,0 +1,10 @@
+<?php
+    namespace {{ spec.namespace.spec }}\_exceptions;
+
+    use Middlewares\HttpErrorException;
+    use Enobrev\API\HTTP;
+
+    class {{ table.title }}NotFound extends HttpErrorException {
+        protected $message = '{{ table.title }} Not Found';
+        protected $code    = HTTP\NOT_FOUND;
+    }
