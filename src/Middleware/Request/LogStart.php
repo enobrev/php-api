@@ -21,7 +21,9 @@
                 '#request' => [
                     'method'     => $oRequest->getMethod(),
                     'path'       => $oRequest->getUri()->getPath(),
-                    'query'      => json_encode($oRequest->getQueryParams())
+                    'query'      => json_encode($oRequest->getQueryParams()),
+                    'headers'    => json_encode($oRequest->getHeaders()),
+                    'post'       => json_encode($oRequest->getParsedBody())
                 ]
             ]);
 

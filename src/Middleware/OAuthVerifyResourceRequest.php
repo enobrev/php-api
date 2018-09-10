@@ -1,7 +1,9 @@
 <?php
     namespace Enobrev\API\Middleware;
 
+    use function Enobrev\dbg;
     use Middlewares;
+    use OAuth2\Request;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -48,8 +50,24 @@
                 return $oHandler->handle($oRequest);
             }
 
-            $oAuthRequest = OAuth_Request::createFromGlobals();
-            $bAuth        = $this->oAuthServer->verifyResourceRequest($oAuthRequest, null, $oSpec->getScopeList());
+            $aHeaders = $oRequest->getHeaders();
+            $aFlatHeaders = [];
+            foreach($aHeaders as $sHeader => $aHeader) {
+                $aFlatHeaders[$sHeader] = array_shift($aHeader);
+            }
+
+            $oAuthRequest = new Request(
+                $oRequest->getQueryParams()    ?? [],
+                $oRequest->getParsedBody()    ?? [],
+                $oRequest->getAttributes()  ?? [],
+                $oRequest->getCookieParams()  ?? [],
+                $oRequest->getUploadedFiles()   ?? [],
+                $oRequest->getServerParams()   ?? [],
+                $oRequest->getBody(),
+                $aFlatHeaders
+            );
+
+            $bAuth = $this->oAuthServer->verifyResourceRequest($oAuthRequest, null, $oSpec->getScopeList());
             if ($bAuth) {
                 $aData = $this->oAuthServer->getAccessTokenData($oAuthRequest);
                 $oRequest = self::setAttribute($oRequest, $aData);
