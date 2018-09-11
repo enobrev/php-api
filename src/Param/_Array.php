@@ -16,6 +16,18 @@
             return $this->validation(['items' => $oItems]);
         }
 
+        public function minItems(int $iMinItems): self {
+            return $this->validation(['minItems' => $iMinItems]);
+        }
+
+        public function maxItems(int $iMaxItems): self {
+            return $this->validation(['maxItems' => $iMaxItems]);
+        }
+
+        public function uniqueItems(bool $bUniqueItems = true): self {
+            return $this->validation(['uniqueItems' => $bUniqueItems]);
+        }
+
         protected function getValidationForSchema():array {
             $aValidation = parent::getValidationForSchema();
             if ($aValidation['items'] instanceof Param) {
