@@ -21,6 +21,14 @@
             return $this->validation(['items' => $aItems]);
         }
 
+        public function hasItems() {
+            return isset($this->aValidation['items']);
+        }
+
+        public function getItems() {
+            return $this->aValidation['items'];
+        }
+
         public function getJsonSchema(): array {
             $aSchema = $this->getValidationForSchema();
             $aSchema['type'] = $this->getType();

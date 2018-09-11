@@ -32,11 +32,11 @@
                 ->queryParams     ([
                     'page'     => Param\_Integer::create()->default(1)->description("Current Page of `{{ table.name }}`"),
                     'per'      => Param\_Integer::create()->default(100)->description("Number of `{{ table.name }}` per page of Data"),
-                    'search'   => Param\_String::create()->description("Search term.  Can be a plain string or in the format field:value"),
-                    'sort'     => Param\_String::create()->description("`{{ table.name }}` field to sort by"){% if has_date %},{% endif %}
+                    'search'   => Param\_String::create()->default(null)->description("Search term.  Can be a plain string or in the format field:value"),
+                    'sort'     => Param\_String::create()->default(null)->description("`{{ table.name }}` field to sort by"){% if has_date %},{% endif %}
 
 {% if has_date %}
-                    'sync'     => Param\_String::create()->description("Get only `{{ table.name }}` with an updated date since the date in `sync`")
+                    'sync'     => Param\_String::create()->default(null)->description("Get only `{{ table.name }}` with an updated date since the date in `sync`")
 {% endif %}
                 ])
                 ->response(HTTP\OK, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));
@@ -75,8 +75,8 @@
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
             $oBaseTable = new {{ table.class }};
-            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search'] ?? null);
-            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort'] ?? null);
+            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']);
+            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort']);
 
             /** @var {{ table.class_plural }} $o{{ table.plural }} */
             $o{{ table.plural }} = {{ table.class_plural }}::getForCMS(
@@ -84,7 +84,7 @@
                 $aQueryParams['per'],
                 $aSearch,
                 $aSort{% if has_date %},
-                $aQueryParams['sync'] ?? null
+                $aQueryParams['sync']
 {% endif %}
             );
 

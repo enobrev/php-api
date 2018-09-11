@@ -44,6 +44,14 @@
             return $this->is(self::NULLABLE);
         }
 
+        public function hasDefault():bool {
+            return isset($this->aValidation['default']);
+        }
+
+        public function getDefault() {
+            return $this->aValidation['default'];
+        }
+
         private function is(int $iOption):bool {
             return $this->iOptions & $iOption;
         }

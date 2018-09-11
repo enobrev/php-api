@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\Middleware\Request;
 
-    use function Enobrev\dbg;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -11,6 +10,7 @@
     use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
+    use function Enobrev\dbg;
 
     class CoerceParams implements MiddlewareInterface {
 
@@ -28,15 +28,22 @@
                 return $oHandler->handle($oRequest);
             }
 
-            $aCoerced = [];
+            $aCoerced = [
+                'path'   => [],
+                'query'  => [],
+                'post'   => [],
+                'header' => []
+            ];
 
             $aPathParams = FastRoute::getPathParams($oRequest);
             if ($aPathParams) {
                 foreach ($oSpec->getPathParams() as $sParam => $oParam) {
-                    if ($oParam instanceof Param\_Array && isset($aPathParams[$sParam])) {
-                        $aPathParams[$sParam] = explode(',', $aPathParams[$sParam]);
-                        $aPathParams[$sParam] = array_map('trim', $aPathParams[$sParam]);
-                        $aCoerced[] = $sParam;
+                    if (isset($aPathParams[$sParam])) {
+                        if ($oParam instanceof Param\_Array) {
+                            $aPathParams[$sParam] = explode(',', $aPathParams[$sParam]);
+                            $aPathParams[$sParam] = array_map('trim', $aPathParams[$sParam]);
+                            $aCoerced['path'][] = $sParam;
+                        }
                     }
                 }
                 
@@ -46,10 +53,12 @@
             $aQueryParams = $oRequest->getQueryParams();
             if ($aQueryParams) {
                 foreach ($oSpec->getQueryParams() as $sParam => $oParam) {
-                    if ($oParam instanceof Param\_Array && isset($aQueryParams[$sParam]) && is_string($aQueryParams[$sParam])) {
-                        $aQueryParams[$sParam] = explode(',', $aQueryParams[$sParam]);
-                        $aQueryParams[$sParam] = array_map('trim', $aQueryParams[$sParam]);
-                        $aCoerced[] = $sParam;
+                    if (isset($aQueryParams[$sParam])) {
+                        if ($oParam instanceof Param\_Array && is_string($aQueryParams[$sParam])) {
+                            $aQueryParams[$sParam] = explode(',', $aQueryParams[$sParam]);
+                            $aQueryParams[$sParam] = array_map('trim', $aQueryParams[$sParam]);
+                            $aCoerced['query'][] = $sParam;
+                        }
                     }
                 }
 
@@ -59,17 +68,41 @@
             $aPostParams = $oRequest->getParsedBody();
             if ($aPostParams) {
                 foreach ($oSpec->getPostParams() as $sParam => $oParam) {
-                    if ($oParam instanceof Param\_Array && isset($aPostParams[$sParam]) && is_string($aPostParams[$sParam])) {
-                        $aPostParams[$sParam] = explode(',', $aPostParams[$sParam]);
-                        $aPostParams[$sParam] = array_map('trim', $aPostParams[$sParam]);
-                        $aCoerced[] = $sParam;
-                    } else if ($oParam instanceof Param\_Object && isset($aPostParams[$sParam]) && is_array($aPostParams[$sParam])) {
-                        $aPostParams[$sParam] = (object) $aPostParams[$sParam];
-                        $aCoerced[] = $sParam;
+                    if (isset($aPostParams[$sParam])) {
+                        if ($oParam instanceof Param\_Array && is_string($aPostParams[$sParam])) {
+                            $aPostParams[$sParam] = explode(',', $aPostParams[$sParam]);
+                            $aPostParams[$sParam] = array_map('trim', $aPostParams[$sParam]);
+                            $aCoerced['post'][] = $sParam;
+                        } else if ($oParam instanceof Param\_Object && is_array($aPostParams[$sParam])) {
+                            $aPostParams[$sParam] = (object) $aPostParams[$sParam];
+                            $aCoerced['post'][] = $sParam;
+                        }
                     }
                 }
 
                 $oRequest = $oRequest->withParsedBody($aPostParams);
+            }
+
+            $aHeaderParams = $oRequest->getHeaders();
+            if ($aHeaderParams) {
+                foreach ($oSpec->getHeaderParams() as $sParam => $oParam) {
+                    if (isset($aHeaderParams[$sParam])) {
+                        $aHeader = [];
+                        foreach($aHeaderParams[$sParam] as $sHeaderParam) {
+                            if ($oParam instanceof Param\_Array && is_string($sHeaderParam)) {
+                                $sHeaderParam = explode(',', $sHeaderParam);
+                                $aHeader[]    = array_map('trim', $sHeaderParam);
+                                $aCoerced['header'][] = $sParam;
+                            } else if ($oParam instanceof Param\_Object && is_array($sHeaderParam)) {
+                                $aHeader[]    = (object) $sHeaderParam;
+                                $aCoerced['header'][] = $sParam;
+                            } else {
+                                $aHeader[]    = $sHeaderParam;
+                            }
+                        }
+                        $oRequest = $oRequest->withHeader($sParam, $aHeader);
+                    }
+                }
             }
 
             Log::dt($oTimer, ['coerced' => $aCoerced]);

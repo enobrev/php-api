@@ -10,16 +10,13 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\Exception\ValidationException;
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
 
     use function Enobrev\dbg;
-
-    class ValidationException extends Middlewares\HttpErrorException {
-        protected $code    = HTTP\BAD_REQUEST;
-    }
 
     class ValidateSpec implements MiddlewareInterface {
         /**

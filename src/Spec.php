@@ -182,6 +182,13 @@
             return $this->aPostParams;
         }
 
+        /**
+         * @return Param[]
+         */
+        public function getHeaderParams(): array {
+            return $this->aHeaderParams;
+        }
+
         public function isPublic():bool {
             return $this->bPublic;
         }
