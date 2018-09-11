@@ -51,6 +51,8 @@
             $oBuilder = ResponseBuilder::get($oRequest);
             $aQuery   = $this->aEndpoints;
 
+            Log::d('Enobrev.Middleware.MultiEndpointQuery', ['query' => $aQuery]);
+
             $this->oData = new Dot();
 
             while (count($aQuery) > 0) {
