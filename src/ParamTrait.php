@@ -10,9 +10,9 @@
         public function required(bool $bRequired = true):self {
             $oClone = clone $this;
             if ($bRequired) {
-                $oClone->iOptions = $oClone->iOptions |  self::REQUIRED;
+                $oClone->iOptions = $oClone->iOptions | self::REQUIRED;
             } else {
-                $oClone->iOptions = $oClone->iOptions |~ self::REQUIRED;
+                $oClone->iOptions = $oClone->iOptions ^ self::REQUIRED;
             }
             return $oClone;
         }
@@ -20,9 +20,9 @@
         public function deprecated(bool $bDeprecated = true):self {
             $oClone = clone $this;
             if ($bDeprecated) {
-                $oClone->iOptions = $oClone->iOptions |  self::DEPRECATED;
+                $oClone->iOptions = $oClone->iOptions | self::DEPRECATED;
             } else {
-                $oClone->iOptions = $oClone->iOptions |~ self::DEPRECATED;
+                $oClone->iOptions = $oClone->iOptions ^ self::DEPRECATED;
             }
             return $oClone;
         }
@@ -30,9 +30,9 @@
         public function nullable(bool $bNullable = true):self {
             $oClone = clone $this;
             if ($bNullable) {
-                $oClone->iOptions = $oClone->iOptions |  self::NULLABLE;
+                $oClone->iOptions = $oClone->iOptions | self::NULLABLE;
             } else {
-                $oClone->iOptions = $oClone->iOptions |~ self::NULLABLE;
+                $oClone->iOptions = $oClone->iOptions ^ self::NULLABLE;
             }
             return $oClone;
         }
