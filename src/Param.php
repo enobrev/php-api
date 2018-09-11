@@ -114,6 +114,10 @@
                 }
             }
 
+            if ($this->sDescription) {
+                $aSchema['description'] = $this->sDescription;
+            }
+
             return $aSchema;
         }
 

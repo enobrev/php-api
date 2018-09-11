@@ -19,7 +19,7 @@
     use Middlewares\HttpErrorException;
 
     class Spec {
-        const SKIP_PRIMARY = 1;
+        const SKIP_PRIMARY = 1024;
 
         /** @var string */
         private $sSummary;
@@ -404,8 +404,8 @@
             return self::toJsonSchema(self::tableToParams($oTable, $iOptions, $aExclude));
         }
 
-        public static function tableToRequestBodyJsonSchema(Table $oTable, array $aExclude = []): array {
-            return self::toJsonSchema(self::tableToParams($oTable, 0, $aExclude),true);
+        public static function tableToRequestBodyJsonSchema(Table $oTable, array $aExclude = [], $bAdditionalProperties = true): array {
+            return self::toJsonSchema(self::tableToParams($oTable, 0, $aExclude), $bAdditionalProperties);
         }
 
         /**
@@ -432,7 +432,7 @@
                     continue;
                 }
 
-                $oParam = self::fieldToParam($oField);
+                $oParam = self::fieldToParam($oField, $iOptions);
                 if ($oParam instanceof Param) {
                     $aDefinitions[$sField] = $oParam;
                 }
@@ -442,11 +442,11 @@
         }
 
         /**
-         * @param Table $oTable
          * @param Field $oField
-         * @return Param
+         * @param int $iOptions
+         * @return Param|null
          */
-        public static function fieldToParam(Field $oField): ?Param {
+        public static function fieldToParam(Field $oField, int $iOptions = 0): ?Param {
             switch(true) {
                 default:
                 case $oField instanceof Field\Text:    $oParam = Param\_String::create();  break;
@@ -457,32 +457,40 @@
 
             switch(true) {
                 case $oField instanceof Field\Enum:
-                    $oParam->enum($oField->aValues);
+                    $oParam = $oParam->enum($oField->aValues);
                     break;
 
                 case $oField instanceof Field\TextNullable:
-                    $oParam->nullable();
+                    $oParam = $oParam->nullable();
                     break;
 
                 case $oField instanceof Field\DateTime:
-                    $oParam->format('date-time');
+                    $oParam = $oParam->format('date-time');
                     break;
 
                 case $oField instanceof Field\Date:
-                    $oParam->format('date');
+                    $oParam = $oParam->format('date');
                     break;
             }
 
             if (strpos(strtolower($oField->sColumn), 'password') !== false) {
-                $oParam->format('password');
+                $oParam = $oParam->format('password');
             }
 
             if ($oField->hasDefault()) {
                 if ($oField instanceof Field\Boolean) {
-                    $oParam->default((bool) $oField->sDefault);
+                    $oParam = $oParam->default((bool) $oField->sDefault);
                 } else {
-                    $oParam->default($oField->sDefault);
+                    $oParam = $oParam->default($oField->sDefault);
                 }
+            }
+
+            if ($iOptions & Param::REQUIRED) {
+                $oParam = $oParam->required();
+            }
+
+            if ($iOptions & Param::DEPRECATED) {
+                $oParam = $oParam->deprecated();
             }
 
             return $oParam;
