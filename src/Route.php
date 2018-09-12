@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API;
 
-    use Enobrev\API\Exception\InvalidRequest;
     use function Enobrev\dbg;
     use Enobrev\Log;
 
@@ -13,8 +12,6 @@
     use JmesPath;
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\ServerRequestFactory;
-
-    use FastRoute;
 
     use function Enobrev\array_is_multi;
 
@@ -64,6 +61,8 @@
             /** @var Restful $sRest */
             $sRest = self::$sRestClass;
             $sRest::init(self::$sNamespaceTable);
+
+            self::_generateRoutes();
         }
 
         /**
@@ -103,11 +102,76 @@
             }
         }
 
-        const CACHED_ROUTE_BASE    = 'BASE';
         const QUERY_ROUTE_ENDPOINT = 'ENDPOINT';
         const QUERY_ROUTE_TABLE    = 'TABLE';
         const QUERY_ROUTE_REST     = 'REST';
 
+        /**
+         * @param string $sRoute
+         * @param string $sClass
+         * @param string $sMethod
+         */
+        public static function addEndpointRoute(string $sRoute, string $sClass, string $sMethod): void {
+            self::addQueryRoute(self::QUERY_ROUTE_ENDPOINT, $sRoute, $sClass, $sMethod);
+        }
+
+        /**
+         * @param string $sRoute
+         * @param string $sClass
+         * @param string $sMethod
+         */
+        public static function addTableRoute(string $sRoute, string $sClass, string $sMethod): void {
+            self::addQueryRoute(self::QUERY_ROUTE_TABLE, $sRoute, $sClass, $sMethod);
+        }
+
+        /**
+         * @param string $sRoute
+         * @param string $sClass
+         */
+        public static function addRestRoute(string $sRoute, string $sClass): void {
+            self::addQueryRoute(self::QUERY_ROUTE_REST, $sRoute, $sClass, self::QUERY_ROUTE_REST);
+        }
+
+        /**
+         * @param string $sType
+         * @param string $sRoute
+         * @param string $sClass
+         * @param string $sMethod
+         */
+        private static function addQueryRoute(string $sType, string $sRoute, string $sClass, string $sMethod): void {
+            foreach (self::$aVersions as $sVersion) {
+                $aRoute = [
+                    'normalized' => $sRoute,
+                    'type'       => $sType,
+                    'class'      => $sClass,
+                    'method'     => $sMethod
+                ];
+
+                $sVersionedRoute  = $sVersion . '/' . trim($sRoute, '/');
+                $aPath            = explode('/', $sVersionedRoute);
+
+                $aParsed = [];
+                $aParams = [];
+                foreach($aPath as $sSegment) {
+                    if (strpos($sSegment, '{') === 0) {
+                        $sMatch    = trim($sSegment, "{}");
+                        $aParams[] = $sMatch;
+                        $aParsed[] = '(?<' . $sMatch . '>[^/]+)';
+                    } else {
+                        $aParsed[] = $sSegment;
+                    }
+                }
+
+                $sVersionedRoute = implode('/', $aParsed);
+                $sVersionedRoute = str_replace('*', '([^/]+)', $sVersionedRoute);
+                $sVersionedRoute = '~^' . $sVersionedRoute . '$~';
+
+                $aRoute['segments'] = count($aPath);
+                $aRoute['params']   = $aParams;
+
+                self::$aCachedQueryRoutes[$sVersionedRoute] = $aRoute;
+            }
+        }
 
         /**
          * @param string $sVersion
@@ -130,13 +194,7 @@
          */
         public static function _getResponse(Request $oRequest): Response {
             try {
-                if ($oRequest->isOptions() && $oRequest->pathIsRoot()) {
-                    $oRest = new Rest($oRequest);
-                    $oRest->Response->respondWithOptions(...Method\_ALL);
-                    return $oRest->Response;
-                }
-                
-                if ($oRequest->pathIsRoot()) {
+                if ($oRequest->pathIsRoot() && !$oRequest->isOptions()) {
                     Log::d('API.Route._getResponse.root', [
                         '#request' => [
                             'path_normalized' => '/'
@@ -164,54 +222,121 @@
                     }
                 }
 
-                // $oFullSpec = FullSpec::getFromCache();
-                $oFullSpec = FullSpec::generateLiveForDevelopment(); // FIXME: Remove this
-
-                if ($oRequest->isOptions()) {
-                    $aMethods = self::_matchOptions($oFullSpec, $oRequest);
-                    $oRest = new Rest($oRequest);
-                    if (is_array($aMethods)) {
-                        $oRest->Response->respondWithOptions(...$aMethods);
-                    } else {
-                        $oRest->Response->statusMethodNotAllowed();
-                    }
-                    return $oRest->Response;
-                }
-
-                $oSpec = self::_matchRouteToSpec($oFullSpec, $oRequest);
-
-                if ($oSpec instanceof Spec) {
-                    return self::_endpoint($oSpec, $oRequest);
+                $aRoute   = self::_matchRoute(self::$aCachedRoutes, $oRequest);
+                if ($aRoute) {
+                    return self::_endpoint($aRoute, $oRequest);
                 }
 
                 /** @var Rest $oRest */
                 $oRest   = self::_getRestClass($oRequest);
-                $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
-                if (method_exists($oRest, $sMethod)) {
-                    $oRest->setDataFromPath();
 
-                    Log::d('API.Route.query.dynamic', [
-                        '#request' => [
-                            'path_normalized' => '/' . $oRest->getDataPath()
-                        ],
-                        'path'          => implode('/', $oRequest->Path),
-                        'method'        => $sMethod,
-                        'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
-                        'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
-                        'query'         => json_encode($oRequest->GET)
-                    ]);
+                Log::d('API.Route.query.rest', [
+                    'class' => get_class($oRest)
+                ]);
 
-                    if (!$oRest->hasData() && $oRequest->isPut()) { // Tried to PUT with an ID and no record was found
-                        $oRest->Response->statusNotFound();
-                    } else {
-                        $oRest->$sMethod();
-                    }
-                } else {
-                    $oRest->Response->statusMethodNotAllowed();
+                if ($oRequest->isOptions()) {
+                    $oRest->options();
+                    return $oRest->Response;
                 }
 
-                return $oRest->Response;
+                $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
+                if (method_exists($oRest, $sMethod)) {
+                    $aRoute = self::_matchQuery(self::$aCachedQueryRoutes, $oRequest);
+                    if ($aRoute) {
+                        $sClass       = $aRoute['class'];
+                        $sQueryMethod = $aRoute['method'] == self::QUERY_ROUTE_REST ? $oRequest->Method : $aRoute['method'];
 
+                        Log::d('API.Route.query.cached', [
+                            'class'      => $sClass,
+                            'method'     => $sQueryMethod,
+                            'path'       => $oRequest->Path,
+                            'headers'    => json_encode($oRequest->OriginalRequest->getHeaders()),
+                            'attributes' => json_encode($oRequest->OriginalRequest->getAttributes())
+                        ]);
+
+                        if (method_exists($sClass, $sQueryMethod)) {
+                            // If Class is a Table, then use Rest and setData from that Method, otherwise, just run the Method
+                            switch ($aRoute['type']) {
+                                case self::QUERY_ROUTE_TABLE:
+                                    /** @var \Enobrev\ORM\Tables|\Enobrev\ORM\Table $oResults */
+                                    $oResults = $sClass::$sQueryMethod($aRoute['params']);
+
+                                    if ($oResults) {
+                                        $oRest->setData($oResults);
+                                    }
+
+                                    $oRest->$sMethod();
+                                    break;
+
+                                case self::QUERY_ROUTE_ENDPOINT:
+                                    $oRequest->updateParams($aRoute['params']);
+
+                                    /** @var Base $oClass */
+                                    $oClass = new $sClass($oRequest);
+                                    $oClass->$sQueryMethod();
+
+                                    return $oClass->Response;
+                                    break;
+
+                                case self::QUERY_ROUTE_REST:
+                                    $oRequest->updateParams($aRoute['params']);
+
+                                    /** @var Rest $oClass */
+                                    $oClass = new $sClass($oRequest);
+                                    $oClass->setDataFromPath();
+                                    $oClass->$sQueryMethod();
+
+                                    return $oClass->Response;
+                                    break;
+                            }
+                        } else {
+                            $oRest->Response->setStatus(HTTP\SERVICE_UNAVAILABLE);
+                            $oRest->Response->setFormat(Response::FORMAT_EMPTY);
+                        }
+                    } else if ($oRest->Request->pathIsRoot()) {
+                        Log::d('API.Route.root', [
+                            '#request' => [
+                                'path_normalized' => '/'
+                            ],
+                            'path'          => $oRequest->Path,
+                            'method'        => $sMethod,
+                            'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
+                            'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
+                            'query'         => json_encode($oRequest->GET)
+                        ]);
+
+                        if (method_exists($oRest, 'index')) {
+                            $oRest->index();
+                        } else {
+                            $oRest->Response->statusNoContent();
+                        }
+                    } else {
+                        $oRest->setDataFromPath();
+
+                        Log::d('API.Route.query.dynamic', [
+                            '#request' => [
+                                'path_normalized' => '/' . $oRest->getDataPath()
+                            ],
+                            'path'          => implode('/', $oRequest->Path),
+                            'method'        => $sMethod,
+                            'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
+                            'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes()),
+                            'query'         => json_encode($oRequest->GET)
+                        ]);
+
+                        if (!$oRest->hasData() && $oRequest->isPut()) { // Tried to PUT with an ID and no record was found
+                            $oRest->Response->statusNotFound();
+                        } else {
+                            $oRest->$sMethod();
+                        }
+                    }
+
+                    return $oRest->Response;
+                }
+
+                $oRest->Response->statusMethodNotAllowed();
+
+                return $oRest->Response;
             } catch (\Exception $e) {
                 Log::setProcessIsError(true);
                 Log::c('API.Route._getRequest.Error', [
@@ -265,10 +390,7 @@
                 if ($sTopClass) {
                     $sRestClass = self::_getNamespacedAPIClassName($oRequest->Path[0], $sTopClass);
                     if (class_exists($sRestClass)) {
-                        $oClass = new $sRestClass($oRequest);
-                        if ($oClass instanceof RestfulInterface) {
-                            return $oClass;
-                        }
+                        return new $sRestClass($oRequest);
                     }
                 }
 
@@ -292,39 +414,34 @@
         }
 
         /**
-         * @param Spec $oSpec
+         * @param array   $aRoute
          * @param Request $oRequest
          * @return Response
          * @throws Exception
          */
-        public static function _endpoint(Spec $oSpec, Request $oRequest) : Response {
+        public static function _endpoint(Array $aRoute, Request $oRequest) : Response {
             Log::d('API.Route.endpoint', [
-                'spec'          => $oSpec->toJson(),
+                'class'         => $aRoute['class'],
+                'path'          => $oRequest->Path,
                 'headers'       => json_encode($oRequest->OriginalRequest->getHeaders()),
                 'attributes'    => json_encode($oRequest->OriginalRequest->getAttributes())
             ]);
 
-            [$sClass, $sMethod] = explode('::', $oSpec->sMethod);
-
             /** @var Base $oClass */
-            $oClass  = new $sClass($oRequest);
+            $oClass  = new $aRoute['class']($oRequest);
+            $sMethod = strtolower($oRequest->OriginalRequest->getMethod());
+
             if ($oClass instanceof Base) {
-                try {
-                    $oSpec->validateRequest($oRequest, $oClass->Response);
+                if (isset($aRoute['method'])) {
+                    $sMethod = $aRoute['method'];
+                }
 
-                    if (method_exists($oClass, $sMethod)) {
-                        Log::d('API.Route.endpoint.response');
-                        if (method_exists($oClass, 'setDataFromPath')) {
-                            $oClass->setDataFromPath();
-                        }
-
-                        $oClass->$sMethod();
-                    } else {
-                        Log::w('API.Route.endpoint.methodNotFound');
-                        $oClass->methodNotAllowed();
-                    }
-                } catch (InvalidRequest $e) {
-                    Log::e('API.Route.endpoint.InvalidRequest', ['error' => $e]);
+                if (method_exists($oClass, $sMethod)) {
+                    Log::d('API.Route.endpoint.response');
+                    $oClass->$sMethod();
+                } else {
+                    Log::w('API.Route.endpoint.methodNotFound');
+                    $oClass->methodNotAllowed();
                 }
 
                 return $oClass->Response;
@@ -357,127 +474,109 @@
         }
 
         /**
-         * @param FullSpec $oFullSpec
-         * @param Request &$oRequest
-         * @return Spec|null
+         * @param array $aRoutes
+         * @param Request $oRequest
+         * @return array|bool
          */
-        public static function _matchRouteToSpec(FullSpec $oFullSpec, Request &$oRequest): ?Spec {
-            $oDispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) use ($oFullSpec) {
-                $aRoutes = $oFullSpec->getRoutes();
-                foreach($aRoutes as $sPath => $aMethods) {
-                    $r->addRoute($aMethods, $sPath, $sPath);
-                }
+        public static function _matchQuery(Array $aRoutes, Request $oRequest) {
+            $iSegments = count($oRequest->Path);
+            $sRoute = implode('/', $oRequest->Path);
+            $sRoute = trim($sRoute, '/');
+
+            $aPossible = array_filter($aRoutes, function (array $aRoute) use ($iSegments): bool {
+                return $aRoute['segments'] == $iSegments || ($aRoute['type'] == self::QUERY_ROUTE_REST && $aRoute['segments'] == $iSegments - 1);
             });
 
-            $aPath = $oRequest->Path;
-            if ($aPath[0] == 'v1') { // FIXME: Include Version in Spec Paths
-                array_shift($aPath);
-            }
-
-            $sPath = '/' . implode('/', $aPath);
-            $aRouteInfo = $oDispatcher->dispatch($oRequest->Method, $sPath);
-
-            switch ($aRouteInfo[0]) {
-                case FastRoute\Dispatcher::NOT_FOUND:
-                    /*
-                    dbg('NOT FOUND');
-                    $aRoutes = $oFullSpec->getRoutes();
-                    dbg($sPath, $aRoutes);
-                    */
-                    return null;
-                    break;
-                case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                    /*
-                    dbg($oRequest->Method);
-                    dbg('NOT ALLOWED', $aRouteInfo);
-                    */
-                    return null;
-                    break;
-                case FastRoute\Dispatcher::FOUND:
-                    if ($aRouteInfo[2]) {
-                        $oRequest->updatePathParams($aRouteInfo[2]);
+            foreach ($aPossible as $sMatch => $aRoute) {
+                $aMatches = [];
+                if (preg_match($sMatch, $sRoute, $aMatches)) {
+                    if (isset($aRoute['options']) && is_array($aRoute['options']) && count($aRoute['options']) > 0) {
+                        if (!in_array(strtoupper($oRequest->Method), $aRoute['options'])) {
+                            continue;
+                        }
                     }
 
-                    /*
-                    dbg($aRouteInfo);
-                    dbg($oFullSpec->getPath($aRouteInfo[1], $oRequest->Method));
-                    */
-                    return $oFullSpec->getPath($aRouteInfo[1], $oRequest->Method);
-                    break;
+                    Log::d('API.Route._matchQuery', [
+                        '#request' => [
+                            'path_normalized' => $aRoute['normalized']
+                        ]
+                    ]);
+
+                    $aRoute['params'] = array_intersect_key($aMatches, array_flip($aRoute['params']));
+                    return $aRoute;
+                }
             }
 
-            /*
-            $aRoute = $aRoutes[$sRoute] ?? null;
-            if ($aRoute) {
-                Log::d('API.Route._matchRoute', [
-                    '#request' => [
-                        'path_normalized' => '/' . $aRoute['normalized']
-                    ]
-                ]);
-            }
-
-            return $aRoute;
-            */
+            return false;
         }
 
         /**
-         * @param FullSpec $oFullSpec
-         * @param Request $oRequest
-         * @return string[]|null
+         * Traverse the API path, find all the version folders, and add a Route for each Public Method in all Classes that extend API\Base
+         * Ideally we would have a script that would write all these routes to a cached file during the build process
+         * and then the routes would be loaded immediately for production systems
+         *
+         * @todo Cache These for Production
          */
-        public static function _matchOptions(FullSpec $oFullSpec, Request $oRequest): ?array {
-            $oDispatcher = FastRoute\simpleDispatcher(function(FastRoute\RouteCollector $r) use ($oFullSpec) {
-                $aRoutes = $oFullSpec->getRoutes();
-                foreach($aRoutes as $sPath => $aMethods) {
-                    try {
-                        $r->addRoute('OPTIONS', $sPath, $aMethods);
-                    } catch (FastRoute\BadRouteException $e) {
-                        // Don't worry about it - not important for options
+        public static function _generateRoutes():void {
+            foreach (self::$aVersions as $sVersion) {
+                // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
+                // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
+
+                $sVersionPath = self::$sPathAPI . $sVersion . '/';
+                if (file_exists($sVersionPath)) {
+                    /** @var SplFileInfo[] $aFiles */
+                    $aFiles  = new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator(
+                            $sVersionPath,
+                            FilesystemIterator::SKIP_DOTS
+                        )
+                    );
+
+                    foreach($aFiles as $oFile) {
+                        $sContents = file_get_contents($oFile->getPathname());
+                        if (preg_match('/class\s+([^\s]+)\s+extends\s+(((\\\)?Enobrev\\\)?API\\\)?Base/', (string) $sContents, $aMatches)) {
+                            $aPublicMethods     = [];
+                            $sClass             = $aMatches[1];
+                            $sClassPath         = self::_getNamespacedAPIClassName($sVersion, $sClass);
+                            $oReflectionClass   = new \ReflectionClass($sClassPath);
+                            $aReflectionMethods = $oReflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
+
+                            foreach($aReflectionMethods as $oReflectionMethod) {
+                                if ($oReflectionMethod->class == $oReflectionClass->getName()) {
+                                    $aPublicMethods[] = $oReflectionMethod->name;
+                                }
+                            }
+
+                            foreach($aPublicMethods as $sMethod) {
+                                if ($sMethod == 'index') {
+                                    $sRoute = implode('/', [$sVersion, strtolower($sClass)]);
+                                } else {
+                                    $sRoute = implode('/', [$sVersion, strtolower($sClass), $sMethod]);
+                                }
+
+                                self::$aCachedRoutes[$sRoute] = [
+                                    'normalized' => $sRoute,
+                                    'class'      => $sClassPath,
+                                    'method'     => $sMethod
+                                ];
+
+
+                            }
+                        }
                     }
                 }
-            });
-
-            $aPath = $oRequest->Path;
-            if ($aPath[0] == 'v1') { // FIXME: Include Version in Spec Paths
-                array_shift($aPath);
             }
+        }
 
-            $sPath = '/' . implode('/', $aPath);
-            $aRouteInfo = $oDispatcher->dispatch($oRequest->Method, $sPath);
+        /**
+         * @return array
+         */
+        public static function _getCachedRoutes(): array {
+            return self::$aCachedRoutes;
+        }
 
-            switch ($aRouteInfo[0]) {
-                case FastRoute\Dispatcher::NOT_FOUND:
-                    return null;
-                    /*
-                    dbg('NOT FOUND');
-                    $aRoutes = $oFullSpec->getRoutes();
-                    dbg($sPath, $aRoutes);
-                    */
-                    break;
-                case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                    return null;
-                    /*
-                    dbg($oRequest->Method);
-                    dbg('NOT ALLOWED', $routeInfo);
-                    */
-                    break;
-                case FastRoute\Dispatcher::FOUND:
-                    return $aRouteInfo[1];
-                    break;
-            }
-
-            /*
-            $aRoute = $aRoutes[$sRoute] ?? null;
-            if ($aRoute) {
-                Log::d('API.Route._matchRoute', [
-                    '#request' => [
-                        'path_normalized' => '/' . $aRoute['normalized']
-                    ]
-                ]);
-            }
-
-            return $aRoute;
-            */
+        public static function _getCachedQueryRoutes(): array {
+            return self::$aCachedQueryRoutes;
         }
 
         /** @var array  */
@@ -710,14 +809,9 @@
 
                 $aResponseParsed = json_decode((string) json_encode($oResponse->data), true); // FIXME: Inefficient and silly object to array conversion
 
-                if (isset($aResponseParsed['_request'])) {
-                    self::$aData['__requests'][] = $aResponseParsed['_request'];
-                    unset($aResponseParsed['_request']);
-                }
-
-                if (isset($aResponseParsed['_server'])) {
-                    unset($aResponseParsed['_server']);
-                }
+                self::$aData['__requests'][] = $aResponseParsed['_request'];
+                unset($aResponseParsed['_request']);
+                unset($aResponseParsed['_server']);
 
                 if (isset($aResponseParsed['counts'])) {
                     if (!isset(self::$aData['counts'])) {
@@ -745,10 +839,8 @@
                             self::$aData[$sTable] = [];
                         }
 
-                        if (is_iterable($aRecords)) {
-                            foreach ($aRecords as $sId => $aRecord) {
-                                self::$aData[$sTable][$sId] = $aRecord;
-                            }
+                        foreach ($aRecords as $sId => $aRecord) {
+                            self::$aData[$sTable][$sId] = $aRecord;
                         }
                     }
                 }
