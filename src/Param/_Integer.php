@@ -10,10 +10,6 @@
         /** @var string */
         protected $sType = Param::INTEGER;
 
-        public function getJsonSchema(): array {
-            return parent::getJsonSchema();
-        }
-
         public function minimum(int $iMinimum, $bExclusive = false): self {
             if ($bExclusive) {
                 return $this->validation(['minimum' => $iMinimum])->validation(['exclusiveMinimum' => $bExclusive]);
@@ -28,7 +24,42 @@
             return $this->validation(['maximum' => $iMaximum]);
         }
 
+        public function getJsonSchema($bOpenSchema = false): array {
+            return parent::getJsonSchema($bOpenSchema);
+        }
+
         public function getJsonSchemaForOpenAPI(): array {
             return parent::getJsonSchemaForOpenAPI();
+        }
+
+        /**
+         * Heavily inspired by justinrainbow/json-schema, except tries not to coerce nulls into non-nulls
+         * @param $mValue
+         * @return int
+         */
+        public function coerce($mValue) {
+            if ($this->isNullable()) {
+                if (is_null($mValue) || $mValue == 'null' || $mValue === 0 || $mValue === false || $mValue === '') {
+                    return null;
+                }
+            }
+
+            if (is_numeric($mValue)) {
+                $mValue = $mValue + 0; // cast to number
+            }
+
+            if (is_bool($mValue) || is_null($mValue)) {
+                $mValue = (int) $mValue;
+            }
+
+            if (is_array($mValue) && count($mValue) === 1) {
+                $mValue = $this->coerce(reset($mValue));
+            }
+
+            if (is_numeric($mValue) && (int) $mValue == $mValue) {
+                return (int) $mValue; // cast to number
+            }
+
+            return $mValue;
         }
     }

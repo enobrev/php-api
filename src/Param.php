@@ -1,6 +1,8 @@
 <?php
     namespace Enobrev\API;
 
+    use function Enobrev\dbg;
+
     abstract class Param implements JsonSchemaInterface {
         const STRING     = 'string';
         const NUMBER     = 'number';
@@ -45,7 +47,7 @@
         }
 
         public function hasDefault():bool {
-            return isset($this->aValidation['default']);
+            return array_key_exists('default', $this->aValidation);
         }
 
         public function getDefault() {
@@ -74,7 +76,44 @@
             return $aValidation;
         }
 
-        public function getJsonSchema(): array {
+        /**
+         * @param array $aSchema
+         * @return Param\_Array|Param\_Boolean|Param\_Integer|Param\_Number|Param\_Object|Param\_String
+         */
+        public static function createFromJsonSchema(array $aSchema) {
+            switch($aSchema['type']) {
+                case 'array':   $oParam = Param\_Array::create();   break;
+                case 'object':  $oParam = Param\_Object::create();  break;
+                case 'string':  $oParam = Param\_String::create();  break;
+                case 'number':  $oParam = Param\_Number::create();  break;
+                case 'integer': $oParam = Param\_Integer::create(); break;
+                case 'boolean': $oParam = Param\_Boolean::create(); break;
+            }
+
+            if (isset($aSchema['nullable'])) {
+                $oParam = $oParam->nullable();
+            }
+
+            if (isset($aSchema['deprecated'])) {
+                $oParam = $oParam->deprecated();
+            }
+
+            if (isset($aSchema['description'])) {
+                $oParam->sDescription = $aSchema['description'];
+            }
+
+            if (isset($aSchema['properties'])) {
+                $aParams = [];
+                foreach($aSchema['properties'] as $sParam => $aParam) {
+                    $aParams[$sParam] = Param::createFromJsonSchema($aParam);
+                }
+                $oParam = $oParam->items($aParams);
+            }
+
+            return $oParam;
+        }
+
+        public function getJsonSchema($bOpenSchema = false): array {
             $aSchema = $this->getValidationForSchema();
             $aSchema['type'] = $this->getType();
 
@@ -95,7 +134,7 @@
         }
 
         public function getJsonSchemaForOpenAPI(): array {
-            $aSchema = $this->getJsonSchema();
+            $aSchema = $this->getJsonSchema(true);
 
             if (isset($aSchema['anyOf']) && is_array($aSchema['anyOf'])) {
                 foreach($aSchema['anyOf'] as $iIndex => $aAnySchema) {
@@ -108,10 +147,10 @@
                 if (count($aSchema['anyOf']) === 1) {
                     $aSchema = array_shift($aSchema['anyOf']);
                 }
+            }
 
-                if ($this->isNullable()) {
-                    $aSchema['nullable'] = true;
-                }
+            if ($this->isNullable()) {
+                $aSchema['nullable'] = true;
             }
 
             if ($this->sDescription) {
@@ -154,4 +193,6 @@
 
             return $aOutput;
         }
+
+        abstract public function coerce($mValue);
     }

@@ -55,7 +55,7 @@
             $oValidator->validate(
                 $oParameters,
                 $oSpec->pathParamsToJsonSchema(),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
+                Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
             if ($oValidator->isValid() === false) {
@@ -77,10 +77,11 @@
             $aParameters = $oRequest->getQueryParams();
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
+
             $oValidator->validate(
                 $oParameters,
                 $oSpec->queryParamsToJsonSchema(),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
+                Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
             if ($oValidator->isValid() === false) {
@@ -106,7 +107,7 @@
             $oValidator->validate(
                 $oParameters,
                 $oSpec->postParamsToJsonSchema(),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
+                Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
             if ($oValidator->isValid() === false) {

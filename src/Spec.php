@@ -2,6 +2,7 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
+    use Enobrev\API\FullSpec\Component\ParamSchema;
     use Enobrev\API\Spec\ProcessErrorResponse;
     use function Enobrev\array_not_associative;
     use function Enobrev\dbg;
@@ -185,6 +186,36 @@
         /**
          * @return Param[]
          */
+        public function resolvePostParams(): array {
+            if ($this->oPostBodyReference && $this->oPostBodyReference instanceof Reference) {
+                // FIXME: This _may_ be a big fat hack
+                $oFullSpec  = FullSpec::getFromCache();
+                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                $aParams    = [];
+                if ($oComponent instanceof ParamSchema) {
+                    $oParam = $oComponent->getParam();
+                    $aParams = $oParam->getItems();
+                } else if ($oComponent instanceof OpenApiInterface) {
+                    $aSpec = $oComponent->getOpenAPI();
+                    if (isset($aSpec['properties'])) {
+                        foreach ($aSpec['properties'] as $sParam => $aProperty) {
+                            $aParams[$sParam] = Param::createFromJsonSchema($aProperty);
+                        }
+                    }
+                }
+
+                if (count($this->aPostParams)) {
+                    $aParams = array_merge($aParams, $this->aPostParams);
+                }
+            } else {
+                $aParams = $this->aPostParams;
+            }
+            return $aParams;
+        }
+
+        /**
+         * @return Param[]
+         */
         public function getHeaderParams(): array {
             return $this->aHeaderParams;
         }
@@ -198,11 +229,11 @@
         }
 
         public function pathParamsToJsonSchema():array {
-            return self::toJsonSchema($this->aPathParams);
+            return Param\_Object::create()->items($this->aPathParams)->getJsonSchema();
         }
 
         public function queryParamsToJsonSchema():array {
-            return self::toJsonSchema($this->aQueryParams);
+            return Param\_Object::create()->items($this->aQueryParams)->getJsonSchema();
         }
 
         public function hasAPostBodyReference(): bool {
@@ -214,12 +245,14 @@
                 // FIXME: This _may_ be a big fat hack
                 $oFullSpec  = FullSpec::getFromCache();
                 $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
-                if ($oComponent instanceof OpenApiInterface) {
-                    return $oComponent->getOpenAPI();
+                if ($oComponent instanceof ParamSchema) {
+                    return $oComponent->getParam()->getJsonSchema();
+                } else if ($oComponent instanceof OpenApiInterface) {
+                    return Param::createFromJsonSchema($oComponent->getOpenAPI())->getJsonSchema();
                 }
             }
 
-            return self::toJsonSchema($this->aPostParams);
+            return Param\_Object::create()->items($this->aPostParams)->getJsonSchema();
         }
 
         public function summary(string $sSummary):self {
@@ -412,6 +445,10 @@
             return self::toJsonSchema(self::tableToParams($oTable, 0, $aExclude), $bAdditionalProperties);
         }
 
+        public static function tableToParam(Table $oTable, array $aExclude = [], int $iOptions = 0, $bAdditionalProperties = false): Param\_Object {
+            return Param\_Object::create()->items(self::tableToParams($oTable, $iOptions, $aExclude))->additionalProperties($bAdditionalProperties);
+        }
+
         /**
          * @param Table $oTable
          * @param int $iOptions
@@ -448,7 +485,7 @@
         /**
          * @param Field $oField
          * @param int $iOptions
-         * @return Param|null
+         * @return Param
          */
         public static function fieldToParam(Field $oField, int $iOptions = 0): ?Param {
             switch(true) {
@@ -477,6 +514,10 @@
                     break;
             }
 
+            if ($oField->sDefault === null) {
+                $oParam = $oParam->nullable();
+            }
+
             if (strpos(strtolower($oField->sColumn), 'password') !== false) {
                 $oParam = $oParam->format('password');
             }
@@ -491,6 +532,10 @@
 
             if ($iOptions & Param::REQUIRED) {
                 $oParam = $oParam->required();
+            }
+
+            if ($iOptions & Param::NULLABLE) {
+                $oParam = $oParam->nullable();
             }
 
             if ($iOptions & Param::DEPRECATED) {

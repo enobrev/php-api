@@ -37,15 +37,40 @@
             return $aValidation;
         }
 
-        public function getJsonSchema(): array {
+        public function getJsonSchema($bOpenSchema = false): array {
             if (!isset($this->aValidation['items'])) {
                 throw new Exception('Array Param requires items definition');
             }
 
-            return parent::getJsonSchema();
+            return parent::getJsonSchema($bOpenSchema);
         }
 
         public function getJsonSchemaForOpenAPI(): array {
             return parent::getJsonSchemaForOpenAPI();
+        }
+
+        /**
+         * Heavily inspired by justinrainbow/json-schema, except tries not to coerce nulls into non-nulls
+         * @param $mValue
+         * @return array
+         */
+        public function coerce($mValue) {
+            if ($this->isNullable()) {
+                if (is_null($mValue) || $mValue == 'null' || $mValue === 0 || $mValue === false || $mValue === '') {
+                    return null;
+                }
+            }
+
+            if (is_scalar($mValue) && strpos($mValue, ',') !== false) {
+                $mValue = explode(',', $mValue);
+                $mValue = array_map('trim', $mValue);
+                return $mValue;
+            }
+
+            if (is_scalar($mValue) || is_null($mValue)) {
+                return [$mValue];
+            }
+
+            return $mValue;
         }
     }

@@ -62,7 +62,7 @@
             }
 
             $aPostParams = $oRequest->getParsedBody() ?? [];
-            foreach ($oSpec->getPostParams() as $sParam => $oParam) {
+            foreach ($oSpec->resolvePostParams() as $sParam => $oParam) {
                 if ($oParam instanceof Param\_Object) {
                     $aRevisedPostParams = $this->coerceObject($sParam, $oParam, $aPostParams);
                     if ($aPostParams !== $aRevisedPostParams) {

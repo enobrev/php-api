@@ -9,7 +9,7 @@
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Request;
     use Enobrev\API\FullSpec\Component\Response;
-    use Enobrev\API\FullSpec\Component\Schema;
+    use Enobrev\API\FullSpec\Component\ParamSchema;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
 
@@ -17,27 +17,27 @@
 
     class {{ table.name }} implements ComponentListInterface {
 {% if spec.show_post %}
-        const SCHEMA_POST           = Schema::PREFIX   . '/generated-{{ table.name }}-post';
+        const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
 {% endif %}
 {% if spec.show_post_in_body %}
-        const SCHEMA_POST_IN_BODY   = Schema::PREFIX   . '/generated-{{ table.name }}-post-body_key';
+        const SCHEMA_POST_IN_BODY   = ParamSchema::PREFIX . '/generated-{{ table.name }}-post-body_key';
 {% endif %}
 {% if spec.show_post %}
-        const REQUEST_POST          = Request::PREFIX  . '/generated-{{ table.name }}';
+        const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
 {% endif %}
 {% if spec.show_post_in_body %}
-        const REQUEST_POST_BODY_KEY = Request::PREFIX  . '/generated-{{ table.name }}-body_key';
+        const REQUEST_POST_BODY_KEY = Request::PREFIX     . '/generated-{{ table.name }}-body_key';
 {% endif %}
-        const RESPONSE_SUCCESS      = Response::PREFIX . '/generated-{{ table.name }}';
+        const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
 
         /** @return ComponentListInterface[] */
         public function components(): array {
             return [
 {% if spec.show_post %}
-                Schema::create(self::SCHEMA_POST)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_post|raw }})),
+                ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }}, {{ spec.non_post|raw }})),
 {% endif %}
 {% if spec.show_post_in_body %}
-                Schema::create(self::SCHEMA_POST_IN_BODY)->schema(Spec::tableToRequestBodyJsonSchema(new {{ table.class }}, {{ spec.non_post_in_body|raw }})),
+                ParamSchema::create(self::SCHEMA_POST_IN_BODY)->param(Spec::tableToParam(new {{ table.class }}, {{ spec.non_post_in_body|raw }})),
 {% endif %}
 {% if spec.show_post %}
                 Request::create(self::REQUEST_POST)

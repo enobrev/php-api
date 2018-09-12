@@ -54,6 +54,10 @@
         }
 
         public function default($mDefault): self {
+            if ($mDefault === null) {
+                return $this->nullable()->validation(['default' => $mDefault]);
+            }
+
             return $this->validation(['default' => $mDefault]);
         }
 

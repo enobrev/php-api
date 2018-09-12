@@ -39,9 +39,9 @@
             if ($aPathParams) {
                 foreach ($oSpec->getPathParams() as $sParam => $oParam) {
                     if (isset($aPathParams[$sParam])) {
-                        if ($oParam instanceof Param\_Array) {
-                            $aPathParams[$sParam] = explode(',', $aPathParams[$sParam]);
-                            $aPathParams[$sParam] = array_map('trim', $aPathParams[$sParam]);
+                        $mCoerced = $oParam->coerce($aPathParams[$sParam]);
+                        if ($mCoerced !== $aPathParams[$sParam]) {
+                            $aPathParams[$sParam] = $mCoerced;
                             $aCoerced['path'][] = $sParam;
                         }
                     }
@@ -54,9 +54,9 @@
             if ($aQueryParams) {
                 foreach ($oSpec->getQueryParams() as $sParam => $oParam) {
                     if (isset($aQueryParams[$sParam])) {
-                        if ($oParam instanceof Param\_Array && is_string($aQueryParams[$sParam])) {
-                            $aQueryParams[$sParam] = explode(',', $aQueryParams[$sParam]);
-                            $aQueryParams[$sParam] = array_map('trim', $aQueryParams[$sParam]);
+                        $mCoerced = $oParam->coerce($aQueryParams[$sParam]);
+                        if ($mCoerced !== $aQueryParams[$sParam]) {
+                            $aQueryParams[$sParam] = $mCoerced;
                             $aCoerced['query'][] = $sParam;
                         }
                     }
@@ -67,14 +67,11 @@
 
             $aPostParams = $oRequest->getParsedBody();
             if ($aPostParams) {
-                foreach ($oSpec->getPostParams() as $sParam => $oParam) {
+                foreach ($oSpec->resolvePostParams() as $sParam => $oParam) {
                     if (isset($aPostParams[$sParam])) {
-                        if ($oParam instanceof Param\_Array && is_string($aPostParams[$sParam])) {
-                            $aPostParams[$sParam] = explode(',', $aPostParams[$sParam]);
-                            $aPostParams[$sParam] = array_map('trim', $aPostParams[$sParam]);
-                            $aCoerced['post'][] = $sParam;
-                        } else if ($oParam instanceof Param\_Object && is_array($aPostParams[$sParam])) {
-                            $aPostParams[$sParam] = (object) $aPostParams[$sParam];
+                        $mCoerced = $oParam->coerce($aPostParams[$sParam]);
+                        if ($mCoerced !== $aPostParams[$sParam]) {
+                            $aPostParams[$sParam] = $mCoerced;
                             $aCoerced['post'][] = $sParam;
                         }
                     }
@@ -89,17 +86,13 @@
                     if (isset($aHeaderParams[$sParam])) {
                         $aHeader = [];
                         foreach($aHeaderParams[$sParam] as $sHeaderParam) {
-                            if ($oParam instanceof Param\_Array && is_string($sHeaderParam)) {
-                                $sHeaderParam = explode(',', $sHeaderParam);
-                                $aHeader[]    = array_map('trim', $sHeaderParam);
+                            $mCoerced = $oParam->coerce($sHeaderParam);
+                            if ($mCoerced !== $sHeaderParam) {
                                 $aCoerced['header'][] = $sParam;
-                            } else if ($oParam instanceof Param\_Object && is_array($sHeaderParam)) {
-                                $aHeader[]    = (object) $sHeaderParam;
-                                $aCoerced['header'][] = $sParam;
-                            } else {
-                                $aHeader[]    = $sHeaderParam;
                             }
+                            $aHeader[] = $mCoerced;
                         }
+
                         $oRequest = $oRequest->withHeader($sParam, $aHeader);
                     }
                 }
