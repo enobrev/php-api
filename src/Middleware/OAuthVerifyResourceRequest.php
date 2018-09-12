@@ -45,11 +45,6 @@
                 return $oHandler->handle($oRequest);
             }
 
-            if ($oSpec->isPublic()) {
-                Log::dt($oTimer, ['public' => true]);
-                return $oHandler->handle($oRequest);
-            }
-
             $aHeaders = $oRequest->getHeaders();
             $aFlatHeaders = [];
             foreach($aHeaders as $sHeader => $aHeader) {
@@ -72,7 +67,12 @@
                 $aData = $this->oAuthServer->getAccessTokenData($oAuthRequest);
                 $oRequest = self::setAttribute($oRequest, $aData);
 
-                Log::dt($oTimer, ['public' => false]);
+                Log::dt($oTimer);
+                return $oHandler->handle($oRequest);
+            }
+
+            if ($oSpec->isPublic()) {
+                Log::dt($oTimer);
                 return $oHandler->handle($oRequest);
             }
 
@@ -81,11 +81,11 @@
             $iStatusCode = $oResponse->getStatusCode();
 
             if ($iStatusCode >= HTTP\BAD_REQUEST) {
-                Log::dt($oTimer, ['public' => false]);
+                Log::dt($oTimer);
                 throw Middlewares\HttpErrorException::create($iStatusCode, [$oResponse->getStatusText()]);
             }
 
-            Log::dt($oTimer, ['public' => false]);
+            Log::dt($oTimer);
             return $oHandler->handle($oRequest);
         }
     }
