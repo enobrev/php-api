@@ -169,10 +169,15 @@
             return unserialize(file_get_contents(self::$sPathToSpec));
         }
 
+        /**
+         * ReGenerates the Full Spec every time!!!  This is _SLOW_
+         * @return FullSpec
+         * @throws Exception\Response
+         * @throws ReflectionException
+         */
         public static function generateLiveForDevelopment() {
-            $oFullSpec = new self;
-            $oFullSpec->generateData();
-            return $oFullSpec;
+            self::generateAndCache();
+            return self::getFromCache();
         }
 
         public function getRoutes() {
