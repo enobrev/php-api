@@ -39,7 +39,7 @@
         private $bSkipDefaultResponses = false;
 
         /** @var boolean */
-        private $bDeprecated;
+        private $bDeprecated = false;
 
         /** @var string */
         private $sPath;
@@ -191,6 +191,10 @@
 
         public function isPublic():bool {
             return $this->bPublic;
+        }
+
+        public function isDeprecated():bool {
+            return $this->bDeprecated;
         }
 
         public function pathParamsToJsonSchema():array {

@@ -3,6 +3,7 @@
 
     namespace Enobrev\API\Middleware;
 
+    use Enobrev\API\SpecInterface;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -29,6 +30,20 @@
 
             /** @var MiddlewareInterface|RequestHandlerInterface $oClass */
             $oClass = new $sClass;
+
+            if ($oClass instanceof SpecInterface) {
+                $oSpec = $oClass->spec();
+
+                Log::justAddContext([
+                    '#spec' => [
+                        'method'        => $oSpec->getHttpMethod(),
+                        'path'          => $oSpec->getPath(),
+                        'scopes'        => explode(',', $oSpec->getScopeList(',')),
+                        'public'        => $oSpec->isPublic(),
+                        'deprecated'    => $oSpec->isDeprecated()
+                    ]
+                ]);
+            }
 
             if ($oClass instanceof MiddlewareInterface) {
                 Log::dt($oTimer, ['class' => $sClass, 'type' => 'MiddlewareInterface']);

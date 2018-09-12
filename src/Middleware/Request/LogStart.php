@@ -17,13 +17,20 @@
 
     class LogStart implements MiddlewareInterface {
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            $aPathParams  = FastRoute::getPathParams($oRequest);
+            $aQueryParams = $oRequest->getQueryParams();
+            $aPostParams  = $oRequest->getParsedBody();
+
             Log::i('Enobrev.Middleware.LogStart', [
                 '#request' => [
                     'method'     => $oRequest->getMethod(),
                     'path'       => $oRequest->getUri()->getPath(),
-                    'query'      => json_encode($oRequest->getQueryParams()),
-                    'headers'    => json_encode($oRequest->getHeaders()),
-                    'post'       => json_encode($oRequest->getParsedBody())
+                    'parameters' => [
+                        'path'  => $aPathParams  ? json_encode($aPathParams)  : $aPathParams,
+                        'query' => $aQueryParams ? json_encode($aQueryParams) : $aQueryParams,
+                        'post'  => $aPostParams  ? json_encode($aPostParams)  : $aPostParams
+                    ],
+                    'headers'    => json_encode($oRequest->getHeaders())
                 ]
             ]);
 

@@ -3,6 +3,7 @@
 
     namespace Enobrev\API\Middleware;
 
+    use function Enobrev\dbg;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -26,8 +27,10 @@
             $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
 
             Log::i('Enobrev.Middleware.ResponseBuilderDone', [
-                '#status'  => $oResponse->getStatusCode(),
-                '#headers' => json_encode($oResponse->getHeaders()),
+                '#response' => [
+                    'status' => $oResponse->getStatusCode(),
+                    'headers' => json_encode($oResponse->getHeaders()),
+                ],
                 'body'     => json_encode($oResponse->getBody())
             ]);
 
