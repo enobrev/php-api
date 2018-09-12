@@ -207,7 +207,7 @@
 
         public function postParamsToJsonSchema():array {
             if ($this->oPostBodyReference && $this->oPostBodyReference instanceof Reference) {
-                // FIXME: This is a big fat hack
+                // FIXME: This _may_ be a big fat hack
                 $oFullSpec  = FullSpec::getFromCache();
                 $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
                 if ($oComponent instanceof OpenApiInterface) {
