@@ -147,13 +147,15 @@
         }
 
         /**
+         * @return FullSpec
          * @throws Exception\Response
          * @throws ReflectionException
          */
-        public static function generateAndCache() {
+        public static function generateAndCache():self {
             $oFullSpec = new self;
             $oFullSpec->generateData();
             file_put_contents(self::$sPathToSpec, serialize($oFullSpec));
+            return $oFullSpec;
         }
 
         /**
@@ -176,8 +178,7 @@
          * @throws ReflectionException
          */
         public static function generateLiveForDevelopment() {
-            self::generateAndCache();
-            return self::getFromCache();
+            return self::generateAndCache();
         }
 
         public function getRoutes() {

@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API;
 
-    use function Enobrev\dbg;
     use PDO;
 
     use Enobrev\Log;
@@ -25,16 +24,6 @@
 
         /** @var  string */
         protected $sDataPath = null;
-
-        /** @var string */
-        protected $sBaseTable;
-
-        /**
-         * @param string $sBaseTable
-         */
-        public function setBaseTable(string $sBaseTable) {
-            $this->sBaseTable = $sBaseTable;
-        }
 
         /**
          * @return string
@@ -148,6 +137,8 @@
                 $this->Response->add($this->getDataPath(), DataMap::getIndexedResponseMaps($this->getDataPath(), $this->Data, $this->_getUrlKeyField($this->Data[0])->sColumn));
                 $this->Response->add('sorts.' . $this->getDataPath(), $this->getSorts());
                 $this->Response->setLastModifiedFromTables($this->Data);
+            } else {
+                $this->Response->statusNoContent();
             }
             return;
         }
@@ -329,7 +320,7 @@
                             }
 
                             $oReference->setValue($aPart[1]);
-                            $this->Request->updatePathParam($oReference->sColumn, $oReference->getValue());
+                            $this->Request->updateParam($oReference->sColumn, $oReference->getValue());
                         }
                     }
 
@@ -413,7 +404,7 @@
             $aLastPair     = array_pop($aPairs);
             if (isset($aLastPair[1])) {
                 $oQuery->eq_in($oPrimaryField, $aLastPair[1]);
-                $this->Request->updatePathParam($oPrimaryField->sColumn, $aLastPair[1]);
+                $this->Request->updateParam($oPrimaryField->sColumn, $aLastPair[1]);
             }
 
             while (count($aPairs) > 0) {
@@ -438,7 +429,7 @@
                     }
 
                     $oQuery->eq_in($oReference, $aPart[1]);
-                    $this->Request->updatePathParam($oReference->sColumn, $aPart[1]);
+                    $this->Request->updateParam($oReference->sColumn, $aPart[1]);
 
                     Log::d('API.Restful._getQueryFromPath.Pairs.AddingAttribute', [
                         'field' => $oReference->sColumn,
@@ -470,7 +461,7 @@
                     };
 
                     $sSearch     = preg_replace('/\s+/', ' ', $sSearch);
-                    $sSearch     = preg_replace('/(\w+)([:><])"(\w+)/', '"${1}${2}${3}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
+                    $sSearch     = preg_replace('/(\w+)\:"(\w+)/', '"${1}:${2}', $sSearch); // Make things like field:"Some Value" into "field: Some Value"
                     $aSearch     = str_getcsv($sSearch, ' ');
 
                     foreach($aSearch as $sSearchTerm) {
@@ -614,7 +605,7 @@
          */
         public static function _getNamespacedTableClassName(string $sTableClass): string {
             if (self::$sNamespaceTable === null) {
-                throw new Exception\Response('Rest Class Not Initialized');
+                throw new Exception\Response('API Route Not Initialized');
             }
 
             return implode('\\', [self::$sNamespaceTable, $sTableClass]);
