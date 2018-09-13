@@ -485,9 +485,10 @@
         /**
          * @param Field $oField
          * @param int $iOptions
+         * @param bool $bIncludeDefault
          * @return Param
          */
-        public static function fieldToParam(Field $oField, int $iOptions = 0): ?Param {
+        public static function fieldToParam(Field $oField, int $iOptions = 0, $bIncludeDefault = false): ?Param {
             switch(true) {
                 default:
                 case $oField instanceof Field\Text:    $oParam = Param\_String::create();  break;
@@ -522,7 +523,11 @@
                 $oParam = $oParam->format('password');
             }
 
-            if ($oField->hasDefault()) {
+            if ($bIncludeDefault && $oField->hasDefault()) {
+                // Initially the default was always included, but this was a problem.  Let's say you generate params for a whole table
+                // that are to be used as postParams for and API endpoint.  Say, a default value of 0 for age.  Now in a future
+                // POST to that endpoint, if age was not set, then the parameter will be coerced into its default of 0, which will
+                // change the record to age 0
                 if ($oField instanceof Field\Boolean) {
                     $oParam = $oParam->default((bool) $oField->sDefault);
                 } else {
