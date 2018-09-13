@@ -124,7 +124,7 @@
                     $oBuilder->set('_errors', $oErrors->get('server.errors'));
                 }
 
-                ResponseBuilder::update($oRequest, $oBuilder);
+                $oRequest= ResponseBuilder::update($oRequest, $oBuilder);
             }
 
             Log::dt($oTimer);

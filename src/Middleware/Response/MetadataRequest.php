@@ -29,7 +29,7 @@
                     ],
                     'headers'    => json_encode($oRequest->getHeaders())
                 ]);
-                ResponseBuilder::update($oRequest, $oBuilder);
+                $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
             }
 
             Log::dt($oTimer);

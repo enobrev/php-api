@@ -22,7 +22,7 @@
                     'thread'  => Log::getThreadHashForOutput(),
                     'request' => Log::getRequestHashForOutput()
                 ]);
-                ResponseBuilder::update($oRequest, $oBuilder);
+                $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
             }
 
             Log::dt($oTimer);

@@ -31,7 +31,7 @@
                     'date'          => $oNow->format(self::SYNC_DATE_FORMAT),
                     'date_w3c'      => $oNow->format(DateTime::W3C)
                 ]);
-                ResponseBuilder::update($oRequest, $oBuilder);
+                $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
             }
 
             Log::dt($oTimer);
