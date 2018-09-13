@@ -67,7 +67,7 @@
                 return $oHandler->handle($oRequest);
             }
 
-            if (!isset($aPostParams['{{ primary.0.name }}'])) {
+            if (!isset($aPostParams['{{ primary.0.short }}'])) {
                 // Created Record and no Key was set by client
                 $oRequest  = $oRequest->withHeader('Location', '{{ spec.path_prefix}}/{{ table.name }}/' . $this->mInsertKey);
             }
@@ -85,14 +85,13 @@
          * @return Dot
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+            $o{{ table.title }} = null;
+            if ({% for field in primary %}isset($aPostParams['{{ field.short }}']){% if not loop.last %} && {% endif %}{% endfor %}) {
+                $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPostParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+            }
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 /** @var {{ table.class }} $o{{ table.title }} */
                 $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
-{% for field in primary %}
-                $o{{ table.title }}->{{ field.name }}->setValue($aPathParams['{{ field.short }}']);
-{% endfor %}
-
                 $o{{ table.title }}->insert();
 {% if primary|length == 1 %}
                 $this->mInsertKey = $o{{ table.title }}->{{ primary.0.name }}->getValue();

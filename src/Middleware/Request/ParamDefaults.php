@@ -52,7 +52,7 @@
             $aQueryParams = $oRequest->getQueryParams() ?? [];
             foreach ($oSpec->getQueryParams() as $sParam => $oParam) {
                 if (!isset($aQueryParams[$sParam]) && $oParam->hasDefault()) {
-                    $aQueryParams[$sParam] = $oParam->getDefault();
+                    $aQueryParams[$sParam] = $oParam->getDefault() ?? null;
                     $aCoerced['query'][] = $sParam;
                 }
             }
@@ -70,7 +70,7 @@
                         $aCoerced['post'][] = $sParam;
                     }
                 } else if (!isset($aPostParams[$sParam]) && $oParam->hasDefault()) {
-                    $aPostParams[$sParam] = $oParam->getDefault();
+                    $aPostParams[$sParam] = $oParam->getDefault() ?? null;
                     $aCoerced['post'][] = $sParam;
                 }
             }
@@ -103,7 +103,7 @@
                             $oCoerced->$sSubParam = $this->coerceObject($sSubParam, $oSubParam, []);
                             $bCoerced = true;
                         } else if ($oSubParam->hasDefault()) {
-                            $oCoerced->$sSubParam = $oSubParam->getDefault();
+                            $oCoerced->$sSubParam = $oSubParam->getDefault() ?? null;
                             $bCoerced = true;
                         }
                     } else if ($oSubParam instanceof Param\_Object) {
