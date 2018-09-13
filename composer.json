@@ -33,7 +33,7 @@
         "mtdowling/jmespath.php": "^2.4",
         "justinrainbow/json-schema": "dev-master",
         "adbario/php-dot-notation": "dev-recursive-merge",
-        "nikic/fast-route": "^1.3"
+        "nikic/fast-route": "dev-master"
     },
     "require-dev": {
         "nategood/commando": "^0.3.0",

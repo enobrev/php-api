@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd6871f87b1e171889991ab9b9d97564",
+    "content-hash": "b3e4be12f619d8b553191b08033b8ecb",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -722,16 +722,16 @@
         },
         {
             "name": "nikic/fast-route",
-            "version": "v1.3.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/FastRoute.git",
-                "reference": "181d480e08d9476e61381e04a71b34dc0432e812"
+                "reference": "dd929b38a127ca763f9dc4896320ebeb0c1fdc08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/181d480e08d9476e61381e04a71b34dc0432e812",
-                "reference": "181d480e08d9476e61381e04a71b34dc0432e812",
+                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/dd929b38a127ca763f9dc4896320ebeb0c1fdc08",
+                "reference": "dd929b38a127ca763f9dc4896320ebeb0c1fdc08",
                 "shasum": ""
             },
             "require": {
@@ -764,7 +764,7 @@
                 "router",
                 "routing"
             ],
-            "time": "2018-02-13T20:26:39+00:00"
+            "time": "2018-08-19T11:46:04+00:00"
         },
         {
             "name": "psr/http-message",
@@ -2843,12 +2843,13 @@
         "enobrev/php-tools": 20,
         "enobrev/php-orm": 20,
         "justinrainbow/json-schema": 20,
-        "adbario/php-dot-notation": 20
+        "adbario/php-dot-notation": 20,
+        "nikic/fast-route": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.0.09"
+        "php": ">=7.1.0"
     },
     "platform-dev": []
 }
