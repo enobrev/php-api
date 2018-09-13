@@ -36,6 +36,14 @@
             $aParsedBody = $oRequest->getParsedBody();
             parse_str($sBody, $aParsedBody);
 
+            Log::justAddContext([
+                '#request' => [
+                    'parameters' => [
+                        'post'  => $aParsedBody && count($aParsedBody) ? json_encode($aParsedBody) : null
+                    ]
+                ]
+            ]);
+
             Log::dt($oTimer);
             return $oHandler->handle($oRequest->withParsedBody($aParsedBody));
         }

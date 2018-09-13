@@ -3,6 +3,8 @@
 
     namespace Enobrev\API\Middleware;
 
+    use Enobrev\API\Exception\EndpointNotFound;
+    use Enobrev\API\Exception\MethodNotAllowed;
     use FastRoute as FastRouteLib;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
@@ -43,10 +45,11 @@
         }
 
         /**
-         * Process a server request and return a response.
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
          * @return ResponseInterface
+         * @throws EndpointNotFound
+         * @throws MethodNotAllowed
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer            = Log::startTimer('Enobrev.Middleware.FastRoute');
@@ -70,7 +73,7 @@
             if ($aRoute[0] === FastRouteLib\Dispatcher::NOT_FOUND) {
                 Log::w('Enobrev.Middleware.FastRoute.NotFound');
                 Log::dt($oTimer);
-                return (new Response())->withStatus(HTTP\NOT_FOUND);
+                throw new EndpointNotFound;
             }
 
             if ($aRoute[0] === FastRouteLib\Dispatcher::METHOD_NOT_ALLOWED) {
@@ -78,27 +81,50 @@
                 $oResponse = (new Response())->withHeader('Allow', implode(', ', $aMethods));
 
                 if ($oRequest->getMethod() === Method\OPTIONS) {
+                    Log::i('Enobrev.Middleware.FastRoute', [
+                        '#response' => [
+                            'status' => HTTP\NO_CONTENT,
+                        ]
+                    ]);
+
                     $oResponse = $oResponse->withStatus(HTTP\NO_CONTENT);
+                    Log::dt($oTimer);
+                    return $oResponse;
                 } else {
                     Log::d('Enobrev.Middleware.FastRoute.MethodNotAllowed');
-                    $oResponse = $oResponse->withStatus(HTTP\METHOD_NOT_ALLOWED);
+                    throw new MethodNotAllowed('This HTTP Method is not Allowed for this endpoint');
                 }
-
-                Log::dt($oTimer);
-                return $oResponse;
             }
 
+            $sClass      = $aRoute[1];
+            $aPathParams = $aRoute[2];
+
             $oRequest = self::setAttribute($oRequest, (object) [
-                'class'      => $aRoute[1],
-                'pathParams' => $aRoute[2]
+                'class'      => $sClass,
+                'pathParams' => $aPathParams
             ]);
+
+            $oBuilder = ResponseBuilder::get($oRequest);
+            if ($oBuilder) {
+                $oBuilder->mergeRecursiveDistinct('_request.params.path', $aPathParams);
+                $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
+            }
 
             Log::dt($oTimer, [
                 'method'     => $oRequest->getMethod(),
                 'path'       => $oRequest->getUri()->getPath(),
-                'class'      => $aRoute[1],
-                'pathParams' => $aRoute[2]
+                'class'      => $sClass,
+                'pathParams' => $aPathParams
             ]);
+
+            Log::justAddContext([
+                '#request' => [
+                    'parameters' => [
+                        'path'  => $aPathParams && count($aPathParams) ? json_encode($aPathParams) : null
+                    ]
+                ]
+            ]);
+
             return $oHandler->handle($oRequest);
         }
     }

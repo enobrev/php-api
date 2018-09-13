@@ -52,6 +52,14 @@
                 throw new Exception('Error Parsing JSON Request Body: ' . json_last_error());
             }
 
+            Log::justAddContext([
+                '#request' => [
+                    'parameters' => [
+                        'post'  => $sBody ?? null
+                    ]
+                ]
+            ]);
+
             Log::dt($oTimer);
             return $oHandler->handle($oRequest->withParsedBody($aParsedBody));
         }
