@@ -14,11 +14,12 @@
     use function Enobrev\dbg;
 
     class MetadataServer implements MiddlewareInterface {
-        const SYNC_DATE_FORMAT = 'Y-m-d H:i:s';
+        const SYNC_DATE_FORMAT = DATE_ATOM;
 
         /**
-         * Process an incoming server request and return a response, optionally delegating
-         * response creation to a handler.
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.MetadataServer');
