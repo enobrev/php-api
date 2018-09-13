@@ -39,7 +39,7 @@
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {
-                if (is_null($mValue) || $mValue == 'null' || $mValue === 0 || $mValue === false || $mValue === '') {
+                if (is_null($mValue) || $mValue == 'null' || $mValue === false || $mValue === '') {
                     return null;
                 }
             }
@@ -48,6 +48,7 @@
                 $mValue = $mValue + 0; // cast to number
             }
 
+            /*
             if (is_bool($mValue) || is_null($mValue)) {
                 $mValue = (int) $mValue;
             }
@@ -55,6 +56,7 @@
             if (is_array($mValue) && count($mValue) === 1) {
                 $mValue = $this->coerce(reset($mValue));
             }
+            */
 
             if (is_numeric($mValue) && (int) $mValue == $mValue) {
                 return (int) $mValue; // cast to number

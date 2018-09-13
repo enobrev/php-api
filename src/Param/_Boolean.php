@@ -29,7 +29,7 @@
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {
-                if (is_null($mValue) || $mValue == 'null' || $mValue === 0 || $mValue === false || $mValue === '') {
+                if (is_null($mValue) || $mValue == 'null' || $mValue === '') {
                     return null;
                 }
             }
