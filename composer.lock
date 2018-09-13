@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "3ca28d56a4e4fb8f3aedf6cef2c7a2cd",
+    "content-hash": "fd6871f87b1e171889991ab9b9d97564",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -57,71 +57,28 @@
             "time": "2018-03-18T20:09:13+00:00"
         },
         {
-            "name": "composer/xdebug-handler",
-            "version": "1.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/composer/xdebug-handler.git",
-                "reference": "c919dc6c62e221fc6406f861ea13433c0aa24f08"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/composer/xdebug-handler/zipball/c919dc6c62e221fc6406f861ea13433c0aa24f08",
-                "reference": "c919dc6c62e221fc6406f861ea13433c0aa24f08",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^5.3.2 || ^7.0",
-                "psr/log": "^1.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Composer\\XdebugHandler\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "John Stevenson",
-                    "email": "john-stevenson@blueyonder.co.uk"
-                }
-            ],
-            "description": "Restarts a process without xdebug.",
-            "keywords": [
-                "Xdebug",
-                "performance"
-            ],
-            "time": "2018-04-11T15:42:36+00:00"
-        },
-        {
             "name": "enobrev/php-orm",
             "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "4bef83803b1ba880b92c48dc5e8a1331edbac080"
+                "reference": "64ebc7e6e2227b016177c0a31d64c56b338b2aaf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/4bef83803b1ba880b92c48dc5e8a1331edbac080",
-                "reference": "4bef83803b1ba880b92c48dc5e8a1331edbac080",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/64ebc7e6e2227b016177c0a31d64c56b338b2aaf",
+                "reference": "64ebc7e6e2227b016177c0a31d64c56b338b2aaf",
                 "shasum": ""
             },
             "require": {
+                "adbario/php-dot-notation": "dev-recursive-merge",
+                "enobrev/php-tools": "dev-master",
                 "moneyphp/money": "^3.1",
                 "nategood/commando": "^0.3.0",
                 "php": ">=7.0.09",
                 "twig/twig": "^2.4"
             },
             "require-dev": {
-                "enobrev/php-tools": "dev-master",
                 "phpunit/phpunit": "^7.1"
             },
             "bin": [
@@ -159,7 +116,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2018-08-17T14:19:43+00:00"
+            "time": "2018-09-13T12:03:29+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -167,12 +124,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "f8f80652816c3f5cec1c6234366e68b4b43ac8a0"
+                "reference": "7acf7ddaf134e9dffeafc3a39d72ff3e1b894c2d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/f8f80652816c3f5cec1c6234366e68b4b43ac8a0",
-                "reference": "f8f80652816c3f5cec1c6234366e68b4b43ac8a0",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/7acf7ddaf134e9dffeafc3a39d72ff3e1b894c2d",
+                "reference": "7acf7ddaf134e9dffeafc3a39d72ff3e1b894c2d",
                 "shasum": ""
             },
             "require": {
@@ -180,11 +137,11 @@
                 "ext-json": "*",
                 "monolog/monolog": "^1.21",
                 "php": ">=7.1.0",
-                "vimeo/psalm": "^2.0",
                 "zendframework/zend-diactoros": "^1.8"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.1"
+                "phpunit/phpunit": "^7.1",
+                "vimeo/psalm": "^2.0"
             },
             "type": "library",
             "autoload": {
@@ -214,7 +171,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2018-09-13T10:29:51+00:00"
+            "time": "2018-09-13T11:56:45+00:00"
         },
         {
             "name": "icecave/parity",
@@ -718,62 +675,6 @@
             "time": "2016-12-03T22:08:25+00:00"
         },
         {
-            "name": "muglug/package-versions-56",
-            "version": "1.2.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/muglug/PackageVersions.git",
-                "reference": "a67bed26deaaf9269a348e53063bc8d4dcc60ffd"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/muglug/PackageVersions/zipball/a67bed26deaaf9269a348e53063bc8d4dcc60ffd",
-                "reference": "a67bed26deaaf9269a348e53063bc8d4dcc60ffd",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^1.0",
-                "php": "^5.6 || ^7.0"
-            },
-            "require-dev": {
-                "composer/composer": "^1.3",
-                "ext-zip": "*",
-                "phpunit/phpunit": "^5.7.5"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "Muglug\\PackageVersions\\Installer",
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Muglug\\PackageVersions\\": "src/PackageVersions"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Marco Pivetta",
-                    "email": "ocramius@gmail.com"
-                },
-                {
-                    "name": "Abdul Malik Ikhsan",
-                    "email": "samsonasik@gmail.com"
-                },
-                {
-                    "name": "Matt Brown",
-                    "email": "github@muglug.com"
-                }
-            ],
-            "description": "A backport of ocramius/package-versions that supports php ^5.6. Composer plugin that provides efficient querying for installed package versions (no runtime IO)",
-            "time": "2018-03-26T03:22:13+00:00"
-        },
-        {
             "name": "nategood/commando",
             "version": "0.3.0",
             "source": {
@@ -864,157 +765,6 @@
                 "routing"
             ],
             "time": "2018-02-13T20:26:39+00:00"
-        },
-        {
-            "name": "nikic/php-parser",
-            "version": "v4.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "bd088dc940a418f09cda079a9b5c7c478890fb8d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/bd088dc940a418f09cda079a9b5c7c478890fb8d",
-                "reference": "bd088dc940a418f09cda079a9b5c7c478890fb8d",
-                "shasum": ""
-            },
-            "require": {
-                "ext-tokenizer": "*",
-                "php": ">=7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^6.5 || ^7.0"
-            },
-            "bin": [
-                "bin/php-parse"
-            ],
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "4.0-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "PhpParser\\": "lib/PhpParser"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Nikita Popov"
-                }
-            ],
-            "description": "A PHP parser written in PHP",
-            "keywords": [
-                "parser",
-                "php"
-            ],
-            "time": "2018-07-15T17:25:16+00:00"
-        },
-        {
-            "name": "openlss/lib-array2xml",
-            "version": "0.5.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/nullivex/lib-array2xml.git",
-                "reference": "c8b5998a342d7861f2e921403f44e0a2f3ef2be0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/nullivex/lib-array2xml/zipball/c8b5998a342d7861f2e921403f44e0a2f3ef2be0",
-                "reference": "c8b5998a342d7861f2e921403f44e0a2f3ef2be0",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.2"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-0": {
-                    "LSS": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Bryan Tong",
-                    "email": "contact@nullivex.com",
-                    "homepage": "http://bryantong.com"
-                },
-                {
-                    "name": "Tony Butler",
-                    "email": "spudz76@gmail.com",
-                    "homepage": "http://openlss.org"
-                }
-            ],
-            "description": "Array2XML conversion library credit to lalit.org",
-            "homepage": "http://openlss.org",
-            "keywords": [
-                "array",
-                "array conversion",
-                "xml",
-                "xml conversion"
-            ],
-            "time": "2016-11-10T19:10:18+00:00"
-        },
-        {
-            "name": "php-cs-fixer/diff",
-            "version": "v1.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/PHP-CS-Fixer/diff.git",
-                "reference": "78bb099e9c16361126c86ce82ec4405ebab8e756"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/diff/zipball/78bb099e9c16361126c86ce82ec4405ebab8e756",
-                "reference": "78bb099e9c16361126c86ce82ec4405ebab8e756",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^5.6 || ^7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^5.7.23 || ^6.4.3",
-                "symfony/process": "^3.3"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Kore Nordmann",
-                    "email": "mail@kore-nordmann.de"
-                },
-                {
-                    "name": "Sebastian Bergmann",
-                    "email": "sebastian@phpunit.de"
-                },
-                {
-                    "name": "SpacePossum"
-                }
-            ],
-            "description": "sebastian/diff v2 backport support for PHP5.6",
-            "homepage": "https://github.com/PHP-CS-Fixer",
-            "keywords": [
-                "diff"
-            ],
-            "time": "2018-02-15T16:58:55+00:00"
         },
         {
             "name": "psr/http-message",
@@ -1298,84 +1048,17 @@
             "time": "2018-07-13T07:18:09+00:00"
         },
         {
-            "name": "vimeo/psalm",
-            "version": "2.0.9",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/vimeo/psalm.git",
-                "reference": "d3fc9a51e0519379a27c05318e5f6fd41d46f797"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/d3fc9a51e0519379a27c05318e5f6fd41d46f797",
-                "reference": "d3fc9a51e0519379a27c05318e5f6fd41d46f797",
-                "shasum": ""
-            },
-            "require": {
-                "composer/xdebug-handler": "^1.1",
-                "muglug/package-versions-56": "1.2.4",
-                "nikic/php-parser": "^4.0",
-                "openlss/lib-array2xml": "^0.0.10||^0.5.1",
-                "php": "^7.0",
-                "php-cs-fixer/diff": "^1.2"
-            },
-            "provide": {
-                "psalm/psalm": "self.version"
-            },
-            "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.2",
-                "php-coveralls/php-coveralls": "^2.0",
-                "phpunit/phpunit": "^6.0 || ^7.0",
-                "squizlabs/php_codesniffer": "^3.0"
-            },
-            "suggest": {
-                "ext-igbinary": "^2.0.5"
-            },
-            "bin": [
-                "psalm",
-                "psalter"
-            ],
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.x-dev",
-                    "dev-1.x": "1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psalm\\": "src/Psalm"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Matthew Brown"
-                }
-            ],
-            "description": "A static analysis tool for finding errors in PHP applications",
-            "keywords": [
-                "code",
-                "inspection",
-                "php"
-            ],
-            "time": "2018-07-22T23:15:40+00:00"
-        },
-        {
             "name": "zendframework/zend-diactoros",
-            "version": "1.8.5",
+            "version": "1.8.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zendframework/zend-diactoros.git",
-                "reference": "3e4edb822c942f37ade0d09579cfbab11e2fee87"
+                "reference": "20da13beba0dde8fb648be3cc19765732790f46e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zend-diactoros/zipball/3e4edb822c942f37ade0d09579cfbab11e2fee87",
-                "reference": "3e4edb822c942f37ade0d09579cfbab11e2fee87",
+                "url": "https://api.github.com/repos/zendframework/zend-diactoros/zipball/20da13beba0dde8fb648be3cc19765732790f46e",
+                "reference": "20da13beba0dde8fb648be3cc19765732790f46e",
                 "shasum": ""
             },
             "require": {
@@ -1388,6 +1071,7 @@
             "require-dev": {
                 "ext-dom": "*",
                 "ext-libxml": "*",
+                "php-http/psr7-integration-tests": "dev-master",
                 "phpunit/phpunit": "^5.7.16 || ^6.0.8 || ^7.2.7",
                 "zendframework/zend-coding-standard": "~1.0"
             },
@@ -1425,10 +1109,54 @@
                 "psr",
                 "psr-7"
             ],
-            "time": "2018-08-10T14:16:32+00:00"
+            "time": "2018-09-05T19:29:37+00:00"
         }
     ],
     "packages-dev": [
+        {
+            "name": "composer/xdebug-handler",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/xdebug-handler.git",
+                "reference": "c919dc6c62e221fc6406f861ea13433c0aa24f08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/xdebug-handler/zipball/c919dc6c62e221fc6406f861ea13433c0aa24f08",
+                "reference": "c919dc6c62e221fc6406f861ea13433c0aa24f08",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.3.2 || ^7.0",
+                "psr/log": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Composer\\XdebugHandler\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "John Stevenson",
+                    "email": "john-stevenson@blueyonder.co.uk"
+                }
+            ],
+            "description": "Restarts a process without xdebug.",
+            "keywords": [
+                "Xdebug",
+                "performance"
+            ],
+            "time": "2018-04-11T15:42:36+00:00"
+        },
         {
             "name": "doctrine/instantiator",
             "version": "1.1.0",
@@ -1484,6 +1212,62 @@
             "time": "2017-07-22T11:58:36+00:00"
         },
         {
+            "name": "muglug/package-versions-56",
+            "version": "1.2.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/muglug/PackageVersions.git",
+                "reference": "a67bed26deaaf9269a348e53063bc8d4dcc60ffd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/muglug/PackageVersions/zipball/a67bed26deaaf9269a348e53063bc8d4dcc60ffd",
+                "reference": "a67bed26deaaf9269a348e53063bc8d4dcc60ffd",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.0",
+                "php": "^5.6 || ^7.0"
+            },
+            "require-dev": {
+                "composer/composer": "^1.3",
+                "ext-zip": "*",
+                "phpunit/phpunit": "^5.7.5"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "Muglug\\PackageVersions\\Installer",
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Muglug\\PackageVersions\\": "src/PackageVersions"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marco Pivetta",
+                    "email": "ocramius@gmail.com"
+                },
+                {
+                    "name": "Abdul Malik Ikhsan",
+                    "email": "samsonasik@gmail.com"
+                },
+                {
+                    "name": "Matt Brown",
+                    "email": "github@muglug.com"
+                }
+            ],
+            "description": "A backport of ocramius/package-versions that supports php ^5.6. Composer plugin that provides efficient querying for installed package versions (no runtime IO)",
+            "time": "2018-03-26T03:22:13+00:00"
+        },
+        {
             "name": "myclabs/deep-copy",
             "version": "1.8.1",
             "source": {
@@ -1530,6 +1314,106 @@
                 "object graph"
             ],
             "time": "2018-06-11T23:09:50+00:00"
+        },
+        {
+            "name": "nikic/php-parser",
+            "version": "v4.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nikic/PHP-Parser.git",
+                "reference": "bd088dc940a418f09cda079a9b5c7c478890fb8d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/bd088dc940a418f09cda079a9b5c7c478890fb8d",
+                "reference": "bd088dc940a418f09cda079a9b5c7c478890fb8d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-tokenizer": "*",
+                "php": ">=7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.5 || ^7.0"
+            },
+            "bin": [
+                "bin/php-parse"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PhpParser\\": "lib/PhpParser"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Nikita Popov"
+                }
+            ],
+            "description": "A PHP parser written in PHP",
+            "keywords": [
+                "parser",
+                "php"
+            ],
+            "time": "2018-07-15T17:25:16+00:00"
+        },
+        {
+            "name": "openlss/lib-array2xml",
+            "version": "0.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nullivex/lib-array2xml.git",
+                "reference": "c8b5998a342d7861f2e921403f44e0a2f3ef2be0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nullivex/lib-array2xml/zipball/c8b5998a342d7861f2e921403f44e0a2f3ef2be0",
+                "reference": "c8b5998a342d7861f2e921403f44e0a2f3ef2be0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "LSS": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Bryan Tong",
+                    "email": "contact@nullivex.com",
+                    "homepage": "http://bryantong.com"
+                },
+                {
+                    "name": "Tony Butler",
+                    "email": "spudz76@gmail.com",
+                    "homepage": "http://openlss.org"
+                }
+            ],
+            "description": "Array2XML conversion library credit to lalit.org",
+            "homepage": "http://openlss.org",
+            "keywords": [
+                "array",
+                "array conversion",
+                "xml",
+                "xml conversion"
+            ],
+            "time": "2016-11-10T19:10:18+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1632,6 +1516,57 @@
             ],
             "description": "Library for handling version information and constraints",
             "time": "2018-07-08T19:19:57+00:00"
+        },
+        {
+            "name": "php-cs-fixer/diff",
+            "version": "v1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-CS-Fixer/diff.git",
+                "reference": "78bb099e9c16361126c86ce82ec4405ebab8e756"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/diff/zipball/78bb099e9c16361126c86ce82ec4405ebab8e756",
+                "reference": "78bb099e9c16361126c86ce82ec4405ebab8e756",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.6 || ^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.7.23 || ^6.4.3",
+                "symfony/process": "^3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Kore Nordmann",
+                    "email": "mail@kore-nordmann.de"
+                },
+                {
+                    "name": "Sebastian Bergmann",
+                    "email": "sebastian@phpunit.de"
+                },
+                {
+                    "name": "SpacePossum"
+                }
+            ],
+            "description": "sebastian/diff v2 backport support for PHP5.6",
+            "homepage": "https://github.com/PHP-CS-Fixer",
+            "keywords": [
+                "diff"
+            ],
+            "time": "2018-02-15T16:58:55+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -2099,16 +2034,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "7.3.1",
+            "version": "7.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "f9b14c17860eccb440a0352a117a81eb754cff5a"
+                "reference": "7b331efabbb628c518c408fdfcaf571156775de2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/f9b14c17860eccb440a0352a117a81eb754cff5a",
-                "reference": "f9b14c17860eccb440a0352a117a81eb754cff5a",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7b331efabbb628c518c408fdfcaf571156775de2",
+                "reference": "7b331efabbb628c518c408fdfcaf571156775de2",
                 "shasum": ""
             },
             "require": {
@@ -2179,7 +2114,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2018-08-07T06:44:28+00:00"
+            "time": "2018-09-08T15:14:29+00:00"
         },
         {
             "name": "sebastian/code-unit-reverse-lookup",
@@ -2783,6 +2718,73 @@
             ],
             "description": "A small library for converting tokenized PHP source code into XML and potentially other formats",
             "time": "2017-04-07T12:08:54+00:00"
+        },
+        {
+            "name": "vimeo/psalm",
+            "version": "2.0.11",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vimeo/psalm.git",
+                "reference": "3e69a333c9683596ad4a4325e0039374516295a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/3e69a333c9683596ad4a4325e0039374516295a0",
+                "reference": "3e69a333c9683596ad4a4325e0039374516295a0",
+                "shasum": ""
+            },
+            "require": {
+                "composer/xdebug-handler": "^1.1",
+                "muglug/package-versions-56": "1.2.4",
+                "nikic/php-parser": "^4.0",
+                "openlss/lib-array2xml": "^0.0.10||^0.5.1",
+                "php": "^7.0",
+                "php-cs-fixer/diff": "^1.2"
+            },
+            "provide": {
+                "psalm/psalm": "self.version"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.2",
+                "php-coveralls/php-coveralls": "^2.0",
+                "phpunit/phpunit": "^6.0 || ^7.0",
+                "squizlabs/php_codesniffer": "^3.0"
+            },
+            "suggest": {
+                "ext-igbinary": "^2.0.5"
+            },
+            "bin": [
+                "psalm",
+                "psalter"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.x-dev",
+                    "dev-1.x": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psalm\\": "src/Psalm"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Matthew Brown"
+                }
+            ],
+            "description": "A static analysis tool for finding errors in PHP applications",
+            "keywords": [
+                "code",
+                "inspection",
+                "php"
+            ],
+            "time": "2018-08-30T00:54:48+00:00"
         },
         {
             "name": "webmozart/assert",
