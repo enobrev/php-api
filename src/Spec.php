@@ -243,17 +243,12 @@
 
         public function postParamsToJsonSchema():array {
             if ($this->oPostBodyReference && $this->oPostBodyReference instanceof Reference) {
-                // FIXME: This _may_ be a big fat hack
-                $oFullSpec  = FullSpec::getFromCache();
-                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
-                if ($oComponent instanceof ParamSchema) {
-                    return $oComponent->getParam()->getJsonSchema();
-                } else if ($oComponent instanceof OpenApiInterface) {
-                    return Param::createFromJsonSchema($oComponent->getOpenAPI())->getJsonSchema();
-                }
+                $aPostParams = $this->resolvePostParams();
+            } else {
+                $aPostParams = $this->aPostParams;
             }
 
-            return Param\_Object::create()->items($this->aPostParams)->getJsonSchema();
+            return Param\_Object::create()->items($aPostParams)->getJsonSchema();
         }
 
         public function summary(string $sSummary):self {
