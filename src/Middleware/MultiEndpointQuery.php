@@ -168,7 +168,7 @@
                             Log::e('MultiEndpointQuery.getTemplateValue.JMESPath', [
                                 'template'   => $sTemplate,
                                 'expression' => $sExpression,
-                                'values'     => $aValues
+                                'values'     => json_encode($aValues)
                             ]);
 
                             throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
@@ -178,7 +178,7 @@
                     Log::d('MultiEndpointQuery.getTemplateValue.JMESPath', [
                         'template'   => $sTemplate,
                         'expression' => $sExpression,
-                        'values'     => $aValues
+                        'values'     => json_encode($aValues)
                     ]);
                 } else {
                     $aMatch = explode('.', $sMatch);
@@ -229,7 +229,7 @@
 
                             Log::d('MultiEndpointQuery.getTemplateValue.TableField', [
                                 'template' => $sTemplate,
-                                'values'   => $aValues
+                                'values'   => json_encode($aValues)
                             ]);
                         }
                     }
