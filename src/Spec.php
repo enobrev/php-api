@@ -2,22 +2,23 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use Enobrev\API\FullSpec\Component\ParamSchema;
-    use Enobrev\API\Spec\ProcessErrorResponse;
-    use function Enobrev\array_not_associative;
-    use function Enobrev\dbg;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
+    use Middlewares\HttpErrorException;
 
     use Enobrev\API\Exception\InvalidRequest;
     use Enobrev\API\FullSpec\ComponentInterface;
+    use Enobrev\API\FullSpec\Component\ParamSchema;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\HTTP;
     use Enobrev\API\Spec\ErrorResponseInterface;
+    use Enobrev\API\Spec\ProcessErrorResponse;
     use Enobrev\ORM\Field;
     use Enobrev\ORM\Table;
-    use Middlewares\HttpErrorException;
+
+    use function Enobrev\array_not_associative;
+    use function Enobrev\dbg;
 
     class Spec {
         const SKIP_PRIMARY = 1024;
@@ -679,8 +680,17 @@
             return $oResponse->all();
         }
 
+        private function getOperationId() {
+            $sPath = $this->sPath;
+            $sPath = $this->sHttpMethod . $sPath;
+            $sPath = preg_replace('~^/~',       '', $sPath);
+            $sPath = str_replace('[/]',         '',      $sPath);
+            return $sPath;
+        }
+
         public function generateOpenAPI(): array {
             $aMethod = [
+                'operationId'   => $this->getOperationId(),
                 'summary'       => $this->sSummary ?? $this->sPath,
                 'description'   => $this->sDescription ?? $this->sSummary ?? $this->sPath,
                 'tags'          => $this->aTags
