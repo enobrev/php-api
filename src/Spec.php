@@ -683,7 +683,8 @@
         private function getOperationId() {
             $sPath = $this->sPath;
             $sPath = $this->sHttpMethod . $sPath;
-            $sPath = preg_replace('~^/~',       '', $sPath);
+            $sPath = preg_replace('~^/~',      '',  $sPath);
+            $sPath = preg_replace('/{[^}]+}/', '~', $sPath);
             $sPath = str_replace('[/]',         '',      $sPath);
             return $sPath;
         }
