@@ -683,9 +683,9 @@
         private function getOperationId() {
             $sPath = $this->sPath;
             $sPath = $this->sHttpMethod . $sPath;
-            $sPath = preg_replace('~^/~',      '',  $sPath);
-            $sPath = preg_replace('/{[^}]+}/', '~', $sPath);
-            $sPath = str_replace('[/]',         '',      $sPath);
+            $sPath = preg_replace('~^/~',        '',    $sPath);
+            $sPath = preg_replace('/{([^}]+)}/', ':$1', $sPath);
+            $sPath = str_replace('[/]',           '',        $sPath);
             return $sPath;
         }
 
@@ -911,7 +911,7 @@
             foreach($this->aPathParams as $sParam => $oParam) {
                 $aPathParams[$sParam] = $oParam->getJsonSchema();
             }
-            
+
             $aQueryParams = [];
             foreach($this->aQueryParams as $sParam => $oParam) {
                 $aQueryParams[$sParam] = $oParam->getJsonSchema();
@@ -921,7 +921,7 @@
             foreach($this->aPostParams as $sParam => $oParam) {
                 $aPostParams[$sParam] = $oParam->getJsonSchema();
             }
-            
+
             return [
                 'Summary'           => $this->sSummary,
                 'Description'       => $this->sDescription,
@@ -941,7 +941,7 @@
                 'Tags'              => $this->aTags
             ];
         }
-        
+
         public function toJson() {
             return json_encode($this->toArray());
         }
