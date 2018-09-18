@@ -105,6 +105,10 @@
             return $this->sPath;
         }
 
+        public function getPathForDocs():string {
+            return str_replace('[/]', '/', $this->sPath);
+        }
+
         public function getHttpMethod():string {
             return $this->sHttpMethod;
         }

@@ -392,7 +392,8 @@ DESCRIPTION
                             continue;
                         }
                     }
-                    $oData->set("paths.{$oSpec->getPath()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
+
+                    $oData->set("paths.{$oSpec->getPathForDocs()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
                 }
             }
 
