@@ -907,7 +907,7 @@
 
         public function toArray() {
             $aPathParams = [];
-            foreach($this->aPathParams as $sParam => $oParam) {
+            foreach($this->resolvePostParams() as $sParam => $oParam) {
                 $aPathParams[$sParam] = $oParam->getJsonSchema();
             }
 
@@ -922,22 +922,22 @@
             }
 
             return [
-                'Summary'           => $this->sSummary,
-                'Description'       => $this->sDescription,
-                'Deprecated'        => $this->bDeprecated,
-                'Path'              => $this->sPath,
-                'Public'            => $this->bPublic,
-                'HttpMethod'        => $this->sHttpMethod,
-                'Method'            => $this->sMethod,
-                'Scopes'            => $this->aScopes,
-                'PathParams'        => $aPathParams,
-                'QueryParams'       => $aQueryParams,
-                'PostParams'        => $aPostParams,
-                'InHeaders'         => $this->aHeaderParams,
-                'CodeSamples'       => $this->aCodeSamples,
-                'ResponseHeaders'   => $this->aResponseHeaders,
-                'Responses'         => $this->aResponses,
-                'Tags'              => $this->aTags
+                'summary'           => $this->sSummary,
+                'description'       => $this->sDescription,
+                'deprecated'        => $this->bDeprecated,
+                'path'              => $this->sPath,
+                'public'            => $this->bPublic,
+                'httpMethod'        => $this->sHttpMethod,
+                'method'            => $this->sMethod,
+                'scopes'            => $this->aScopes,
+                'pathParams'        => $aPathParams,
+                'queryParams'       => $aQueryParams,
+                'postParams'        => $aPostParams,
+                'headerParams'      => $this->aHeaderParams,
+                'codeSamples'       => $this->aCodeSamples,
+                'responseHeaders'   => $this->aResponseHeaders,
+                'responses'         => $this->aResponses,
+                'tags'              => $this->aTags
             ];
         }
 
