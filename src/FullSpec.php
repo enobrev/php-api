@@ -10,7 +10,6 @@
     use Enobrev\API\Spec\ServerErrorResponse;
     use Enobrev\API\Spec\ValidationErrorResponse;
     use function Enobrev\dbg;
-    use Enobrev\Log;
     use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
     use FilesystemIterator;
@@ -118,6 +117,7 @@
             $aComponents = [];
             foreach($this->aComponents as $sName => $oComponent) {
                 $aComponents[$sName] = 'Instance of ' . get_class($oComponent);
+
             }
 
             return [
@@ -197,11 +197,6 @@
             $oFullSpec = new self;
             $oFullSpec->generateData();
             file_put_contents(self::$sPathToSpec, serialize($oFullSpec));
-            try {
-                chmod(self::$sPathToSpec, 0777);
-            } catch (\Exception $e) {
-                Log::e('FullSpec.generateAndCache.chmodFail', ['error' => $e]);
-            }
             return $oFullSpec;
         }
 
