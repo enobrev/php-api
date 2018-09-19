@@ -42,7 +42,18 @@
                 return $oHandler->handle($oRequest);
             }
 
-            $oRequest = self::setAttribute($oRequest, $oClass->spec());
+            $oSpec = $oClass->spec();
+            $oRequest = self::setAttribute($oRequest, $oSpec);
+
+            Log::justAddContext([
+                '#spec' => [
+                    'method'        => $oSpec->getHttpMethod(),
+                    'path'          => $oSpec->getPath(),
+                    'scopes'        => explode(',', $oSpec->getScopeList(',')),
+                    'public'        => $oSpec->isPublic(),
+                    'deprecated'    => $oSpec->isDeprecated()
+                ]
+            ]);
 
             Log::dt($oTimer);
             return $oHandler->handle($oRequest);

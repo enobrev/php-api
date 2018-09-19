@@ -31,20 +31,6 @@
             /** @var MiddlewareInterface|RequestHandlerInterface $oClass */
             $oClass = new $sClass;
 
-            if ($oClass instanceof SpecInterface) {
-                $oSpec = $oClass->spec();
-
-                Log::justAddContext([
-                    '#spec' => [
-                        'method'        => $oSpec->getHttpMethod(),
-                        'path'          => $oSpec->getPath(),
-                        'scopes'        => explode(',', $oSpec->getScopeList(',')),
-                        'public'        => $oSpec->isPublic(),
-                        'deprecated'    => $oSpec->isDeprecated()
-                    ]
-                ]);
-            }
-
             if ($oClass instanceof MiddlewareInterface) {
                 Log::dt($oTimer, ['class' => $sClass, 'type' => 'MiddlewareInterface']);
                 return $oClass->process($oRequest, $oHandler);
