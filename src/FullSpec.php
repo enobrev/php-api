@@ -10,6 +10,7 @@
     use Enobrev\API\Spec\ServerErrorResponse;
     use Enobrev\API\Spec\ValidationErrorResponse;
     use function Enobrev\dbg;
+    use Enobrev\Log;
     use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
     use FilesystemIterator;
@@ -196,7 +197,11 @@
             $oFullSpec = new self;
             $oFullSpec->generateData();
             file_put_contents(self::$sPathToSpec, serialize($oFullSpec));
-            chmod(self::$sPathToSpec, 755);
+            try {
+                chmod(self::$sPathToSpec, 0777);
+            } catch (\Exception $e) {
+                Log::e('FullSpec.generateAndCache.chmodFail', ['error' => $e]);
+            }
             return $oFullSpec;
         }
 
