@@ -196,6 +196,7 @@
             $oFullSpec = new self;
             $oFullSpec->generateData();
             file_put_contents(self::$sPathToSpec, serialize($oFullSpec));
+            chmod(self::$sPathToSpec, 755);
             return $oFullSpec;
         }
 
