@@ -47,31 +47,43 @@
         /** @var string */
         private static $sPathToSpec;
 
-        /** @var string */
+        /**
+         * @var string
+         * @deprecated  Only used in V1
+         */
         private static $sAppNamespace;
 
-        /** @var string */
+        /**
+         * @var string
+         * @deprecated Only used in V1
+         */
         private static $sPathToSQLJson;
 
         /** @var string */
         private static $sPathToAPIClasses;
 
         /** @var array */
-        private static $aDatabaseSchema;
-
-        /** @var array */
         private static $aVersions;
 
-        /** @var array */
+        /**
+         * @var array
+         * @deprecated Only used in V1
+         */
         private $aSchemas;
 
-        /** @var array */
+        /**
+         * @var array
+         * @deprecated Only used in V1
+         */
         private $aResponses;
 
         /** @var OpenApiInterface[] */
         private $aComponents;
 
-        /** @var Spec[] */
+        /**
+         * @var Spec[]
+         * @deprecated Only used in V1
+         */
         private $aPaths;
 
         /** @var Spec[] */
@@ -99,13 +111,36 @@
             self::$sAppNamespace        = $sAppNamespace;
             self::$sPathToAPIClasses    = $sPathToAPIClasses;
             self::$aVersions            = $aVersions;
-
-            if (!file_exists($sPathToSQLJson)) {
-                throw new Exception('Missing SQL JSON file');
-            }
         }
 
+        public function toArray():array {
+            $aComponents = $this->aComponents;
+            ksort($aComponents, SORT_NATURAL);
+            $oData       = new Dot();
+            foreach($aComponents as $sName => $oComponent) {
+                $oData->set($sName, $oComponent->getOpenAPI());
+            }
+
+            return [
+                'versions'   => self::$aVersions,
+                'paths'      => [
+                    'spec'          => self::$sPathToSpec,
+                    'api_classes'   => self::$sPathToAPIClasses
+                ],
+                'specs'      => $this->aSpecs,
+                'components' => [
+                    'converted_to_OpenAPI' => $oData->all()
+                ]
+            ];
+        }
+
+        /**
+         * @param $sSchema
+         * @param $aSchema
+         * @deprecated Only used in v1
+         */
         public function schemas($sSchema, $aSchema) {
+            return;
             $this->aSchemas[$sSchema] = $aSchema;
         }
 
@@ -113,15 +148,22 @@
          * @param string $sName
          * @param string $sDescription
          * @param array $aContent
+         * @deprecated Only used in v1
          */
         public function responses(string $sName, string $sDescription, array $aContent) {
+            return;
             $this->aResponses[$sName] = [
                 'description' => $sDescription,
                 'content'     => $aContent
             ];
         }
 
+        /**
+         * @param string $sResponse
+         * @deprecated Only used in v1
+         */
         public function defaultSchemaResponse(string $sResponse) {
+            return;
             $this->responses($sResponse, "A successful response object with the $sResponse data and the standard metadata", [
                 'application/json' => [
                     'schema' => [
@@ -134,7 +176,12 @@
             ]);
         }
 
+        /**
+         * @param Spec $oSpec
+         * @deprecated Only used in V1
+         */
         public function paths(Spec $oSpec) {
+            return;
             $sPath       = $oSpec->getPath();
             $sHttpMethod = $oSpec->getHttpMethod();
             if (!isset($this->aPaths[$sPath])) {
@@ -142,8 +189,6 @@
             }
 
             $this->aPaths[$sPath][$sHttpMethod] = $oSpec;
-
-            // TODO: Generate Components from Spec as well
         }
 
         /**
@@ -191,9 +236,6 @@
          * @throws ReflectionException
          */
         protected function generateData() {
-            //$this->tablesFromFile();
-            //$this->specsFromSQLFile();
-            //$this->specsFromClasses();
             $this->specsFromSpecInterfaces();
         }
 
@@ -367,9 +409,6 @@ DESCRIPTION
 
             $oData->set('components.schemas._any', (object) []);
 
-            $oData->mergeRecursiveDistinct("components.responses", $this->aResponses);
-            $oData->mergeRecursiveDistinct("components.schemas", $this->aSchemas);
-
             ksort($this->aComponents, SORT_NATURAL); // because why not
             foreach($this->aComponents as $oComponent) {
                 $sName = str_replace('/', '.', $oComponent->getName());
@@ -400,161 +439,6 @@ DESCRIPTION
             return $oData;
         }
 
-        /**
-         * @return array
-         */
-        private static function getDatabaseSchema() {
-            if (!self::$aDatabaseSchema) {
-                self::$aDatabaseSchema = json_decode(file_get_contents(self::$sPathToSQLJson), true);
-            }
-
-            return self::$aDatabaseSchema;
-        }
-
-        /**
-         * @param string $sTableClass
-         * @return string
-         * @throws Exception\Response
-         */
-        private function _getNamespacedTableClassName(string $sTableClass): string {
-            if (self::$sAppNamespace === null) {
-                throw new Exception\Response('FullSpec Not Initialized');
-            }
-
-            return implode('\\', [self::$sAppNamespace, $sTableClass]);
-        }
-
-        /**
-         * @throws Exception\Response
-         * @deprecated
-         */
-        private function tablesFromFile() {
-            $aDatabase  = self::getDatabaseSchema();
-
-            foreach($aDatabase['tables'] as $sTable => $aTable) {
-                if (!DataMap::hasClassPath($sTable)) {
-                    continue;
-                }
-
-                /** @var Table $oTable */
-                $sClass     = $this->_getNamespacedTableClassName($aTable['table']['class']);
-                $oTable     = new $sClass;
-                if ($oTable instanceof Table === false) {
-                    continue;
-                }
-
-                $sId = 'id';
-                $aPrimary = $oTable->getPrimary();
-                if (count($aPrimary) === 1) {
-                    $sId = DataMap::getPublicName($oTable, $aPrimary[0]->sColumn) ?? 'id';
-                }
-
-                $sTemplatedId = "{{$sId}}";
-
-                $this->schemas("table-$sTable", Spec::toJsonSchema(Spec::tableToParams($oTable)));
-                $this->schemas("collection-$sTable", [
-                    'type' => 'object',
-                    'additionalProperties' => false,
-                    'properties' => [
-                        $sTable => [
-                            'type' => 'object',
-                            'additionalProperties' => false,
-                            'properties' => [
-                                $sTemplatedId => ['$ref' => "#/components/schemas/table-$sTable"]
-                            ]
-                        ]
-                    ]
-                ]);
-
-                $this->responses($sTable, "A successful response object with a collection of $sTable and standard metadata", [
-                    'application/json' => [
-                        'schema' => [
-                            'allOf' => [
-                                ['$ref' => "#/components/schemas/_default"],
-                                ['$ref' => "#/components/schemas/collection-$sTable"]
-                            ]
-                        ]
-                    ]
-                ]);
-            }
-        }
-
-        /**
-         * @throws Exception\Response
-         * @deprecated
-         */
-        private function specsFromSQLFile() {
-            $aDatabase  = self::getDatabaseSchema();
-
-            foreach($aDatabase['tables'] as $sTable => $aTable) {
-                if (!DataMap::hasClassPath($sTable)) {
-                    continue;
-                }
-
-                $sClass     = $this->_getNamespacedTableClassName($aTable['table']['class']);
-                $oTable     = new $sClass;
-                if ($oTable instanceof Table === false) {
-                    continue;
-                }
-
-                /** @var Rest $oRest */
-                $oRest = Route::_getRestClass(new Request(new ServerRequest));
-                $oRest->setBaseTable($sClass);
-                $oRest->spec($this);
-            }
-        }
-
-        /**
-         * @throws ReflectionException
-         * @deprecated
-         */
-        private function specsFromClasses() {
-            foreach (self::$aVersions as $sVersion) {
-                // TODO: Collect all paths from previous version that are not now private / protected, and copy them to the current version
-                // TODO: for instance, if we have v1/class/methoda, and v2 doesn't override it, then we should have v2/class/methoda which points to v1/class/methoda
-
-                $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
-                if (file_exists($sVersionPath)) {
-                    /** @var \SplFileInfo[] $aFiles */
-                    $aFiles  = new RecursiveIteratorIterator(
-                        new RecursiveDirectoryIterator(
-                            $sVersionPath,
-                            FilesystemIterator::SKIP_DOTS
-                        )
-                    );
-
-                    foreach($aFiles as $oFile) {
-                        $sContents = file_get_contents($oFile->getPathname());
-                        if (preg_match('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
-                            $sClass = $aMatchesClass[1];
-
-                            if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
-                                $sNamespace = $aMatchesNamespace[1];
-                                $sFullClass = implode('\\', [$sNamespace, $sClass]);
-
-                                $oReflectionClass = new ReflectionClass($sFullClass);
-
-                                if ($oReflectionClass->implementsInterface(RestfulInterface::class)
-                                &&  $oReflectionClass->hasMethod('spec')
-                                &&  $oReflectionClass->getMethod('spec')->class == $oReflectionClass->name) {
-                                    //dbg('Restful', $sFullClass);
-                                    /** @var RestfulInterface $oClass */
-                                    $oClass = new $sFullClass(new Request(new ServerRequest));
-                                    $oClass->spec($this);
-                                } else if ($oReflectionClass->isSubclassOf(Base::class)
-                                       &&  $oReflectionClass->hasMethod('spec')
-                                       &&  $oReflectionClass->getMethod('spec')->class == $oReflectionClass->name) {
-                                    //dbg('Base', $sFullClass);
-                                    /** @var Base $oClass */
-                                    $oClass = new $sFullClass(new Request(new ServerRequest));
-                                    $oClass->spec($this);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
         /**
          * @throws ReflectionException
          */
