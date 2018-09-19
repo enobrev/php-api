@@ -97,7 +97,16 @@
             }
 
             if (is_array($mValue)) {
-                return (object) $mValue;
+                $mValue = (object) $mValue;
+            }
+
+            if (isset($this->aValidation['items'])) {
+                $oItems = $this->aValidation['items'];
+                if ($oItems instanceof Param) {
+                    foreach ($mValue as &$mItem) {
+                        $mItem = $oItems->coerce($mItem);
+                    }
+                }
             }
 
             return $mValue;

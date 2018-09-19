@@ -64,7 +64,6 @@
             if (is_scalar($mValue) && strpos($mValue, ',') !== false) {
                 $mValue = explode(',', $mValue);
                 $mValue = array_map('trim', $mValue);
-                return $mValue;
             }
 
             if (is_scalar($mValue) || is_null($mValue)) {
