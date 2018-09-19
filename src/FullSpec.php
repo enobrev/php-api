@@ -114,11 +114,9 @@
         }
 
         public function toArray():array {
-            $aComponents = $this->aComponents;
-            ksort($aComponents, SORT_NATURAL);
-            $oData       = new Dot();
-            foreach($aComponents as $sName => $oComponent) {
-                $oData->set($sName, $oComponent->getOpenAPI());
+            $aComponents = [];
+            foreach($this->aComponents as $sName => $oComponent) {
+                $aComponents[$sName] = 'Instance of ' . get_class($oComponent);
             }
 
             return [
@@ -128,9 +126,7 @@
                     'api_classes'   => self::$sPathToAPIClasses
                 ],
                 'specs'      => $this->aSpecs,
-                'components' => [
-                    'converted_to_OpenAPI' => $oData->all()
-                ]
+                'components' => $aComponents
             ];
         }
 
