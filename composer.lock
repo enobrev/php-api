@@ -62,12 +62,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "64ebc7e6e2227b016177c0a31d64c56b338b2aaf"
+                "reference": "7e3b7c8493c3c3837b65c31dc81b10d2e2db8548"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/64ebc7e6e2227b016177c0a31d64c56b338b2aaf",
-                "reference": "64ebc7e6e2227b016177c0a31d64c56b338b2aaf",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/7e3b7c8493c3c3837b65c31dc81b10d2e2db8548",
+                "reference": "7e3b7c8493c3c3837b65c31dc81b10d2e2db8548",
                 "shasum": ""
             },
             "require": {
@@ -116,7 +116,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2018-09-13T12:03:29+00:00"
+            "time": "2018-09-25T19:05:49+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -823,12 +823,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/FastRoute.git",
-                "reference": "dd929b38a127ca763f9dc4896320ebeb0c1fdc08"
+                "reference": "66cc306f8360f4d9a7a5b9ad8b3c9a85d12b6e5c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/dd929b38a127ca763f9dc4896320ebeb0c1fdc08",
-                "reference": "dd929b38a127ca763f9dc4896320ebeb0c1fdc08",
+                "url": "https://api.github.com/repos/nikic/FastRoute/zipball/66cc306f8360f4d9a7a5b9ad8b3c9a85d12b6e5c",
+                "reference": "66cc306f8360f4d9a7a5b9ad8b3c9a85d12b6e5c",
                 "shasum": ""
             },
             "require": {
@@ -838,6 +838,11 @@
                 "phpunit/phpunit": "^4.8.35|~5.7"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "FastRoute\\": "src/"
@@ -861,7 +866,7 @@
                 "router",
                 "routing"
             ],
-            "time": "2018-08-19T11:46:04+00:00"
+            "time": "2018-09-18T16:24:33+00:00"
         },
         {
             "name": "psr/container",
