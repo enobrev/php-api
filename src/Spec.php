@@ -246,7 +246,21 @@
         }
 
         public function postParamsToJsonSchema():array {
-            if ($this->oPostBodyReference && $this->oPostBodyReference instanceof Reference) {
+            if ($this->hasAPostBodyReference()) {
+                // FIXME: This _may_ be a big fat hack
+                $oFullSpec  = FullSpec::getFromCache();
+                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                if ($oComponent instanceof ParamSchema) {
+                    return $oComponent->getParam()->getJsonSchema();
+                } else if ($oComponent instanceof \Enobrev\API\FullSpec\Component\Request) {
+                    $oJSON = $oComponent->getJson();
+                    if ($oJSON instanceof ParamSchema) {
+                        return $oJSON->getParam()->getJsonSchema();
+                    }
+
+                    return $oJSON->getOpenAPI();
+                }
+
                 $aPostParams = $this->resolvePostParams();
             } else {
                 $aPostParams = $this->aPostParams;
