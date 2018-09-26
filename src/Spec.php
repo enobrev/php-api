@@ -488,7 +488,7 @@
          * @param bool $bIncludeDefault
          * @return Param
          */
-        public static function fieldToParam(Field $oField, int $iOptions = 0, $bIncludeDefault = false): ?Param {
+        public static function fieldToParam(Field $oField, int $iOptions = 0, $bIncludeDefault = false): Param {
             switch(true) {
                 default:
                 case $oField instanceof Field\Text:    $oParam = Param\_String::create();  break;
