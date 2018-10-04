@@ -82,7 +82,20 @@
 
             if ($iStatusCode >= HTTP\BAD_REQUEST) {
                 Log::dt($oTimer);
-                throw Middlewares\HttpErrorException::create($iStatusCode, [$oResponse->getStatusText()]);
+                $sError       = $oResponse->getParameter('error');
+                $sDescription = $oResponse->getParameter('error_description');
+
+                $aContext     = [$oResponse->getStatusText()];
+
+                if ($sError) {
+                    $aContext = [$sError];
+                }
+
+                if ($sDescription) {
+                    $aContext = [$sDescription];
+                }
+
+                throw Middlewares\HttpErrorException::create($iStatusCode, $aContext);
             }
 
             Log::dt($oTimer);
