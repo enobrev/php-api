@@ -267,7 +267,20 @@
             if (count($aSort)) {
                 foreach ($aSort as &$aPair) {
                     if (isset($aPair['table'])) {
-                        $aPair['table'] = self::getClassName($aPair['table']);
+                        $sSortTableClass = ORM\Tables::getNamespacedTableClassName(self::getClassName($aPair['table']));
+                        /** @var ORM\Table $oSortTable */
+                        $oSortTable = new $sSortTableClass();
+                        if (!$oSortTable instanceof ORM\Table) {
+                            throw new Exception('Invalid Table For Sort ' . $sSortTableClass);
+                        }
+
+                        $aPair['table'] = $sSortTableClass;
+                        $oSortField = self::getField($oSortTable, $aPair['field']);
+                        if ($oSortField instanceof ORM\Field) {
+                            $aPair['field'] = $oSortField->sColumn;
+                        } else {
+                            throw new Exception('Invalid Field For Sort ' . $aPair['field']);
+                        }
                     } else {
                         $oSortField = self::getField($oBaseTable, $aPair['field']);
                         if ($oSortField instanceof ORM\Field) {
