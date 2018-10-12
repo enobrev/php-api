@@ -1,7 +1,8 @@
 <?php
     namespace Enobrev\API;
 
-    use Enobrev\API\FullSpec\ComponentInterface;
+    use Exception;
+
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component;
     use Enobrev\API\Spec\AuthenticationErrorResponse;
@@ -9,16 +10,15 @@
     use Enobrev\API\Spec\ProcessErrorResponse;
     use Enobrev\API\Spec\ServerErrorResponse;
     use Enobrev\API\Spec\ValidationErrorResponse;
-    use function Enobrev\dbg;
+    use Enobrev\Log;
+
+    use FilesystemIterator;
     use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
-    use FilesystemIterator;
     use ReflectionClass;
     use ReflectionException;
 
     use Adbar\Dot;
-    use Enobrev\ORM\Table;
-    use Zend\Diactoros\ServerRequest;
 
     class FullSpec {
 
@@ -205,12 +205,19 @@
          * @throws Exception\Response
          * @throws ReflectionException
          */
-        public static function getFromCache() {
+        public static function getFromCache(): self {
             if (!file_exists(self::$sPathToSpec)) {
                 self::generateAndCache();
             }
 
-            return unserialize(file_get_contents(self::$sPathToSpec));
+            $sFullSpec = file_get_contents(self::$sPathToSpec);
+
+            try {
+                return unserialize($sFullSpec);
+            } catch (Exception $e) {
+                Log::e('FullSpec.getFromCache.Invalid');
+                return self::generateAndCache();
+            }
         }
 
         /**
