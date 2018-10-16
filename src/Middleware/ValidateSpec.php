@@ -127,6 +127,8 @@
             $aErrors = [];
             $oParameters = new Dot($aParameters);
 
+            $aErrorProperties = [];
+
             foreach ($oValidator->getErrors() as $aError) {
                 if (empty($aError['property']) && $aError['constraint']['name'] == 'additionalProp') {
                     $aError['property'] = $aError['constraint']['params']['property'];
@@ -136,6 +138,21 @@
                     $sProperty = str_replace('[', '.', $aError['property']);
                     $sProperty = str_replace(']', '', $sProperty);
                     $aError['value'] = $oParameters->get($sProperty);
+                }
+
+                // only one error per property
+                if (isset($aError['property'])) {
+                    if (isset($aErrorProperties[$aError['property']])) {
+                        if (in_array($aError['constraint']['name'], ['type', 'anyOf'])) {
+                            // An error on a nullable field , like lets say a maxLength error on a nullable field
+                            // Will add two additional errors - one because the value is not null, and one because
+                            // The field isn't matching either of the "anyOf" (which includes the original and the null
+                            // This way we skip those extra errors as they're not useful.
+                            continue;
+                        }
+                    }
+
+                    $aErrorProperties[$aError['property']] = 1;
                 }
 
                 $aErrors[] = $aError;
