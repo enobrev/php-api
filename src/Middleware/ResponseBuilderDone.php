@@ -31,7 +31,7 @@
                     'status' => $oResponse->getStatusCode(),
                     'headers' => json_encode($oResponse->getHeaders()),
                 ],
-                'body'     => json_encode($oResponse->getBody())
+                'body'     => json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR)
             ]);
 
             return $oResponse;
