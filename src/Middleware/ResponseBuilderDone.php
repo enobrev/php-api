@@ -25,13 +25,23 @@
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
+            $sBody = null;
+            try {
+                $sBody = json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR);
+            } catch (\Exception $e) {
+                // Skip it
+            }
+
+            if (!$sBody) {
+                $sBody = '{"log_error": "not_encoded"}';
+            }
 
             Log::i('Enobrev.Middleware.ResponseBuilderDone', [
                 '#response' => [
                     'status' => $oResponse->getStatusCode(),
                     'headers' => json_encode($oResponse->getHeaders()),
                 ],
-                'body'     => json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR)
+                'body'     => $sBody
             ]);
 
             return $oResponse;
