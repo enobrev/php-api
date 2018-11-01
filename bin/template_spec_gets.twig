@@ -98,7 +98,7 @@
 {% endif %}
             }
 
-            $oResponse->set('counts.{{ table.name }}', {{ table.class_plural }}::countForCMS());
+            $oResponse->set('counts.{{ table.name }}', {{ table.class_plural }}::countForCMS($aSearch));
 
             return $oResponse;
         }
