@@ -55,7 +55,7 @@
             $oValidator->validate(
                 $oParameters,
                 $oSpec->pathParamsToJsonSchema(),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES | Constraint::CHECK_MODE_EARLY_COERCE
+                Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
             if ($oValidator->isValid() === false) {

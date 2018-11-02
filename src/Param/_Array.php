@@ -67,7 +67,7 @@
             }
 
             if (is_scalar($mValue) || is_null($mValue)) {
-                return [$mValue];
+                $mValue = [$mValue];
             }
 
             if (is_array($mValue)) {
