@@ -170,7 +170,13 @@
         private function getTemplateValue(string $sTemplate) {
             if (strpos($sTemplate, '{') === 0) {
                 $aValues = [];
+                $sPrefix = null;
                 $sMatch  = trim($sTemplate, "{}");
+
+                if (preg_match('/^([^-]+-)(.+)/', $sMatch, $aMatches)) {
+                    $sPrefix = $aMatches[1];
+                    $sMatch  = $aMatches[2];
+                }
 
                 if (strpos($sMatch, 'jmes:') === 0) {
                     $sExpression = str_replace('jmes:', '', $sMatch);
@@ -203,8 +209,7 @@
 
                     Log::d('MultiEndpointPost.getTemplateValue.JMESPath', [
                         'template'   => $sTemplate,
-                        'expression' => $sExpression,
-                        'values'     => $aValues
+                        'expression' => $sExpression
                     ]);
                 } else {
                     $sPrefix = null;
@@ -259,19 +264,23 @@
                                 }
                             }
 
-                            if ($sPrefix) {
-                                foreach($aValues as &$sValue) {
-                                    $sValue = $sPrefix . $sValue;
-                                }
-                            }
-
                             Log::d('MultiEndpointPost.getTemplateValue.TableField', [
-                                'template' => $sTemplate,
-                                'values'   => $aValues
+                                'template' => $sTemplate
                             ]);
                         }
                     }
                 }
+
+                if ($sPrefix) {
+                    foreach($aValues as &$sValue) {
+                        $sValue = $sPrefix . $sValue;
+                    }
+                }
+
+                Log::d('MultiEndpointQuery.getTemplateValue', [
+                    'prefix' => $sPrefix,
+                    'values' => json_encode($aValues)
+                ]);
 
                 if (count($aValues)) {
                     $aUniqueValues = array_unique(array_filter($aValues));
