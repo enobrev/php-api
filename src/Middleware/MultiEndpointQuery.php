@@ -181,6 +181,12 @@
                         'values'     => json_encode($aValues)
                     ]);
                 } else {
+                    $sPrefix = null;
+                    if (preg_match('/^([^-]+-)(.+)/', $sMatch, $aMatches)) {
+                        $sPrefix = $aMatches[1];
+                        $sMatch  = $aMatches[2];
+                    }
+
                     $aMatch = explode('.', $sMatch);
                     if (count($aMatch) == 2) {
                         $sTable = $aMatch[0];
@@ -224,6 +230,12 @@
                                     $aValues[] = $this->oData->get("$sTable.$sField");
                                 } else {
                                     throw new Exception\InvalidSegmentVariable('Invalid Segment Variable ' . $sField . ' in ' . $sTemplate);
+                                }
+                            }
+
+                            if ($sPrefix) {
+                                foreach($aValues as &$sValue) {
+                                    $sValue = $sPrefix . $sValue;
                                 }
                             }
 
