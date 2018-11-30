@@ -10,6 +10,17 @@
         /** @var string */
         protected $sType = Param::INTEGER;
 
+        /**
+         *
+            "int32": Signed 32-bit integers (commonly used integer type).
+            "int64": Signed 64-bit integers (long type)..
+         * @param string $sFormat
+         * @return _Integer
+         */
+        public function format(string $sFormat): self {
+            return $this->validation(['format' => $sFormat]);
+        }
+
         public function minimum(int $iMinimum, $bExclusive = false): self {
             if ($bExclusive) {
                 return $this->validation(['minimum' => $iMinimum])->validation(['exclusiveMinimum' => $bExclusive]);

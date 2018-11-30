@@ -10,6 +10,17 @@
         /** @var string */
         protected $sType = Param::NUMBER;
 
+        /**
+         *
+            "float":    Floating-point numbers.
+            "double": 	Floating-point numbers with double precision.
+         * @param string $sFormat
+         * @return _Number
+         */
+        public function format(string $sFormat): self {
+            return $this->validation(['format' => $sFormat]);
+        }
+
         public function minimum(int $iMinimum, $bExclusive = false): self {
             if ($bExclusive) {
                 return $this->validation(['minimum' => $iMinimum])->validation(['exclusiveMinimum' => $bExclusive]);
