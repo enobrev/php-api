@@ -531,8 +531,8 @@
 
             if ($oField instanceof Field\Integer) {
                 switch(PHP_INT_SIZE) {
-                    case 4: $oParam->format('int32'); break;
-                    case 8: $oParam->format('int64'); break;
+                    case 4: $oParam = $oParam->format('int32'); break;
+                    case 8: $oParam = $oParam->format('int64'); break;
                 }
             }
 
