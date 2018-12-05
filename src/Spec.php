@@ -795,7 +795,11 @@
                         $aParam['schema'] = $oPostJsonParams->get("properties.{$sParam}");
                         $aPost[$sParam] = $aParam;
                     } else {
-                        $aPost[$sParam] = $oParam->getJsonSchema();
+                        $aPost[$sParam] = $oParam->getJsonSchemaForOpenAPI();
+
+                        if ($oParam->isRequired()) {
+                            $aPost[$sParam]['required'] = true;
+                        }
                     }
                 }
 
