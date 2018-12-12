@@ -4,6 +4,7 @@
     use ArrayIterator;
     use DateTime;
 
+    use function Enobrev\dbg;
     use Money\Money;
 
     use Enobrev\API\Exception;
@@ -153,12 +154,24 @@
 
         /**
          * @param ORM\Table $oTable
+         * @param array|null $aExcludedFields
          * @return array
+         * @throws Exception\InvalidDataMapPath
          */
-        public static function convertTableToResponseArray(ORM\Table $oTable): array {
+        public static function convertTableToResponseArray(ORM\Table $oTable, ?array $aExcludedFields = null): array {
             $aMap         = self::getMap($oTable->getTitle());
             $aResponseMap = [];
             foreach($aMap as $sPublicField => $sTableField) {
+                if ($aExcludedFields) {
+                    if (in_array($sTableField, $aExcludedFields) !== false) {
+                        continue;
+                    }
+
+                    if (in_array($sPublicField, $aExcludedFields) !== false) {
+                        continue;
+                    }
+                }
+
                 if ($oTable->$sTableField instanceof ORM\Field === false) {
                     continue;
                 }
