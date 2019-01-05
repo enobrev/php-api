@@ -458,7 +458,21 @@ DESCRIPTION
                         )
                     );
 
+                    $aSortable = [];
                     foreach($aFiles as $oFile) {
+                        $aSortable[] = $oFile;
+                    }
+
+                    // Sort files by filename for consistent sorting on differing platforms
+                    usort($aSortable, function($oFileA, $oFileB) {
+                        /**
+                         * @var \SplFileInfo $oFileA
+                         * @var \SplFileInfo $oFileB
+                         */
+                        return strnatcmp($oFileA->getRealPath(), $oFileB->getRealPath());
+                    });
+
+                    foreach($aSortable as $oFile) {
                         $sContents = file_get_contents($oFile->getPathname());
                         if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
                             if (preg_match_all('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
