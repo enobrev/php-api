@@ -61,12 +61,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "c3b121ac70800fe679297855acfc84af4b37f90a"
+                "reference": "cec578b9ac651a7f19c9435c666172a9d67ed157"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/c3b121ac70800fe679297855acfc84af4b37f90a",
-                "reference": "c3b121ac70800fe679297855acfc84af4b37f90a",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/cec578b9ac651a7f19c9435c666172a9d67ed157",
+                "reference": "cec578b9ac651a7f19c9435c666172a9d67ed157",
                 "shasum": ""
             },
             "require": {
@@ -115,7 +115,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-01-09T06:26:07+00:00"
+            "time": "2019-01-09T10:59:13+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -123,12 +123,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "0b74783e6054deb5109f87cc823fe8a55efcc448"
+                "reference": "690ea93eca0dee0347b4e0aa8d328802c75af327"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/0b74783e6054deb5109f87cc823fe8a55efcc448",
-                "reference": "0b74783e6054deb5109f87cc823fe8a55efcc448",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/690ea93eca0dee0347b4e0aa8d328802c75af327",
+                "reference": "690ea93eca0dee0347b4e0aa8d328802c75af327",
                 "shasum": ""
             },
             "require": {
@@ -136,7 +136,7 @@
                 "ext-json": "*",
                 "monolog/monolog": "^1.21",
                 "php": ">=7.1.0",
-                "zendframework/zend-diactoros": "^1.8.6"
+                "zendframework/zend-diactoros": "1.8.6"
             },
             "require-dev": {
                 "phpunit/phpunit": "^7.1",
@@ -170,7 +170,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2019-01-09T06:25:38+00:00"
+            "time": "2019-01-09T10:58:01+00:00"
         },
         {
             "name": "icecave/parity",
