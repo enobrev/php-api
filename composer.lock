@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2c8ab0a5cd694be9c95a574f5dafe0a2",
+    "content-hash": "bb94eda3d58c7a16cc6508355dce51c4",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -61,12 +61,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "a5aee57db7844a63123112a75e8fb1e2103d5170"
+                "reference": "c3b121ac70800fe679297855acfc84af4b37f90a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/a5aee57db7844a63123112a75e8fb1e2103d5170",
-                "reference": "a5aee57db7844a63123112a75e8fb1e2103d5170",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/c3b121ac70800fe679297855acfc84af4b37f90a",
+                "reference": "c3b121ac70800fe679297855acfc84af4b37f90a",
                 "shasum": ""
             },
             "require": {
@@ -115,7 +115,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-01-09T05:45:36+00:00"
+            "time": "2019-01-09T06:26:07+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -123,12 +123,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "cfd8ade7b1be48240c9ebaa5ff6e0a4c384088f7"
+                "reference": "0b74783e6054deb5109f87cc823fe8a55efcc448"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/cfd8ade7b1be48240c9ebaa5ff6e0a4c384088f7",
-                "reference": "cfd8ade7b1be48240c9ebaa5ff6e0a4c384088f7",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/0b74783e6054deb5109f87cc823fe8a55efcc448",
+                "reference": "0b74783e6054deb5109f87cc823fe8a55efcc448",
                 "shasum": ""
             },
             "require": {
@@ -136,7 +136,7 @@
                 "ext-json": "*",
                 "monolog/monolog": "^1.21",
                 "php": ">=7.1.0",
-                "zendframework/zend-diactoros": "^2.1"
+                "zendframework/zend-diactoros": "^1.8.6"
             },
             "require-dev": {
                 "phpunit/phpunit": "^7.1",
@@ -170,7 +170,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2019-01-09T05:40:08+00:00"
+            "time": "2019-01-09T06:25:38+00:00"
         },
         {
             "name": "icecave/parity",
@@ -1358,41 +1358,38 @@
         },
         {
             "name": "zendframework/zend-diactoros",
-            "version": "2.1.1",
+            "version": "1.8.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zendframework/zend-diactoros.git",
-                "reference": "c3c330192bc9cc51b7e9ce968ff721dc32ffa986"
+                "reference": "20da13beba0dde8fb648be3cc19765732790f46e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zend-diactoros/zipball/c3c330192bc9cc51b7e9ce968ff721dc32ffa986",
-                "reference": "c3c330192bc9cc51b7e9ce968ff721dc32ffa986",
+                "url": "https://api.github.com/repos/zendframework/zend-diactoros/zipball/20da13beba0dde8fb648be3cc19765732790f46e",
+                "reference": "20da13beba0dde8fb648be3cc19765732790f46e",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.1",
-                "psr/http-factory": "^1.0",
+                "php": "^5.6 || ^7.0",
                 "psr/http-message": "^1.0"
             },
             "provide": {
-                "psr/http-factory-implementation": "1.0",
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
                 "ext-dom": "*",
                 "ext-libxml": "*",
-                "http-interop/http-factory-tests": "^0.5.0",
                 "php-http/psr7-integration-tests": "dev-master",
-                "phpunit/phpunit": "^7.0.2",
-                "zendframework/zend-coding-standard": "~1.0.0"
+                "phpunit/phpunit": "^5.7.16 || ^6.0.8 || ^7.2.7",
+                "zendframework/zend-coding-standard": "~1.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.1.x-dev",
-                    "dev-develop": "2.2.x-dev",
-                    "dev-release-1.8": "1.8.x-dev"
+                    "dev-master": "1.8.x-dev",
+                    "dev-develop": "1.9.x-dev",
+                    "dev-release-2.0": "2.0.x-dev"
                 }
             },
             "autoload": {
@@ -1412,15 +1409,16 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "BSD-3-Clause"
+                "BSD-2-Clause"
             ],
             "description": "PSR HTTP Message implementations",
+            "homepage": "https://github.com/zendframework/zend-diactoros",
             "keywords": [
                 "http",
                 "psr",
                 "psr-7"
             ],
-            "time": "2019-01-05T20:13:32+00:00"
+            "time": "2018-09-05T19:29:37+00:00"
         }
     ],
     "packages-dev": [

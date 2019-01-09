@@ -40,7 +40,7 @@
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
         "twig/twig": "^2.4",
-        "zendframework/zend-diactoros": "^2.1"
+        "zendframework/zend-diactoros": "^1.8.6"
     },
     "require-dev": {
         "nategood/commando": "^0.3.0",
