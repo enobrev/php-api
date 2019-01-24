@@ -25,7 +25,8 @@
                         'query'  => $aQueryParams && count($aQueryParams) ? json_encode($aQueryParams) : null,
                         'post'   => $aPostParams  && count($aPostParams)  ? json_encode($aPostParams)  : null
                     ],
-                    'headers'    => json_encode($oRequest->getHeaders())
+                    'headers'    => json_encode($oRequest->getHeaders()),
+                    'referrer'   => $oRequest->hasHeader('referer') ? $oRequest->getHeaderLine('referer') : null
                 ]
             ]);
 
