@@ -61,12 +61,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "4524deee3d9f66ab9ace4e458d6551b6244b2f8f"
+                "reference": "c41d589347b86a8fe96fd3ae2b1b744a935901d2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/4524deee3d9f66ab9ace4e458d6551b6244b2f8f",
-                "reference": "4524deee3d9f66ab9ace4e458d6551b6244b2f8f",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/c41d589347b86a8fe96fd3ae2b1b744a935901d2",
+                "reference": "c41d589347b86a8fe96fd3ae2b1b744a935901d2",
                 "shasum": ""
             },
             "require": {
@@ -115,7 +115,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-01-24T16:47:27+00:00"
+            "time": "2019-01-24T17:17:47+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -123,12 +123,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "2216e13488d2755277de07ee84d03485d664c462"
+                "reference": "e3c6330808e504cc993e1801de99b3f8607d710b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/2216e13488d2755277de07ee84d03485d664c462",
-                "reference": "2216e13488d2755277de07ee84d03485d664c462",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/e3c6330808e504cc993e1801de99b3f8607d710b",
+                "reference": "e3c6330808e504cc993e1801de99b3f8607d710b",
                 "shasum": ""
             },
             "require": {
@@ -170,7 +170,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2019-01-24T16:42:14+00:00"
+            "time": "2019-01-24T17:17:17+00:00"
         },
         {
             "name": "icecave/parity",
