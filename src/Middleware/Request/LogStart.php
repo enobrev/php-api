@@ -6,24 +6,21 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
-    use Enobrev\API\Middleware\FastRoute;
-    use Enobrev\API\RequestAttribute;
-    use Enobrev\API\RequestAttributeInterface;
-    use Enobrev\API\Spec;
-    use Enobrev\API\SpecInterface;
     use Enobrev\Log;
-
-    use function Enobrev\dbg;
 
     class LogStart implements MiddlewareInterface {
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $aQueryParams = $oRequest->getQueryParams();
-            $aPostParams  = $oRequest->getParsedBody();
+            $aQueryParams  = $oRequest->getQueryParams();
+            $aPostParams   = $oRequest->getParsedBody();
+            $aServerParams = $oRequest->getServerParams();
+            $oURI          = $oRequest->getUri();
 
             Log::i('Enobrev.Middleware.LogStart', [
                 '#request' => [
                     'method'     => $oRequest->getMethod(),
-                    'path'       => $oRequest->getUri()->getPath(),
+                    'host'       => $oURI->getHost(),
+                    'path'       => $oURI->getPath(),
+                    'uri'        => $aServerParams && isset($aServerParams['REQUEST_URI']) ? $aServerParams['REQUEST_URI'] : null,
                     'parameters' => [
                         'query'  => $aQueryParams && count($aQueryParams) ? json_encode($aQueryParams) : null,
                         'post'   => $aPostParams  && count($aPostParams)  ? json_encode($aPostParams)  : null
