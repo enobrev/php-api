@@ -42,7 +42,7 @@
                             Reference::create(FullSpec::SCHEMA_DEFAULT),
                             [
                                 'counts.{{ table.name }}' => Param\_Integer::create(),
-                                '{{ table.name }}' => Param\_Array::create()->items(Spec::tableToJsonSchema(new {{ table.class }}, Param::REQUIRED))
+                                '{{ table.name }}' => Param\_Array::create()->items(Spec::tableToParam(new {{ table.class }}, [], Param::REQUIRED))
                             ]
                         ])
                     )
