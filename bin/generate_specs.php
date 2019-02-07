@@ -202,6 +202,7 @@
             /// ------------------------
 
             $aTable['spec']['name']        = '_post';
+            $aTable['spec']['http_method'] = 'POST';
 
             $sRenderedFile = $sRenderedPath . '_post.php';
 
