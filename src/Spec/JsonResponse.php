@@ -18,32 +18,39 @@
         /** @var string */
         private $sType;
 
-        public static function create():self {
-            return new self();
+        /** @var string */
+        private $sTitle;
+
+        public function __construct(?string $sTitle = null) {
+            $this->sTitle = $sTitle;
         }
 
-        public static function schema($mSchema):self {
-            $oResponse = new self();
+        public static function create(?string $sTitle = null):self {
+            return new self($sTitle);
+        }
+
+        public static function schema($mSchema, ?string $sTitle = null):self {
+            $oResponse = new self($sTitle);
             $oResponse->mSchema = $mSchema;
             return $oResponse;
         }
 
-        public static function allOf(array $aSchemas):self {
-            $oResponse = new self();
+        public static function allOf(array $aSchemas, ?string $sTitle = null):self {
+            $oResponse = new self($sTitle);
             $oResponse->mSchema = $aSchemas;
             $oResponse->sType   = self::TYPE_ALLOF;
             return $oResponse;
         }
 
-        public static function anyOf(array $aSchemas):self {
-            $oResponse = new self();
+        public static function anyOf(array $aSchemas, ?string $sTitle = null):self {
+            $oResponse = new self($sTitle);
             $oResponse->mSchema = $aSchemas;
             $oResponse->sType   = self::TYPE_ANYOF;
             return $oResponse;
         }
 
-        public static function oneOf(array $aSchemas):self {
-            $oResponse = new self();
+        public static function oneOf(array $aSchemas, ?string $sTitle = null):self {
+            $oResponse = new self($sTitle);
             $oResponse->mSchema = $aSchemas;
             $oResponse->sType   = self::TYPE_ONEOF;
             return $oResponse;
@@ -67,9 +74,15 @@
                     }
                 }
 
-                return [
+                $aReturn = [
                     $this->sType => $aResponse
                 ];
+
+                if ($this->sTitle) {
+                    $aReturn['title'] = $this->sTitle;
+                }
+
+                return $aReturn;
             } else if ($this->mSchema instanceof OpenApiInterface) {
                 return $this->mSchema->getOpenAPI();
             } else if (is_array($this->mSchema)) {
