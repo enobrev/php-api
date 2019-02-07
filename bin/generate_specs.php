@@ -66,13 +66,16 @@
         mkdir($sPathOutput, 0777, true);
     }
 
-    $oTemplateGet           = $oTwig->loadTemplate('template_spec_get.twig');
-    $oTemplateGets          = $oTwig->loadTemplate('template_spec_gets.twig');
-    $oTemplateDelete        = $oTwig->loadTemplate('template_spec_delete.twig');
-    $oTemplatePost          = $oTwig->loadTemplate('template_spec_post.twig');
-    $oTemplateKeylessPost   = $oTwig->loadTemplate('template_spec_post_body_key.twig');
-    $oTemplateComponents    = $oTwig->loadTemplate('template_spec_components.twig');
-    $oTemplateExceptions    = $oTwig->loadTemplate('template_spec_exceptions.twig');
+    $oTemplateGet               = $oTwig->loadTemplate('template_spec_get.twig');
+    $oTemplateGets              = $oTwig->loadTemplate('template_spec_gets.twig');
+    $oTemplateDelete            = $oTwig->loadTemplate('template_spec_delete.twig');
+    $oTemplatePost              = $oTwig->loadTemplate('template_spec_post.twig');
+    $oTemplateKeylessPost       = $oTwig->loadTemplate('template_spec_post_body_key.twig');
+    $oTemplateComponents        = $oTwig->loadTemplate('template_spec_components.twig');
+    $oTemplateExceptions        = $oTwig->loadTemplate('template_spec_exceptions.twig');
+    $oTemplateGetsNoKey         = $oTwig->loadTemplate('template_spec_gets_no_key.twig');
+    $oTemplatePostNoKey         = $oTwig->loadTemplate('template_spec_post_no_key.twig');
+    $oTemplateComponentsNoKey   = $oTwig->loadTemplate('template_spec_components_no_key.twig');
 
     $aDatabase  = json_decode(file_get_contents($sPathJsonSQL), true);
 
@@ -168,16 +171,7 @@
         }
 
         $aTable['spec']['non_post']          = '[' . implode(', ', $aNonPost) . ']';
-        $aTable['spec']['non_post_in_body']  = '[' . implode(', ', $aNonPostInBody) . ']';
         $aTable['spec']['show_post']         = count($aTable['fields']) > count($aNonPost);
-        $aTable['spec']['show_post_in_body'] = count($aTable['fields']) > count($aNonPostInBody);
-
-        /// ------------------------
-
-        $sRenderedFile = $sComponentsPath . "{$aTable['table']['name']}.php";
-
-        file_put_contents($sRenderedFile, $oTemplateComponents->render($aTable));
-        echo 'Created ' . $sRenderedFile . "\n";
 
         /// ------------------------
 
@@ -186,27 +180,54 @@
         file_put_contents($sRenderedFile, $oTemplateExceptions->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
-        /// ------------------------
-
-        $aTable['spec']['name'] = '_gets';
-
-        $sRenderedFile = $sRenderedPath . '_gets.php';
-
-        file_put_contents($sRenderedFile, $oTemplateGets->render($aTable));
-        echo 'Created ' . $sRenderedFile . "\n";
 
         if (count($aTable['primary']) == 0) {
 
             /// ------------------------
 
-            $aTable['spec']['name']        = '_post_no_key';
+            $sRenderedFile = $sComponentsPath . "{$aTable['table']['name']}.php";
 
-            $sRenderedFile = $sRenderedPath . '_post_no_key.php';
+            file_put_contents($sRenderedFile, $oTemplateComponentsNoKey->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
 
-            file_put_contents($sRenderedFile, $oTemplateKeylessPost->render($aTable));
+            /// ------------------------
+
+            $aTable['spec']['name'] = '_gets';
+
+            $sRenderedFile = $sRenderedPath . '_gets.php';
+
+            file_put_contents($sRenderedFile, $oTemplateGetsNoKey->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
+
+            /// ------------------------
+
+            $aTable['spec']['name']        = '_post';
+
+            $sRenderedFile = $sRenderedPath . '_post.php';
+
+            file_put_contents($sRenderedFile, $oTemplatePostNoKey->render($aTable));
             echo 'Created ' . $sRenderedFile . "\n";
 
         } else {
+
+            $aTable['spec']['non_post_in_body']  = '[' . implode(', ', $aNonPostInBody) . ']';
+            $aTable['spec']['show_post_in_body'] = count($aTable['fields']) > count($aNonPostInBody);
+
+            /// ------------------------
+
+            $sRenderedFile = $sComponentsPath . "{$aTable['table']['name']}.php";
+
+            file_put_contents($sRenderedFile, $oTemplateComponents->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
+
+            /// ------------------------
+
+            $aTable['spec']['name'] = '_gets';
+
+            $sRenderedFile = $sRenderedPath . '_gets.php';
+
+            file_put_contents($sRenderedFile, $oTemplateGets->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
 
             /// ------------------------
 

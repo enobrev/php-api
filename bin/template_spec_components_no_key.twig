@@ -1,0 +1,63 @@
+<?php
+    namespace {{ spec.namespace.spec }}\_components;
+
+    use Adbar\Dot;
+
+    use Enobrev\API\DataMap;
+    use Enobrev\API\FullSpec;
+    use Enobrev\API\FullSpec\ComponentListInterface;
+    use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\FullSpec\Component\Request;
+    use Enobrev\API\FullSpec\Component\Response;
+    use Enobrev\API\FullSpec\Component\ParamSchema;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
+
+    use {{ spec.namespace.table }};
+
+    class {{ table.name }} implements ComponentListInterface {
+{% if spec.show_post %}
+        const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
+{% endif %}
+{% if spec.show_post %}
+        const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
+{% endif %}
+        const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
+
+        /** @return ComponentListInterface[] */
+        public function components(): array {
+            return [
+{% if spec.show_post %}
+                ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }}, {{ spec.non_post|raw }})),
+                Request::create(self::REQUEST_POST)
+                    ->description('`{{ table.name }}` Request')
+                    ->post(Reference::create(self::SCHEMA_POST))
+                    ->json(Reference::create(self::SCHEMA_POST)),
+
+{% endif %}
+                Response::create(self::RESPONSE_SUCCESS)
+                    ->description('Successful `{{ table.name }}` Response')
+                    ->json(
+                        Spec\JsonResponse::allOf([
+                            Reference::create(FullSpec::SCHEMA_DEFAULT),
+                            [
+                                'counts.{{ table.name }}' => Param\_Integer::create(),
+                                '{{ table.name }}' => Param\_Array::create()->items(Spec::tableToJsonSchema(new {{ table.class }}, Param::REQUIRED))
+                            ]
+                        ])
+                    )
+            ];
+        }
+
+        public static function add{{ table.title }}ToResponse(Dot $oResponse, {{ table.class }} $o{{ table.title }}): Dot {
+            $oResponse->push("{{ table.name }}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+            return $oResponse;
+        }
+
+        public static function add{{ table.plural }}ToResponse(Dot $oResponse, {{ table.class_plural }} $o{{ table.plural }}): Dot {
+            foreach($o{{ table.plural }} as $o{{ table.title }}) {
+                $oResponse = self::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
+            }
+            return $oResponse;
+        }
+    }

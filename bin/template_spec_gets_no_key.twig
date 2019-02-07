@@ -1,0 +1,96 @@
+<?php
+    namespace {{ spec.namespace.spec }}\{{ table.name }};
+
+    use Adbar\Dot;
+    use Psr\Http\Message\ResponseInterface;
+    use Psr\Http\Message\ServerRequestInterface;
+    use Psr\Http\Server\MiddlewareInterface;
+    use Psr\Http\Server\RequestHandlerInterface;
+
+    use Enobrev\API\DataMap;
+    use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\HTTP;
+    use Enobrev\API\Method;
+    use Enobrev\API\Middleware\FastRoute;
+    use Enobrev\API\Middleware\ResponseBuilder;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
+    use Enobrev\API\SpecInterface;
+
+    use {{ spec.namespace.spec }}\_components;
+    use {{ spec.namespace.table }};
+
+    class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        public function spec(): Spec {
+            return Spec::create()
+                ->httpMethod      (Method\{{ spec.http_method }})
+                ->path            ('{{ spec.path_prefix}}/{{ table.name }}[/]')
+                ->summary         ('List {{ table.name }}')
+                ->description     ('Get listing of `{{ table.name }}`')
+                ->scopes          ({{ spec.scopes|raw }})
+                ->tag             ('{{ table.name }}')
+                ->queryParams     ([
+                    'page'     => Param\_Integer::create()->default(1)->description("Current Page of `{{ table.name }}`"),
+                    'per'      => Param\_Integer::create()->default(100)->description("Number of `{{ table.name }}` per page of Data"),
+                    'search'   => Param\_String::create()->default(null)->description("Search term.  Can be a plain string or in the format field:value"),
+                    'sort'     => Param\_String::create()->default(null)->description("`{{ table.name }}` field to sort by"){% if has_date %},{% endif %}
+
+{% if has_date %}
+                    'sync'     => Param\_String::create()->default(null)->description("Get only `{{ table.name }}` with an updated date since the date in `sync`")
+{% endif %}
+                ])
+                ->response(HTTP\OK, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));
+        }
+
+        /**
+         * Middleware
+         * Use the ServerRequestInterface to figure out what is needed
+         * Either return a ResponseInterface (and stop processing other Middleware)
+         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
+         * The ResponseBuilder data should match the Schema defined in spec();
+
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
+         */
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            return $oHandler->handle(
+                ResponseBuilder::update($oRequest,
+                    $this->getResponse(
+                        FastRoute::getPathParams($oRequest),
+                        $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
+                        ResponseBuilder::get($oRequest)
+                    )
+                )
+            );
+        }
+
+        /**
+         * @param array|null $aPathParams   Params from Request Path
+         * @param array|null $aQueryParams  Params from Request Query
+         * @param array|null $aPostParams   Params from Request Body
+         * @param Dot $oResponse            Response Object
+         * @return Dot
+         */
+        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
+            $oBaseTable = new {{ table.class }};
+            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']);
+            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort']);
+
+            /** @var {{ table.class_plural }} $o{{ table.plural }} */
+            $o{{ table.plural }} = {{ table.class_plural }}::getForCMS(
+                $aQueryParams['page'],
+                $aQueryParams['per'],
+                $aSearch,
+                $aSort{% if has_date %},
+                $aQueryParams['sync']
+{% endif %}
+            );
+
+            $oResponse = _components\{{ table.name }}::add{{ table.plural }}ToResponse($oResponse, $o{{ table.plural }});
+            $oResponse->set('counts.{{ table.name }}', {{ table.class_plural }}::countForCMS($aSearch));
+
+            return $oResponse;
+        }
+    }
