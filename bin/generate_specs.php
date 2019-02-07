@@ -88,11 +88,6 @@
     }
 
     foreach($aDatabase['tables'] as $sTable => $aTable) {
-        if (count($aTable['primary']) == 0) {
-            \Enobrev\dbg('Skipped', $sTable);
-            continue;
-        }
-
         $sRenderedPath = $sPathOutput . $sTable . '/';
 
         if (!file_exists($sRenderedPath)) {
@@ -193,15 +188,6 @@
 
         /// ------------------------
 
-        $aTable['spec']['name'] = '_get';
-
-        $sRenderedFile = $sRenderedPath . '_get.php';
-
-        file_put_contents($sRenderedFile, $oTemplateGet->render($aTable));
-        echo 'Created ' . $sRenderedFile . "\n";
-
-        /// ------------------------
-
         $aTable['spec']['name'] = '_gets';
 
         $sRenderedFile = $sRenderedPath . '_gets.php';
@@ -209,32 +195,55 @@
         file_put_contents($sRenderedFile, $oTemplateGets->render($aTable));
         echo 'Created ' . $sRenderedFile . "\n";
 
-        /// ------------------------
+        if (count($aTable['primary']) == 0) {
 
-        $aTable['spec']['name']        = '_delete';
-        $aTable['spec']['http_method'] = 'DELETE';
+            /// ------------------------
 
-        $sRenderedFile = $sRenderedPath . '_delete.php';
+            $aTable['spec']['name']        = '_post_no_key';
 
-        file_put_contents($sRenderedFile, $oTemplateDelete->render($aTable));
-        echo 'Created ' . $sRenderedFile . "\n";
+            $sRenderedFile = $sRenderedPath . '_post_no_key.php';
 
-        /// ------------------------
+            file_put_contents($sRenderedFile, $oTemplateKeylessPost->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
 
-        $aTable['spec']['name']        = '_post';
-        $aTable['spec']['http_method'] = 'POST';
+        } else {
 
-        $sRenderedFile = $sRenderedPath . '_post.php';
+            /// ------------------------
 
-        file_put_contents($sRenderedFile, $oTemplatePost->render($aTable));
-        echo 'Created ' . $sRenderedFile . "\n";
+            $aTable['spec']['name'] = '_get';
 
-        /// ------------------------
-        ///
-        $aTable['spec']['name']        = '_post_body_key';
+            $sRenderedFile = $sRenderedPath . '_get.php';
 
-        $sRenderedFile = $sRenderedPath . '_post_body_key.php';
+            file_put_contents($sRenderedFile, $oTemplateGet->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
 
-        file_put_contents($sRenderedFile, $oTemplateKeylessPost->render($aTable));
-        echo 'Created ' . $sRenderedFile . "\n";
+            /// ------------------------
+
+            $aTable['spec']['name']        = '_delete';
+            $aTable['spec']['http_method'] = 'DELETE';
+
+            $sRenderedFile = $sRenderedPath . '_delete.php';
+
+            file_put_contents($sRenderedFile, $oTemplateDelete->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
+
+            /// ------------------------
+
+            $aTable['spec']['name']        = '_post';
+            $aTable['spec']['http_method'] = 'POST';
+
+            $sRenderedFile = $sRenderedPath . '_post.php';
+
+            file_put_contents($sRenderedFile, $oTemplatePost->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
+
+            /// ------------------------
+
+            $aTable['spec']['name']        = '_post_body_key';
+
+            $sRenderedFile = $sRenderedPath . '_post_body_key.php';
+
+            file_put_contents($sRenderedFile, $oTemplateKeylessPost->render($aTable));
+            echo 'Created ' . $sRenderedFile . "\n";
+        }
     }

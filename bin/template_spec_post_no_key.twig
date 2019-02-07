@@ -1,0 +1,77 @@
+<?php
+    namespace {{ spec.namespace.spec }}\{{ table.name }};
+
+    use Adbar\Dot;
+    use Psr\Http\Message\ResponseInterface;
+    use Psr\Http\Message\ServerRequestInterface;
+    use Psr\Http\Server\MiddlewareInterface;
+    use Psr\Http\Server\RequestHandlerInterface;
+
+    use Enobrev\API\DataMap;
+    use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\HTTP;
+    use Enobrev\API\Method;
+    use Enobrev\API\Middleware\FastRoute;
+    use Enobrev\API\Middleware\ResponseBuilder;
+    use Enobrev\API\Param;
+    use Enobrev\API\Spec;
+    use Enobrev\API\SpecInterface;
+
+    use {{ spec.namespace.spec }}\_components;
+    use {{ spec.namespace.table }};
+
+    class {{ spec.name }} implements SpecInterface, MiddlewareInterface {
+        public function spec(): Spec {
+            return Spec::create()
+                ->httpMethod        (Method\{{ spec.http_method }})
+                ->path              ('{{ spec.path_prefix}}/{{ table.name }}[/]')
+                ->summary           ('Add {{ table.name }}')
+                ->description       ('Create `{{ table.name }}`.  This table has no primary key so this endpoint does not allow updates')
+                ->scopes            ({{ spec.scopes|raw }})
+                ->tag               ('{{ table.name }}')
+{% if spec.show_post %}
+                ->postBodyReference (Reference::create(_components\{{ table.name }}::REQUEST_POST))
+{% endif %}
+                ->response(HTTP\OK, Reference::create(_components\{{ table.name }}::RESPONSE_SUCCESS));
+        }
+
+        /**
+         * Middleware
+         * Use the ServerRequestInterface to figure out what is needed
+         * Either return a ResponseInterface (and stop processing other Middleware)
+         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
+         * The ResponseBuilder data should match the Schema defined in spec();
+
+         * @param ServerRequestInterface $oRequest
+         * @param RequestHandlerInterface $oHandler
+         * @return ResponseInterface
+         */
+        public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
+            return $oHandler->handle(
+                ResponseBuilder::update($oRequest,
+                    $this->getResponse(
+                        FastRoute::getPathParams($oRequest),
+                        $oRequest->getQueryParams(),
+                        $oRequest->getParsedBody(),
+                        ResponseBuilder::get($oRequest)
+                    )
+                )
+            );
+        }
+
+        /**
+         * @param array|null $aPathParams   Params from Request Path
+         * @param array|null $aQueryParams  Params from Request Query
+         * @param array|null $aPostParams   Params from Request Body
+         * @param Dot $oResponse            Response Object
+         * @return Dot
+         */
+        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
+            /** @var {{ table.class }} $o{{ table.title }} */
+            $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
+            $o{{ table.title }}->insert();
+
+            $oResponse = _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
+            return $oResponse;
+        }
+    }
