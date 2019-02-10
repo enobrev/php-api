@@ -61,12 +61,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "35edb2bcbe454fa4412f897015df872aae773e16"
+                "reference": "275713c38b9e209e989bd8bb9929ee2cc3847c0f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/35edb2bcbe454fa4412f897015df872aae773e16",
-                "reference": "35edb2bcbe454fa4412f897015df872aae773e16",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/275713c38b9e209e989bd8bb9929ee2cc3847c0f",
+                "reference": "275713c38b9e209e989bd8bb9929ee2cc3847c0f",
                 "shasum": ""
             },
             "require": {
@@ -115,7 +115,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-02-08T04:20:30+00:00"
+            "time": "2019-02-10T18:20:48+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -285,12 +285,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/justinrainbow/json-schema.git",
-                "reference": "f981a46486d8f41121733a8e3f7b3be4770fd5ee"
+                "reference": "0cf4d5b8ee61d4e0c3736076d345663a4deb015e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/f981a46486d8f41121733a8e3f7b3be4770fd5ee",
-                "reference": "f981a46486d8f41121733a8e3f7b3be4770fd5ee",
+                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/0cf4d5b8ee61d4e0c3736076d345663a4deb015e",
+                "reference": "0cf4d5b8ee61d4e0c3736076d345663a4deb015e",
                 "shasum": ""
             },
             "require": {
@@ -345,7 +345,7 @@
                 "json",
                 "schema"
             ],
-            "time": "2018-11-15T16:42:18+00:00"
+            "time": "2019-01-15T16:51:58+00:00"
         },
         {
             "name": "kevinlebrun/colors.php",
