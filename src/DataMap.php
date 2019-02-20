@@ -212,7 +212,7 @@
         public static function getField(ORM\Table $oDatum, string $sPublicField) {
             $aMap          = self::getMap($oDatum->getTitle());
 
-            if ($sPublicField) {
+            if ($sPublicField && isset($aMap[$sPublicField])) {
                 $sPrivateField = $aMap[$sPublicField];
 
                 return $oDatum->$sPrivateField instanceof ORM\Field ? $oDatum->$sPrivateField : null;
