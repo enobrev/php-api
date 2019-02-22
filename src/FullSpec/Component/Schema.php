@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
+    use Adbar\Dot;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\OpenApiInterface;
@@ -17,6 +18,9 @@
 
         /** @var string */
         private $sName;
+
+        /** @var string */
+        private $sTitle;
 
         /** @var OpenApiInterface|JsonSchemaInterface|array */
         private $aSchema;
@@ -37,6 +41,7 @@
             };
 
             $this->sName = implode('/', $aName);
+            $this->sTitle = $sName;
         }
 
         public function getName(): string {
@@ -45,6 +50,11 @@
 
         public function schema($mSchema):self {
             $this->aSchema = $mSchema;
+            return $this;
+        }
+
+        public function title($sTitle):self {
+            $this->sTitle = $sTitle;
             return $this;
         }
 
@@ -68,6 +78,12 @@
 
 
         public function getOpenAPI(): array {
+            $oResponse = new Dot();
+
+            if ($this->sTitle) {
+                $oResponse->set('title', $this->sTitle);
+            }
+
             if ($this->sType) {
                 $aResponse = [];
 
@@ -81,17 +97,17 @@
                     }
                 }
 
-                return [
-                    $this->sType => $aResponse
-                ];
+                $oResponse->set($this->sType, $aResponse);
             } else if ($this->aSchema instanceof OpenApiInterface) {
-                return $this->aSchema->getOpenAPI();
+                $oResponse->merge($this->aSchema->getOpenAPI());
             } else if ($this->aSchema instanceof JsonSchemaInterface) {
-                return $this->aSchema->getJsonSchema();
+                $oResponse->merge($this->aSchema->getJsonSchema());
             } else if (is_array($this->aSchema)) {
-                return Spec::toJsonSchema($this->aSchema);
+                $oResponse->merge(Spec::toJsonSchema($this->aSchema));
             } else {
-                return $this->aSchema;
+                $oResponse->merge($this->aSchema);
             }
+
+            return $oResponse->all();
         }
     }
