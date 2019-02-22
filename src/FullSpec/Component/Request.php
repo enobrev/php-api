@@ -40,6 +40,10 @@
             return $this->sName;
         }
 
+        public function getPost(): OpenApiInterface {
+            return $this->mPost;
+        }
+
         public function getJson(): OpenApiInterface {
             return $this->mJson;
         }

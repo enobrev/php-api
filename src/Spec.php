@@ -2,6 +2,7 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
+    use Enobrev\API\FullSpec\Component\Schema;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares\HttpErrorException;
@@ -11,6 +12,7 @@
     use Enobrev\API\FullSpec\Component\ParamSchema;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Response;
+    use Enobrev\API\FullSpec\Component\Request;
     use Enobrev\API\HTTP;
     use Enobrev\API\Spec\ErrorResponseInterface;
     use Enobrev\API\Spec\ProcessErrorResponse;
@@ -192,11 +194,16 @@
          * @return Param[]
          */
         public function resolvePostParams(): array {
-            if ($this->oPostBodyReference && $this->oPostBodyReference instanceof Reference) {
-                // FIXME: This _may_ be a big fat hack
-                $oFullSpec  = FullSpec::getFromCache();
-                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
-                $aParams    = [];
+            if ($this->oPostBodyReference) {
+                if ($this->oPostBodyReference instanceof Reference) {
+                    // FIXME: This _may_ be a big fat hack
+                    $oFullSpec = FullSpec::getFromCache();
+                    $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                } else {
+                    $oComponent = $this->oPostBodyReference;
+                }
+
+                $aParams = [];
                 if ($oComponent instanceof ParamSchema) {
                     $oParam = $oComponent->getParam();
                     $aParams = $oParam->getItems();
@@ -215,6 +222,7 @@
             } else {
                 $aParams = $this->aPostParams;
             }
+
             return $aParams;
         }
 
@@ -241,18 +249,42 @@
             return Param\_Object::create()->items($this->aQueryParams)->getJsonSchema();
         }
 
+        public function hasAPostBodyOneOf(): bool {
+            if ($this->oPostBodyReference instanceof Request) {
+                $oPost = $this->oPostBodyReference->getPost();
+                return $oPost instanceof Schema && $oPost->isOneOf();
+            }
+
+            return false;
+        }
+
+        public function getPostBodySchemas() {
+            if ($this->oPostBodyReference instanceof Request) {
+                $oPost = $this->oPostBodyReference->getPost();
+
+                if ($oPost instanceof Schema && $oPost->isOneOf()) {
+                    return $oPost->getSchema();
+                }
+            }
+        }
+
         public function hasAPostBodyReference(): bool {
             return $this->oPostBodyReference instanceof Reference;
         }
 
         public function postParamsToJsonSchema():array {
             if ($this->hasAPostBodyReference()) {
-                // FIXME: This _may_ be a big fat hack
-                $oFullSpec  = FullSpec::getFromCache();
-                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                if ($this->oPostBodyReference instanceof Reference) {
+                    // FIXME: This _may_ be a big fat hack
+                    $oFullSpec = FullSpec::getFromCache();
+                    $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                } else {
+                    $oComponent = $this->oPostBodyReference;
+                }
+
                 if ($oComponent instanceof ParamSchema) {
                     return $oComponent->getParam()->getJsonSchema();
-                } else if ($oComponent instanceof \Enobrev\API\FullSpec\Component\Request) {
+                } else if ($oComponent instanceof Request) {
                     $oJSON = $oComponent->getJson();
                     if ($oJSON instanceof ParamSchema) {
                         return $oJSON->getParam()->getJsonSchema();

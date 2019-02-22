@@ -2,6 +2,7 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
+    use Enobrev\API\FullSpec\Component\Schema;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares;
@@ -103,16 +104,44 @@
             $aParameters = $oRequest->getParsedBody();
             $oParameters = (object) $aParameters;
 
-            $oValidator  = new Validator;
-            $oValidator->validate(
-                $oParameters,
-                $oSpec->postParamsToJsonSchema(),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS
-            );
+            if ($oSpec->hasAPostBodyOneOf()) { // The post body has a schema that allows one of many different combinations of post parameters - loop through and see if we match at least one
+                $aSchemas = $oSpec->getPostBodySchemas();
+                $bValid   = false;
+                $oError   = null;
 
-            if ($oValidator->isValid() === false) {
-                throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                /** @var Schema $oSchema */
+                foreach($aSchemas as $oSchema) {
+                    $oValidator  = new Validator;
+                    $oValidator->validate(
+                        $oParameters,
+                        $oSchema->getOpenAPI(),
+                        Constraint::CHECK_MODE_APPLY_DEFAULTS
+                    );
+
+                    if ($oValidator->isValid()) {
+                        $bValid = true;
+                    } else {
+                        $oError = ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                    }
+                }
+
+                if (!$bValid) {
+                    throw $oError;
+                }
+
+            } else {
+                $oValidator  = new Validator;
+                $oValidator->validate(
+                    $oParameters,
+                    $oSpec->postParamsToJsonSchema(),
+                    Constraint::CHECK_MODE_APPLY_DEFAULTS
+                );
+
+                if ($oValidator->isValid() === false) {
+                    throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                }
             }
+
 
             $oRequest = $oRequest->withParsedBody((array) $oParameters);
 

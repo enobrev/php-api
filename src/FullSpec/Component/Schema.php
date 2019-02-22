@@ -48,6 +48,14 @@
             return $this->sName;
         }
 
+        public function getSchema() {
+            return $this->aSchema;
+        }
+
+        public function isOneOf(): string {
+            return $this->sType === self::TYPE_ONEOF;
+        }
+
         public function schema($mSchema):self {
             $this->aSchema = $mSchema;
             return $this;
