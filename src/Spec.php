@@ -75,6 +75,9 @@
         /** @var OpenApiInterface */
         private $oPostBodyReference;
 
+        /** @var callable */
+        private $oPostBodySchemaSelector;
+
         /**
          * @var array
          * @deprecated
@@ -398,6 +401,21 @@
             $oClone = clone $this;
             $oClone->oPostBodyReference = $oReference;
             return $oClone;
+        }
+
+        public function postBodySchemaSelector(callable $fSelector) {
+            $oClone = clone $this;
+            $oClone->oPostBodySchemaSelector = $fSelector;
+            return $oClone;
+        }
+
+        public function hasPostBodySchemaSelector() {
+            return is_callable($this->oPostBodySchemaSelector);
+        }
+
+        public function getSchemaFromSelector($oProperties) {
+            $fSelector =  $this->oPostBodySchemaSelector;
+            return $fSelector($this->getPostBodySchemas(), $oProperties);
         }
 
         public function postParams(array $aParams):self {

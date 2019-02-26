@@ -84,7 +84,6 @@
             return $this;
         }
 
-
         public function getOpenAPI(): array {
             $oResponse = new Dot();
 

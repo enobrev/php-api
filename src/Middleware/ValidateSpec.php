@@ -104,31 +104,48 @@
             $aParameters = $oRequest->getParsedBody();
             $oParameters = (object) $aParameters;
 
-            if ($oSpec->hasAPostBodyOneOf()) { // The post body has a schema that allows one of many different combinations of post parameters - loop through and see if we match at least one
-                $aSchemas = $oSpec->getPostBodySchemas();
-                $bValid   = false;
-                $oError   = null;
-
-                /** @var Schema $oSchema */
-                foreach($aSchemas as $oSchema) {
+            if ($oSpec->hasAPostBodyOneOf()) {
+                if ($oSpec->hasPostBodySchemaSelector()) {
+                    // FIXME: This is such a hackish workaround it's a bit embarassing.  The issue is that while using a OneOf schema for our post body
+                    //  is great for documentation, it's crap for validation.  Our validation lib has no means of intelligently picking which "oneOf" schema
+                    //  to use.  So this is basically an injected callback that does it for us.  I don't recommend using this method elsewhere without
+                    //  significant contemplation, foresight, and proper fiber in your diet
                     $oValidator  = new Validator;
                     $oValidator->validate(
                         $oParameters,
-                        $oSchema->getOpenAPI(),
+                        $oSpec->getSchemaFromSelector($oParameters),
                         Constraint::CHECK_MODE_APPLY_DEFAULTS
                     );
 
-                    if ($oValidator->isValid()) {
-                        $bValid = true;
-                    } else {
-                        $oError = ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                    if ($oValidator->isValid() === false) {
+                        throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                    }
+                } else {
+                    // FIXME: The post body has a schema that allows one of many different combinations of post parameters - loop through and see if we match at least one
+                    $aSchemas = $oSpec->getPostBodySchemas();
+                    $bValid   = false;
+                    $oError   = null;
+
+                    /** @var Schema $oSchema */
+                    foreach($aSchemas as $oSchema) {
+                        $oValidator  = new Validator;
+                        $oValidator->validate(
+                            $oParameters,
+                            $oSchema->getOpenAPI(),
+                            Constraint::CHECK_MODE_APPLY_DEFAULTS
+                        );
+
+                        if ($oValidator->isValid()) {
+                            $bValid = true;
+                        } else {
+                            $oError = ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                        }
+                    }
+
+                    if (!$bValid) {
+                        throw $oError;
                     }
                 }
-
-                if (!$bValid) {
-                    throw $oError;
-                }
-
             } else {
                 $oValidator  = new Validator;
                 $oValidator->validate(
