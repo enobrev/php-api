@@ -35,7 +35,7 @@
         "adbario/php-dot-notation": "^2.2",
         "enobrev/php-orm": "dev-master",
         "enobrev/php-tools": "dev-master",
-        "justinrainbow/json-schema": "dev-master",
+        "justinrainbow/json-schema": "^5.2",
         "middlewares/error-handler": "^1.2",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
