@@ -4,12 +4,14 @@
 ../../vendor/bin/sql_to_json.php -h 192.168.1.2 -u dev -p -n dev_api_mock
 
 # generate mysql.sql
-mysqldump -h 192.168.1.2 -u dev -p --no-data --databases dev_api_mock > mysql.sql
+mysqldump -h 192.168.1.2 -u dev -p --no-data --column-statistics=0 --databases dev_api_mock > mysql.sql
 
 # download script for converting mysql database to sqlite
 if [ ! -f ./mysql2sqlite.sh ]; then
     wget https://gist.githubusercontent.com/esperlu/943776/raw/be469f0a0ab8962350f3c5ebe8459218b915f817/mysql2sqlite.sh
     chmod +x mysql2sqlite.sh
+    sed -i 's/mysqldump/mysqldump --column-statistics=0/g' mysql2sqlite.sh
+    sed -i 's/--compatible=ansi//g' mysql2sqlite.sh
 fi
 
 # generate sqlite.sql
