@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4b4971f480e3fcf4a322a500f6bab1e7",
+    "content-hash": "d2b72155976986f06e1aff6e2cc01d95",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -61,12 +61,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "f621f3f9aebe643380106e9a0f34b4e3741555b7"
+                "reference": "d92ffddb2516135db8c9063274a68af10b128ed8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/f621f3f9aebe643380106e9a0f34b4e3741555b7",
-                "reference": "f621f3f9aebe643380106e9a0f34b4e3741555b7",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/d92ffddb2516135db8c9063274a68af10b128ed8",
+                "reference": "d92ffddb2516135db8c9063274a68af10b128ed8",
                 "shasum": ""
             },
             "require": {
@@ -74,7 +74,7 @@
                 "enobrev/php-tools": "dev-master",
                 "moneyphp/money": "^3.1",
                 "nategood/commando": "^0.3.0",
-                "php": ">=7.0.09",
+                "php": ">=7.2",
                 "twig/twig": "^2.4"
             },
             "require-dev": {
@@ -96,11 +96,6 @@
                     "Enobrev\\ORM\\Mock\\": "tests/Mock/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "phpunit"
-                ]
-            },
             "license": [
                 "MIT"
             ],
@@ -115,7 +110,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-02-28T11:38:46+00:00"
+            "time": "2019-03-20T01:57:52+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -123,19 +118,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "8daa9453047bfa6e392580afa7cbd12c402c2a95"
+                "reference": "7033fd68d1651e558139968e632f070113650fd3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/8daa9453047bfa6e392580afa7cbd12c402c2a95",
-                "reference": "8daa9453047bfa6e392580afa7cbd12c402c2a95",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/7033fd68d1651e558139968e632f070113650fd3",
+                "reference": "7033fd68d1651e558139968e632f070113650fd3",
                 "shasum": ""
             },
             "require": {
                 "adbario/php-dot-notation": "^2.2",
                 "ext-json": "*",
                 "monolog/monolog": "^1.21",
-                "php": ">=7.1.0",
+                "php": ">=7.2",
                 "zendframework/zend-diactoros": "1.8.6"
             },
             "require-dev": {
@@ -170,7 +165,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2019-02-28T11:27:31+00:00"
+            "time": "2019-03-20T01:56:53+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -3597,10 +3592,10 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.1.0"
+        "php": ">=7.2"
     },
     "platform-dev": [],
     "platform-overrides": {
-        "php": "7.1"
+        "php": "7.2"
     }
 }

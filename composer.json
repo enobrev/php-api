@@ -12,7 +12,7 @@
     ],
     "config": {
         "platform": {
-            "php": "7.1"
+            "php": "7.2"
         },
         "sort-packages": true
     },
@@ -31,7 +31,7 @@
         }
     ],
     "require": {
-        "php": ">=7.1.0",
+        "php": ">=7.2",
         "adbario/php-dot-notation": "^2.2",
         "enobrev/php-orm": "dev-master",
         "enobrev/php-tools": "dev-master",
