@@ -148,11 +148,12 @@
             //dbg($sEndpoint);
             $bMatched = preg_match_all('/{[^}]+}/', $sEndpoint, $aMatches);
             if ($bMatched && count($aMatches) > 0) {
-                $aTemplates = $aMatches[0];
                 foreach ($aTemplates as $sTemplate) {
-                    $mTemplateValue = self::getTemplateValue($sTemplate);
-                    if ($mTemplateValue !== self::NO_VALUE) {
-                        $sEndpoint = str_replace($sTemplate, $mTemplateValue, $sEndpoint);
+                    if ($sTemplate !== null) {
+                        $mTemplateValue = $this->getTemplateValue($sTemplate);
+                        if ($mTemplateValue !== self::NO_VALUE) {
+                            $sEndpoint = str_replace($sTemplate, $mTemplateValue, $sEndpoint);
+                        }
                     }
                 }
             }
@@ -167,7 +168,11 @@
          * @throws Exception\InvalidSegmentVariable
          * @throws Exception\NoTemplateValues
          */
-        private function getTemplateValue(string $sTemplate) {
+        private function getTemplateValue($sTemplate) {
+            if (!is_string($sTemplate)) {
+                return $sTemplate;
+            }
+
             if (strpos($sTemplate, '{') === 0) {
                 $aValues = [];
                 $sPrefix = null;
