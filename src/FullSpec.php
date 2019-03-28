@@ -205,7 +205,7 @@
          * @throws Exception\Response
          * @throws ReflectionException
          */
-        public static function getFromCache(): self {
+        public static function getFromCache(): ?self {
             if (!file_exists(self::$sPathToSpec)) {
                 self::generateAndCache();
             }
@@ -213,7 +213,10 @@
             $sFullSpec = file_get_contents(self::$sPathToSpec);
 
             try {
-                return unserialize($sFullSpec);
+                $oReturn = unserialize($sFullSpec);
+                if (!$oReturn) {
+                    return null;
+                }
             } catch (Exception $e) {
                 Log::e('FullSpec.getFromCache.Invalid');
                 return self::generateAndCache();
