@@ -148,7 +148,7 @@
             //dbg($sEndpoint);
             $bMatched = preg_match_all('/{[^}]+}/', $sEndpoint, $aMatches);
             if ($bMatched && count($aMatches) > 0) {
-                foreach ($aTemplates as $sTemplate) {
+                foreach ($aMatches as $sTemplate) {
                     if ($sTemplate !== null) {
                         $mTemplateValue = $this->getTemplateValue($sTemplate);
                         if ($mTemplateValue !== self::NO_VALUE) {
