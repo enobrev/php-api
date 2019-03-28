@@ -215,7 +215,7 @@
             try {
                 $oReturn = unserialize($sFullSpec);
                 if (!$oReturn) {
-                    return null;
+                    return;
                 }
             } catch (Exception $e) {
                 Log::e('FullSpec.getFromCache.Invalid');
