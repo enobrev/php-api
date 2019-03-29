@@ -265,7 +265,10 @@
                                     // Single-Record response (like /me)
                                     $aValues[] = $this->oData->get("$sTable.$sField");
                                 } else {
-                                    throw new Exception\InvalidSegmentVariable('Invalid Segment Variable ' . $sField . ' in ' . $sTemplate);
+                                    Log::d('MultiEndpointPost.getTemplateValue.SegmentNotFound', [
+                                        'field' => $sField,
+                                        'template' => $sTemplate
+                                    ]);
                                 }
                             }
 
@@ -294,6 +297,8 @@
                     }
 
                     return implode(',', $aUniqueValues);
+                } else {
+                    throw new Exception\NoTemplateValues();
                 }
             }
 
