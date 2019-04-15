@@ -242,27 +242,27 @@
                     }
                 }
 
-                if ($sPrefix) {
-                    foreach($aValues as &$sValue) {
-                        $sValue = $sPrefix . $sValue;
-                    }
-                }
-
-                Log::d('MultiEndpointQuery.getTemplateValue', [
-                    'prefix' => $sPrefix,
-                    'values' => json_encode($aValues)
-                ]);
-
-                if (count($aValues)) {
+                if (is_array($aValues) && count($aValues)) {
                     $aUniqueValues = array_unique(array_filter($aValues));
                     if (count($aValues) > 0 && count($aUniqueValues) == 0) {
                         throw new Exception\NoTemplateValues();
                     }
 
+                    if ($sPrefix) {
+                        foreach ($aValues as &$sValue) {
+                            $sValue = $sPrefix . $sValue;
+                        }
+                    }
+
+                    Log::d('MultiEndpointQuery.getTemplateValue', [
+                        'prefix' => $sPrefix,
+                        'values' => json_encode($aValues)
+                    ]);
+
                     return implode(',', $aUniqueValues);
-                } else {
-                    throw new Exception\NoTemplateValues();
                 }
+
+                throw new Exception\NoTemplateValues();
             }
 
             return $sTemplate;
