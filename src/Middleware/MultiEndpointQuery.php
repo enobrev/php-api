@@ -3,8 +3,11 @@
 
     namespace Enobrev\API\Middleware;
 
+    use Countable;
+
     use Adbar\Dot;
     use JmesPath;
+
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -253,7 +256,7 @@
                     'values' => json_encode($aValues)
                 ]);
 
-                if (is_countable($aValues) && count($aValues)) {
+                if ((is_array($aValues) || $aValues instanceof Countable) && count($aValues)) { // is_countable is 7.3+
                     $aUniqueValues = array_unique(array_filter($aValues));
                     if (count($aValues) > 0 && count($aUniqueValues) == 0) {
                         throw new Exception\NoTemplateValues();
