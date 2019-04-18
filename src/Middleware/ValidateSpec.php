@@ -189,7 +189,11 @@
                 // only one error per property
                 if (isset($aError['property'])) {
                     if (isset($aErrorProperties[$aError['property']])) {
-                        if (in_array($aError['constraint']['name'], ['type', 'anyOf'])) {
+                        if (
+                            (
+                                is_array($aError['constraint']) && isset($aError['constraint']['name']) && in_array($aError['constraint']['name'], ['type', 'anyOf'])
+                            )
+                        ||  in_array($aError['constraint'], ['type', 'anyOf'])) {
                             // An error on a nullable field , like lets say a maxLength error on a nullable field
                             // Will add two additional errors - one because the value is not null, and one because
                             // The field isn't matching either of the "anyOf" (which includes the original and the null
