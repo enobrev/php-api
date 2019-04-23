@@ -114,6 +114,10 @@
             return str_replace('[/]', '/', str_replace('.', '_DOT_', $this->sPath));
         }
 
+        public function getSummary():string {
+            return $this->sSummary;
+        }
+
         public function getHttpMethod():string {
             return $this->sHttpMethod;
         }
