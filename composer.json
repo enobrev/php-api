@@ -31,6 +31,7 @@
         }
     ],
     "require": {
+        "ext-json": "*",
         "php": ">=7.2",
         "adbario/php-dot-notation": "^2.2",
         "enobrev/php-orm": "dev-master",
@@ -40,7 +41,7 @@
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
         "twig/twig": "^2.4",
-        "zendframework/zend-diactoros": "^1.8.6"
+        "zendframework/zend-diactoros": "^1.8.6",
     },
     "require-dev": {
         "nategood/commando": "^0.3.0",

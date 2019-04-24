@@ -32,6 +32,7 @@
             $sMime  = trim(array_shift($aParts));
 
             if (!preg_match('~[/+]json$~', $sMime)) {
+                Log::dt($oTimer);
                 Log::d('Enobrev.Middleware.ParseBodyJson.NotJson');
                 return $oHandler->handle($oRequest);
             }

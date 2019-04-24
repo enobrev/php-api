@@ -48,7 +48,7 @@
             if (!Log::hasPurpose()) {
                 Log::setPurpose($oSpec->getSummary());
             }
-            
+
             Log::justAddContext([
                 '#spec' => [
                     'method'        => $oSpec->getHttpMethod(),
