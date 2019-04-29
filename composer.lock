@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d2b72155976986f06e1aff6e2cc01d95",
+    "content-hash": "f88ac02674d94ede3882108c65669d3c",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -61,17 +61,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "a7ed878d0d84bbdb3747b5b5ea1c39d4085472ee"
+                "reference": "34a035d26718bd24a328e748c6c0d1e5a8d7b0ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/a7ed878d0d84bbdb3747b5b5ea1c39d4085472ee",
-                "reference": "a7ed878d0d84bbdb3747b5b5ea1c39d4085472ee",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/34a035d26718bd24a328e748c6c0d1e5a8d7b0ed",
+                "reference": "34a035d26718bd24a328e748c6c0d1e5a8d7b0ed",
                 "shasum": ""
             },
             "require": {
                 "adbario/php-dot-notation": "^2.2",
                 "enobrev/php-tools": "dev-master",
+                "ext-pdo": "*",
                 "moneyphp/money": "^3.1",
                 "nategood/commando": "^0.3.0",
                 "php": ">=7.2",
@@ -110,7 +111,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-04-23T21:23:17+00:00"
+            "time": "2019-04-29T17:52:17+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -3592,6 +3593,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
+        "ext-json": "*",
         "php": ">=7.2"
     },
     "platform-dev": [],
