@@ -51,6 +51,12 @@
 
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
+         * @throws \Enobrev\API\Exception
+         * @throws \Enobrev\ORM\DbDuplicateException
+         * @throws \Enobrev\ORM\DbException
+         * @throws \Enobrev\ORM\TablesException
+         * @throws \Enobrev\ORM\TablesInvalidReferenceException
+         * @throws \Enobrev\ORM\TablesInvalidTableException
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -71,6 +77,12 @@
          * @param array|null $aQueryParams  Params from Request Query
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
+         * @throws \Enobrev\API\Exception
+         * @throws \Enobrev\ORM\DbDuplicateException
+         * @throws \Enobrev\ORM\DbException
+         * @throws \Enobrev\ORM\TablesException
+         * @throws \Enobrev\ORM\TablesInvalidReferenceException
+         * @throws \Enobrev\ORM\TablesInvalidTableException
          * @return Dot
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {

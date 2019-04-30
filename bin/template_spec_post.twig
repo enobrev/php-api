@@ -50,6 +50,9 @@
 
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
+         * @throws \Enobrev\ORM\DbDuplicateException
+         * @throws \Enobrev\ORM\DbException
+         * @throws \Enobrev\ORM\TableException
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -70,6 +73,9 @@
          * @param array|null $aQueryParams  Params from Request Query
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
+         * @throws \Enobrev\ORM\DbDuplicateException
+         * @throws \Enobrev\ORM\DbException
+         * @throws \Enobrev\ORM\TableException
          * @return Dot
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {

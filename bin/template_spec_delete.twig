@@ -45,6 +45,9 @@
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
          * @return ResponseInterface
+         * @throws \Enobrev\ORM\DbDuplicateException
+         * @throws \Enobrev\ORM\DbException
+         * @throws \Enobrev\ORM\TableException
          * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
