@@ -51,6 +51,7 @@
 
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
+         * @throws \Enobrev\API\Exception
          * @throws \Enobrev\ORM\DbDuplicateException
          * @throws \Enobrev\ORM\DbException
          * @throws \Enobrev\ORM\TablesException
@@ -76,6 +77,7 @@
          * @param array|null $aQueryParams  Params from Request Query
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
+         * @throws \Enobrev\API\Exception
          * @throws \Enobrev\ORM\DbDuplicateException
          * @throws \Enobrev\ORM\DbException
          * @throws \Enobrev\ORM\TablesException
