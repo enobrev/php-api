@@ -5,3 +5,4 @@ vendor/
 /tests/Mock/DataMap.json
 /tests/Mock/Table/
 mysql2sqlite.sh
+.phpunit.result.cache
