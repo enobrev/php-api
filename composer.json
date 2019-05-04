@@ -31,8 +31,8 @@
         }
     ],
     "require": {
-        "ext-json": "*",
         "php": ">=7.2",
+        "ext-json": "*",
         "adbario/php-dot-notation": "^2.2",
         "enobrev/php-orm": "dev-master",
         "enobrev/php-tools": "dev-master",
@@ -40,12 +40,12 @@
         "middlewares/error-handler": "^1.2",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
-        "twig/twig": "^2.4",
+        "twig/twig": "^2.9",
         "zendframework/zend-diactoros": "^1.8.6"
     },
     "require-dev": {
         "nategood/commando": "^0.3.0",
-        "phpunit/phpunit": "^7.1",
+        "phpunit/phpunit": "^8.1",
         "vimeo/psalm": "^3.0"
     },
     "autoload": {
