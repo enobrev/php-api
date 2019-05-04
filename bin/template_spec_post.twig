@@ -8,6 +8,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\DataMap;
+    use Enobrev\API\Exception;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
@@ -50,13 +51,16 @@
          * Either return a ResponseInterface (and stop processing other Middleware)
          *     or return a call to Handler::handle (and allow other Middleware to continue processing)
          * The ResponseBuilder data should match the Schema defined in spec();
-
-         * @param ServerRequestInterface $oRequest
+         *
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
+         * @return ResponseInterface
          * @throws DbDuplicateException
          * @throws DbException
          * @throws TableException
-         * @return ResponseInterface
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             return $oHandler->handle(
@@ -72,14 +76,17 @@
         }
 
         /**
-         * @param array|null $aPathParams   Params from Request Path
-         * @param array|null $aQueryParams  Params from Request Query
-         * @param array|null $aPostParams   Params from Request Body
-         * @param Dot $oResponse            Response Object
+         * @param array|null $aPathParams  Params from Request Path
+         * @param array|null $aQueryParams Params from Request Query
+         * @param array|null $aPostParams  Params from Request Body
+         * @param Dot        $oResponse    Response Object
+         *
+         * @return Dot
          * @throws DbDuplicateException
          * @throws DbException
          * @throws TableException
-         * @return Dot
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
