@@ -77,6 +77,8 @@
 
             // Created record and key was provided by client
             return $oHandler->handle($oRequest)->withStatus(HTTP\CREATED);
+{% else %}
+            return $oHandler->handle($oRequest);
 {% endif %}
         }
 
