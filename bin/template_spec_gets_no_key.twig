@@ -8,6 +8,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\DataMap;
+    use Enobrev\API\Exception;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
@@ -16,6 +17,11 @@
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
+    use Enobrev\ORM\DbDuplicateException;
+    use Enobrev\ORM\DbException;
+    use Enobrev\ORM\TablesException;
+    use Enobrev\ORM\TablesInvalidReferenceException;
+    use Enobrev\ORM\TablesInvalidTableException;
 
     use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
@@ -51,12 +57,12 @@
 
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
-         * @throws \Enobrev\API\Exception
-         * @throws \Enobrev\ORM\DbDuplicateException
-         * @throws \Enobrev\ORM\DbException
-         * @throws \Enobrev\ORM\TablesException
-         * @throws \Enobrev\ORM\TablesInvalidReferenceException
-         * @throws \Enobrev\ORM\TablesInvalidTableException
+         * @throws Exception
+         * @throws DbDuplicateException
+         * @throws DbException
+         * @throws TablesException
+         * @throws TablesInvalidReferenceException
+         * @throws TablesInvalidTableException
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -77,12 +83,12 @@
          * @param array|null $aQueryParams  Params from Request Query
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
-         * @throws \Enobrev\API\Exception
-         * @throws \Enobrev\ORM\DbDuplicateException
-         * @throws \Enobrev\ORM\DbException
-         * @throws \Enobrev\ORM\TablesException
-         * @throws \Enobrev\ORM\TablesInvalidReferenceException
-         * @throws \Enobrev\ORM\TablesInvalidTableException
+         * @throws Exception
+         * @throws DbDuplicateException
+         * @throws DbException
+         * @throws TablesException
+         * @throws TablesInvalidReferenceException
+         * @throws TablesInvalidTableException
          * @return Dot
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
