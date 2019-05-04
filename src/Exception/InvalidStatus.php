@@ -3,6 +3,6 @@
 
     use Enobrev\API\Exception;
 
-    class Response extends Exception   {
+    class InvalidStatus extends Exception {
 
     }

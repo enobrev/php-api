@@ -3,6 +3,6 @@
 
     use Enobrev\API\Exception;
 
-    class Base extends Exception   {
+    class InvalidScope extends Exception {
 
     }

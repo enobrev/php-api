@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+
     namespace Enobrev\Test;
 
     require __DIR__ . '/../vendor/autoload.php';

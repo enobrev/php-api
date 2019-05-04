@@ -111,13 +111,14 @@
          * @param int $iStatus
          *
          * @return array|mixed|string|null
-         * @throws Exception
+         * @throws Exception\InvalidDescription
+         * @throws Exception\InvalidStatus
          */
         public function getResponseDescription(int $iStatus) {
             $mResponse = $this->aResponses[$iStatus] ?? null;
 
             if (!$mResponse) {
-                throw new Exception('Invalid Status');
+                throw new Exception\InvalidStatus('Invalid Status');
             }
 
             if ($mResponse instanceof Response) {
@@ -140,7 +141,7 @@
                 return $aDescription;
             }
 
-            throw new Exception('Not Sure What the Response Description Is');
+            throw new Exception\InvalidDescription('Not Sure What the Response Description Is');
         }
 
         public function getResponse(int $iStatus) {
@@ -349,11 +350,11 @@
         /**
          * @param array $aScopes
          * @return Spec
-         * @throws Exception
+         * @throws InvalidScope
          */
         public function scopes(array $aScopes):self {
             if (!array_not_associative($aScopes)) {
-                throw new Exception('Please define Scopes as a non-Associative Array');
+                throw new InvalidScope('Please define Scopes as a non-Associative Array');
             }
 
             $oClone = clone $this;
