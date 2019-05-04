@@ -18,12 +18,12 @@
 
     class {{ table.name }} implements ComponentListInterface {
 {% if spec.show_post %}
-        const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
+        public const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
 {% endif %}
 {% if spec.show_post %}
-        const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
+        public const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
 {% endif %}
-        const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
+        public const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
 
         /**
          * @return ComponentListInterface[]

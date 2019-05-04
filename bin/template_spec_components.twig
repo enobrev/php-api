@@ -39,10 +39,18 @@
         public function components(): array {
             return [
 {% if spec.show_post %}
+{% if spec.non_post %}
                 ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }}, {{ spec.non_post|raw }})),
+{% else %}
+                ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }})),
+{% endif %}
 {% endif %}
 {% if spec.show_post_in_body %}
+{% if spec.non_post_in_body %}
                 ParamSchema::create(self::SCHEMA_POST_IN_BODY)->param(Spec::tableToParam(new {{ table.class }}, {{ spec.non_post_in_body|raw }})),
+{% else %}
+    ParamSchema::create(self::SCHEMA_POST_IN_BODY)->param(Spec::tableToParam(new {{ table.class }})),
+{% endif %}
 {% endif %}
 {% if spec.show_post %}
                 Request::create(self::REQUEST_POST)

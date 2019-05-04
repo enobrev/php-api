@@ -60,9 +60,9 @@
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 throw new _exceptions\{{ table.title }}NotFound;
-            } else {
-                $o{{ table.title }}->delete();
-                return $oResponse->withStatus(HTTP\OK);
             }
+
+            $o{{ table.title }}->delete();
+            return $oResponse->withStatus(HTTP\OK);
         }
     }

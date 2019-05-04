@@ -104,7 +104,7 @@
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
             $o{{ table.title }} = null;
-            if ({% for field in primary %}isset($aPostParams['{{ field.short }}']){% if not loop.last %} && {% endif %}{% endfor %}) {
+            if (isset({% for field in primary %}$aPostParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %})) {
                 $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPostParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             }
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
