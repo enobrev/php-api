@@ -4,6 +4,7 @@
     use Adbar\Dot;
 
     use Enobrev\API\DataMap;
+    use Enobrev\API\Exception;
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component\Reference;
@@ -24,7 +25,11 @@
 {% endif %}
         const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
 
-        /** @return ComponentListInterface[] */
+        /**
+         * @return ComponentListInterface[]
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
+         */
         public function components(): array {
             return [
 {% if spec.show_post %}

@@ -18,18 +18,18 @@
 
     class {{ table.name }} implements ComponentListInterface {
 {% if spec.show_post %}
-        const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
+        public const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
 {% endif %}
 {% if spec.show_post_in_body %}
-        const SCHEMA_POST_IN_BODY   = ParamSchema::PREFIX . '/generated-{{ table.name }}-post-body_key';
+        public const SCHEMA_POST_IN_BODY   = ParamSchema::PREFIX . '/generated-{{ table.name }}-post-body_key';
 {% endif %}
 {% if spec.show_post %}
-        const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
+        public const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
 {% endif %}
 {% if spec.show_post_in_body %}
-        const REQUEST_POST_BODY_KEY = Request::PREFIX     . '/generated-{{ table.name }}-body_key';
+        public const REQUEST_POST_BODY_KEY = Request::PREFIX     . '/generated-{{ table.name }}-body_key';
 {% endif %}
-        const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
+        public const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
 
         /**
          * @return ComponentListInterface[]
@@ -73,6 +73,14 @@
             ];
         }
 
+        /**
+         * @param Dot $oResponse
+         * @param {{ table.class }} $o{{ table.title }}
+         *
+         * @return Dot
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
+         */
         public static function add{{ table.title }}ToResponse(Dot $oResponse, {{ table.class }} $o{{ table.title }}): Dot {
 {% if primary|length > 1 %}
             $oResponse->set("{{ table.name }}.{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}", DataMap::convertTableToResponseArray($o{{ table.title }}));
@@ -82,6 +90,14 @@
             return $oResponse;
         }
 
+        /**
+         * @param Dot           $oResponse
+         * @param {{ table.class_plural }} $o{{ table.plural }}
+         *
+         * @return Dot
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
+         */
         public static function add{{ table.plural }}ToResponse(Dot $oResponse, {{ table.class_plural }} $o{{ table.plural }}): Dot {
             foreach($o{{ table.plural }} as $o{{ table.title }}) {
                 $oResponse = self::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
