@@ -8,11 +8,11 @@
     use Enobrev\API\Spec;
 
     class Schema implements ComponentInterface, OpenApiInterface {
-        const TYPE_ALLOF = 'allOf';
-        const TYPE_ANYOF = 'anyOf';
-        const TYPE_ONEOF = 'oneOf';
+        private const TYPE_ALLOF = 'allOf';
+        private const TYPE_ANYOF = 'anyOf';
+        private const TYPE_ONEOF = 'oneOf';
 
-        const PREFIX = 'schemas';
+        private const PREFIX = 'schemas';
 
         /** @var string */
         private $sName;
@@ -36,7 +36,7 @@
                 array_unshift($aName, self::PREFIX);
             } else if ($aName[0] !== self::PREFIX) {
                 array_unshift($aName, self::PREFIX);
-            };
+            }
 
             $this->sName = implode('/', $aName);
             $this->sTitle = $sName;

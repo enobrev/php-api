@@ -50,10 +50,6 @@
             return parent::getJsonSchema($bOpenSchema);
         }
 
-        public function getJsonSchemaForOpenAPI(): array {
-            return parent::getJsonSchemaForOpenAPI();
-        }
-
         /**
          * Heavily inspired by justinrainbow/json-schema, except tries not to coerce nulls into non-nulls
          * @param $mValue
@@ -61,7 +57,7 @@
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {
-                if (is_null($mValue) || $mValue == 'null' || $mValue === 0 || $mValue === false || $mValue === '') {
+                if ($mValue === null || $mValue === 'null' || $mValue === 0 || $mValue === false || $mValue === '') {
                     return null;
                 }
             }
@@ -71,17 +67,15 @@
                 $mValue = array_map('trim', $mValue);
             }
 
-            if (is_scalar($mValue) || is_null($mValue)) {
+            if (is_scalar($mValue) || $mValue === null) {
                 $mValue = [$mValue];
             }
 
-            if (is_array($mValue)) {
-                if (isset($this->aValidation['items'])) {
-                    $oItems = $this->aValidation['items'];
-                    if ($oItems instanceof Param) {
-                        foreach ($mValue as &$mItem) {
-                            $mItem = $oItems->coerce($mItem);
-                        }
+            if (is_array($mValue) && isset($this->aValidation['items'])) {
+                $oItems = $this->aValidation['items'];
+                if ($oItems instanceof Param) {
+                    foreach ($mValue as &$mItem) {
+                        $mItem = $oItems->coerce($mItem);
                     }
                 }
             }

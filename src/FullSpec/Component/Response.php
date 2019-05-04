@@ -7,7 +7,7 @@
     use Enobrev\API\OpenApiInterface;
 
     class Response implements ComponentInterface, OpenApiInterface {
-        const PREFIX = 'responses';
+        private const PREFIX = 'responses';
 
         /** @var string */
         private $sName;
@@ -31,7 +31,7 @@
                 array_unshift($aName, self::PREFIX);
             } else if ($aName[0] !== self::PREFIX) {
                 array_unshift($aName, self::PREFIX);
-            };
+            }
 
             $this->sName = implode('/', $aName);
         }
@@ -75,7 +75,7 @@
             }
 
             foreach($this->aSchemas as $mSubSchema) {
-                $oResponse->set("content.application/json.schema", $mSubSchema->getOpenAPI());
+                $oResponse->set('content.application/json.schema', $mSubSchema->getOpenAPI());
             }
 
             return $oResponse->all();

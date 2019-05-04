@@ -35,14 +35,6 @@
             return $this->validation(['maximum' => $iMaximum]);
         }
 
-        public function getJsonSchema($bOpenSchema = false): array {
-            return parent::getJsonSchema($bOpenSchema);
-        }
-
-        public function getJsonSchemaForOpenAPI(): array {
-            return parent::getJsonSchemaForOpenAPI();
-        }
-
         /**
          * Heavily inspired by justinrainbow/json-schema, except tries not to coerce nulls into non-nulls
          * @param $mValue
@@ -50,7 +42,7 @@
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {
-                if (is_null($mValue) || $mValue == 'null' || $mValue === false || $mValue === '') {
+                if ($mValue === null || $mValue === 'null' || $mValue === false || $mValue === '') {
                     return null;
                 }
             }

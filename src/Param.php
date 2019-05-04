@@ -2,16 +2,16 @@
     namespace Enobrev\API;
 
     abstract class Param implements JsonSchemaInterface {
-        const STRING     = 'string';
-        const NUMBER     = 'number';
-        const INTEGER    = 'integer';
-        const BOOLEAN    = 'boolean';
-        const ARRAY      = 'array';
-        const OBJECT     = 'object';
+        protected const STRING     = 'string';
+        protected const NUMBER     = 'number';
+        protected const INTEGER    = 'integer';
+        protected const BOOLEAN    = 'boolean';
+        protected const ARRAY      = 'array';
+        protected const OBJECT     = 'object';
 
-        const REQUIRED   = 1;
-        const DEPRECATED = 2;
-        const NULLABLE   = 4;
+        public const REQUIRED   = 1;
+        public const DEPRECATED = 2;
+        public const NULLABLE   = 4;
 
         /** @var array */
         protected $aValidation;
@@ -104,7 +104,7 @@
             if (isset($aSchema['properties'])) {
                 $aParams = [];
                 foreach($aSchema['properties'] as $sParam => $aParam) {
-                    $aParams[$sParam] = Param::createFromJsonSchema($aParam);
+                    $aParams[$sParam] = self::createFromJsonSchema($aParam);
                 }
                 $oParam = $oParam->items($aParams);
             }
@@ -137,7 +137,7 @@
 
             if (isset($aSchema['anyOf']) && is_array($aSchema['anyOf'])) {
                 foreach($aSchema['anyOf'] as $iIndex => $aAnySchema) {
-                    if (isset($aAnySchema['type']) && $aAnySchema['type'] == 'null') {
+                    if (isset($aAnySchema['type']) && $aAnySchema['type'] === 'null') {
                         unset($aSchema['anyOf'][$iIndex]);
                         break;
                     }

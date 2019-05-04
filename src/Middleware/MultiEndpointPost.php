@@ -43,7 +43,6 @@
          *
          * @return ResponseInterface
          * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidSegmentVariable
          * @throws \Exception
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -61,14 +60,14 @@
                     $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {
-                        $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
+                        $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
                     }
 
                     $oUri         = new Uri($sEndpoint);
                     $aQueryParams = [];
                     parse_str($oUri->getQuery(), $aQueryParams);
 
-                    $aPostParams  = isset($aPost[$sEndpoint]) ? self::fillPostTemplateFromData($aPost[$sEndpoint]) : [];
+                    $aPostParams  = isset($aPost[$sEndpoint]) ? $this->fillPostTemplateFromData($aPost[$sEndpoint]) : [];
 
                     $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\POST)
                                                                        ->withUri($oUri)
@@ -96,7 +95,7 @@
                 } catch (Exception\NoTemplateValues $e) {
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {
-                        $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
+                        $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
                     }
                     $oBuilder->set("_request.multipost.$sEscaped", 'Template Unresolved');
                 }
@@ -109,7 +108,7 @@
             return $oHandler->handle($oResponse);
         }
 
-        const NO_VALUE = '~~NO_VALUE~~';
+        private const NO_VALUE = '~~NO_VALUE~~';
 
         /**
          * Turns something like {city_id: {cities.id}} into {city_id: 1} using results of previously called API endpoints
@@ -118,14 +117,14 @@
          * @return array
          * @throws \Exception
          */
-        private function fillPostTemplateFromData(array $aPost) {
+        private function fillPostTemplateFromData(array $aPost): array {
             if (count($aPost)) {
                 foreach($aPost as $sParam => $mValue) {
                     if (is_array($mValue)) {
                         continue;
                     }
 
-                    $mTemplateValue = self::getTemplateValue($mValue);
+                    $mTemplateValue = $this->getTemplateValue($mValue);
                     if ($mTemplateValue !== self::NO_VALUE) {
                         $aPost[$sParam] = $mTemplateValue;
                     }
@@ -144,7 +143,7 @@
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function fillEndpointTemplateFromData(string $sEndpoint) {
+        private function fillEndpointTemplateFromData(string $sEndpoint): string {
             //dbg($sEndpoint);
             $bMatched = preg_match_all('/{[^}]+}/', $sEndpoint, $aMatches);
             if ($bMatched && count($aMatches) > 0) {
@@ -168,7 +167,7 @@
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function getTemplateValue($sTemplate) {
+        private function getTemplateValue($sTemplate): string {
             if (!is_string($sTemplate)) {
                 return $sTemplate;
             }
@@ -176,11 +175,10 @@
             if (strpos($sTemplate, '{') === 0) {
                 $aValues = [];
                 $sPrefix = null;
-                $sMatch  = trim($sTemplate, "{}");
+                $sMatch  = trim($sTemplate, '{}');
 
                 if (preg_match('/^([^-]+-)(.+)/', $sMatch, $aMatches)) {
-                    $sPrefix = $aMatches[1];
-                    $sMatch  = $aMatches[2];
+                    [$_, $sPrefix, $sMatch] = $aMatches;
                 }
 
                 if (strpos($sMatch, 'jmes:') === 0) {
@@ -219,14 +217,12 @@
                 } else {
                     $sPrefix = null;
                     if (preg_match('/^([^-]+-)(.+)/', $sMatch, $aMatches)) {
-                        $sPrefix = $aMatches[1];
-                        $sMatch  = $aMatches[2];
+                        [$_, $sPrefix, $sMatch] = $aMatches;
                     }
 
                     $aMatch = explode('.', $sMatch);
-                    if (count($aMatch) == 2) {
-                        $sTable = $aMatch[0];
-                        $sField = $aMatch[1];
+                    if (count($aMatch) === 2) {
+                        [$sTable, $sField] = $aMatch;
 
                         if ($this->oData->has($sTable)) {
                             $aValues = [];
@@ -283,6 +279,7 @@
                     foreach($aValues as &$sValue) {
                         $sValue = $sPrefix . $sValue;
                     }
+                    unset($sValue);
                 }
 
                 Log::d('MultiEndpointQuery.getTemplateValue', [
@@ -292,14 +289,14 @@
 
                 if (count($aValues)) {
                     $aUniqueValues = array_unique(array_filter($aValues));
-                    if (count($aValues) > 0 && count($aUniqueValues) == 0) {
+                    if (count($aValues) > 0 && count($aUniqueValues) === 0) {
                         throw new Exception\NoTemplateValues();
                     }
 
                     return implode(',', $aUniqueValues);
-                } else {
-                    throw new Exception\NoTemplateValues();
                 }
+
+                throw new Exception\NoTemplateValues();
             }
 
             return $sTemplate;

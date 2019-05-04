@@ -18,8 +18,8 @@
     class MetadataErrors implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
-        const STATUS_PASS = 'PASS';
-        const STATUS_FAIL = 'FAIL';
+        private const STATUS_PASS = 'PASS';
+        private const STATUS_FAIL = 'FAIL';
 
         private static function init(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oErrors = self::getAttribute($oRequest);
@@ -111,15 +111,15 @@
                 $oRequest = self::init($oRequest);
                 $oErrors  = self::getAttribute($oRequest);
 
-                if ($oErrors->get('validation.status') == self::STATUS_FAIL) {
+                if ($oErrors->get('validation.status') === self::STATUS_FAIL) {
                     $oBuilder->set('_errors', $oErrors->get('validation.errors'));
                 }
 
-                if ($oErrors->get('processing.status') == self::STATUS_FAIL) {
+                if ($oErrors->get('processing.status') === self::STATUS_FAIL) {
                     $oBuilder->set('_errors', $oErrors->get('processing.errors'));
                 }
 
-                if ($oErrors->get('server.status') == self::STATUS_FAIL) {
+                if ($oErrors->get('server.status') === self::STATUS_FAIL) {
                     $oBuilder->set('_errors', $oErrors->get('server.errors'));
                 }
 

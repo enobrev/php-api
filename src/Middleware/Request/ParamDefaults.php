@@ -54,8 +54,9 @@
             $aQueryParams = $oRequest->getQueryParams() ?? [];
             foreach ($oSpec->getQueryParams() as $sParam => $oParam) {
                 if (!isset($aQueryParams[$sParam]) && $oParam->hasDefault()) {
+                    /** @noinspection ProperNullCoalescingOperatorUsageInspection */
                     $aQueryParams[$sParam] = $oParam->getDefault() ?? null;
-                    $aCoerced['query'][] = $sParam;
+                    $aCoerced['query'][]   = $sParam;
                 }
             }
 
@@ -72,8 +73,9 @@
                         $aCoerced['post'][] = $sParam;
                     }
                 } else if (!isset($aPostParams[$sParam]) && $oParam->hasDefault()) {
+                    /** @noinspection ProperNullCoalescingOperatorUsageInspection */
                     $aPostParams[$sParam] = $oParam->getDefault() ?? null;
-                    $aCoerced['post'][] = $sParam;
+                    $aCoerced['post'][]   = $sParam;
                 }
             }
 
@@ -93,6 +95,13 @@
             return $oHandler->handle($oRequest);
         }
 
+        /**
+         * @param string        $sParam
+         * @param Param\_Object $oParam
+         * @param array         $aRequestParams
+         *
+         * @return array
+         */
         private function coerceObject(string $sParam, Param\_Object $oParam, array $aRequestParams) {
             $bCoerced = false;
             if ($oParam->hasItems()) {
@@ -105,6 +114,7 @@
                             $oCoerced->$sSubParam = $this->coerceObject($sSubParam, $oSubParam, []);
                             $bCoerced = true;
                         } else if ($oSubParam->hasDefault()) {
+                            /** @noinspection ProperNullCoalescingOperatorUsageInspection */
                             $oCoerced->$sSubParam = $oSubParam->getDefault() ?? null;
                             $bCoerced = true;
                         }

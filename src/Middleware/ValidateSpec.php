@@ -179,13 +179,12 @@
             $aErrorProperties = [];
 
             foreach ($oValidator->getErrors() as $aError) {
-                if (empty($aError['property']) && $aError['constraint']['name'] == 'additionalProp') {
+                if (empty($aError['property']) && $aError['constraint']['name'] === 'additionalProp') {
                     $aError['property'] = $aError['constraint']['params']['property'];
-                    $aError['value'] = $oParameters->get($aError['property']);
+                    $aError['value']    = $oParameters->get($aError['property']);
                 } else {
                     // convert from array property `param[index]` to `param.index`
-                    $sProperty = str_replace('[', '.', $aError['property']);
-                    $sProperty = str_replace(']', '', $sProperty);
+                    $sProperty       = str_replace(['[', ']'], ['.', ''], $aError['property']);
                     $aError['value'] = $oParameters->get($sProperty);
                 }
 

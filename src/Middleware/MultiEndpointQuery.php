@@ -46,7 +46,6 @@
          *
          * @return ResponseInterface
          * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidSegmentVariable
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointQuery');
@@ -64,7 +63,7 @@
                     $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {
-                        $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
+                        $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
                     }
 
                     $oUri         = new Uri($sEndpoint);
@@ -96,7 +95,7 @@
                 } catch (Exception\NoTemplateValues $e) {
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {
-                        $sEscaped = '(escaped): ' . str_replace(".", "+", $sEndpoint);
+                        $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
                     }
                     $oBuilder->set("_request.multiquery.$sEscaped", 'Template Unresolved');
                 }
@@ -109,7 +108,7 @@
             return $oHandler->handle($oResponse);
         }
 
-        const NO_VALUE = '~~NO_VALUE~~';
+        private const NO_VALUE = '~~NO_VALUE~~';
 
         /**
          * Turns something like /city_fonts/{cities.id} into /city_fonts/1,2,3 using results of previously called API endpoints
@@ -120,13 +119,13 @@
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function fillEndpointTemplateFromData(string $sEndpoint) {
+        private function fillEndpointTemplateFromData(string $sEndpoint): string {
             //dbg($sEndpoint);
             $bMatched = preg_match_all('/{[^}]+}/', $sEndpoint, $aMatches);
             if ($bMatched && count($aMatches) > 0) {
                 $aTemplates = $aMatches[0];
                 foreach ($aTemplates as $sTemplate) {
-                    $mTemplateValue = self::getTemplateValue($sTemplate);
+                    $mTemplateValue = $this->getTemplateValue($sTemplate);
                     if ($mTemplateValue !== self::NO_VALUE) {
                         $sEndpoint = str_replace($sTemplate, $mTemplateValue, $sEndpoint);
                     }
@@ -143,15 +142,14 @@
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function getTemplateValue(string $sTemplate) {
+        private function getTemplateValue(string $sTemplate): string {
             if (strpos($sTemplate, '{') === 0) {
                 $aValues = [];
                 $sPrefix = null;
-                $sMatch  = trim($sTemplate, "{}");
+                $sMatch  = trim($sTemplate, '{}');
 
                 if (preg_match('/^([^-]+-)(.+)/', $sMatch, $aMatches)) {
-                    $sPrefix = $aMatches[1];
-                    $sMatch  = $aMatches[2];
+                    [$_, $sPrefix, $sMatch] = $aMatches;
                 }
 
                 if (strpos($sMatch, 'jmes:') === 0) {
@@ -189,9 +187,8 @@
                     ]);
                 } else {
                     $aMatch = explode('.', $sMatch);
-                    if (count($aMatch) == 2) {
-                        $sTable = $aMatch[0];
-                        $sField = $aMatch[1];
+                    if (count($aMatch) === 2) {
+                        [$sTable, $sField] = $aMatch;
 
                         if ($this->oData->has($sTable)) {
                             $aValues = [];
@@ -248,6 +245,7 @@
                     foreach($aValues as &$sValue) {
                         $sValue = $sPrefix . $sValue;
                     }
+                    unset($sValue);
                 }
 
                 Log::d('MultiEndpointQuery.getTemplateValue', [
@@ -257,14 +255,14 @@
 
                 if ((is_array($aValues) || $aValues instanceof Countable) && count($aValues)) { // is_countable is 7.3+
                     $aUniqueValues = array_unique(array_filter($aValues));
-                    if (count($aValues) > 0 && count($aUniqueValues) == 0) {
+                    if (count($aValues) > 0 && count($aUniqueValues) === 0) {
                         throw new Exception\NoTemplateValues();
                     }
 
                     return implode(',', $aUniqueValues);
-                } else {
-                    throw new Exception\NoTemplateValues();
                 }
+
+                throw new Exception\NoTemplateValues();
             }
 
             return $sTemplate;

@@ -14,14 +14,6 @@
             return $this->validation(['default' => (bool) $bDefault]);
         }
 
-        public function getJsonSchema($bOpenSchema = false): array {
-            return parent::getJsonSchema($bOpenSchema);
-        }
-
-        public function getJsonSchemaForOpenAPI(): array {
-            return parent::getJsonSchemaForOpenAPI();
-        }
-
         /**
          * Heavily inspired by justinrainbow/json-schema, except tries not to coerce nulls into non-nulls
          * @param $mValue
@@ -29,7 +21,7 @@
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {
-                if (is_null($mValue) || $mValue == 'null' || $mValue === '') {
+                if ($mValue === null || $mValue === 'null' || $mValue === '') {
                     return null;
                 }
             }
@@ -38,7 +30,7 @@
                 return true;
             }
 
-            if (is_null($mValue) || $mValue === 0 || $mValue === 'false') {
+            if ($mValue === null || $mValue === 0 || $mValue === 'false') {
                 return false;
             }
 

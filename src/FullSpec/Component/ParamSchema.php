@@ -6,7 +6,7 @@
     use Enobrev\API\Param;
 
     class ParamSchema implements ComponentInterface, OpenApiInterface {
-        const PREFIX = 'schemas';
+        private const PREFIX = 'schemas';
 
         /** @var string */
         private $sName;
@@ -24,7 +24,7 @@
                 array_unshift($aName, self::PREFIX);
             } else if ($aName[0] !== self::PREFIX) {
                 array_unshift($aName, self::PREFIX);
-            };
+            }
 
             $this->sName = implode('/', $aName);
         }

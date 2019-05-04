@@ -52,7 +52,7 @@
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer            = Log::startTimer('Enobrev.Middleware.FastRoute');
             $oTimerDispatcher  = Log::startTimer('Enobrev.Middleware.FastRoute.Dispatcher');
-            $oRouter = FastRouteLib\simpleDispatcher(function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
+            $oRouter = FastRouteLib\simpleDispatcher(static function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
                 $aRoutes = AttributeFullSpecRoutes::getRoutes($oRequest);
                 foreach($aRoutes as $sPath => $aMethods) {
                     foreach($aMethods as $sMethod => $sClass) {
@@ -88,14 +88,13 @@
                     $oResponse = $oResponse->withStatus(HTTP\NO_CONTENT);
                     Log::dt($oTimer);
                     return $oResponse;
-                } else {
-                    Log::d('Enobrev.Middleware.FastRoute.MethodNotAllowed');
-                    throw new MethodNotAllowed('This HTTP Method is not Allowed for this endpoint');
                 }
+
+                Log::d('Enobrev.Middleware.FastRoute.MethodNotAllowed');
+                throw new MethodNotAllowed('This HTTP Method is not Allowed for this endpoint');
             }
 
-            $sClass      = $aRoute[1];
-            $aPathParams = $aRoute[2];
+            [$_, $sClass, $aPathParams] = $aRoute;
 
             $oRequest = self::setAttribute($oRequest, (object) [
                 'class'      => $sClass,

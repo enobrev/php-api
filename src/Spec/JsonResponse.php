@@ -7,9 +7,9 @@
     use Enobrev\API\Spec;
 
     class JsonResponse implements OpenApiInterface, OpenApiResponseSchemaInterface {
-        const TYPE_ALLOF = 'allOf';
-        const TYPE_ANYOF = 'anyOf';
-        const TYPE_ONEOF = 'oneOf';
+        private const TYPE_ALLOF = 'allOf';
+        private const TYPE_ANYOF = 'anyOf';
+        private const TYPE_ONEOF = 'oneOf';
 
         /** @var OpenApiInterface|OpenApiInterface[] */
         private $mSchema;
@@ -82,9 +82,13 @@
                 }
 
                 return $aReturn;
-            } else if ($this->mSchema instanceof OpenApiInterface) {
+            }
+
+            if ($this->mSchema instanceof OpenApiInterface) {
                 return $this->mSchema->getOpenAPI();
-            } else if (is_array($this->mSchema)) {
+            }
+
+            if (is_array($this->mSchema)) {
                 return Spec::toJsonSchema($this->mSchema);
             }
 

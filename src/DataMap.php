@@ -12,12 +12,12 @@
         /**
          * @var array
          */
-        private static $DATA = null;
+        private static $DATA;
 
         /**
          * @var string
          */
-        private static $sDataFile = null;
+        private static $sDataFile;
 
         /**
          * @return array|mixed
@@ -62,7 +62,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function hasClassPath($sPath) {
+        public static function hasClassPath($sPath): bool {
             $aMap = self::getMap('_CLASSES_');
             return isset($aMap[$sPath]);
         }
@@ -74,7 +74,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function getClassName($sPath) {
+        public static function getClassName($sPath): string {
             $aMap = self::getMap('_CLASSES_');
             return $aMap[$sPath] ?? null;
         }
@@ -86,7 +86,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function getClassPath($oClass) {
+        public static function getClassPath($oClass): ?string {
             $aMap     = self::getMap('_CLASSES_');
             $aFlipped = array_flip($aMap);
 
@@ -116,6 +116,7 @@
         public static function getIndexedResponseMaps(string $sPath, $oData, string $sKeyField = null): array {
             $aResponse = [];
             foreach($oData as $oDatum) {
+                /** @noinspection AdditionOperationOnArraysInspection */
                 $aResponse += self::getIndexedResponseMap($sPath, $oDatum, $sKeyField);
             }
 
@@ -169,7 +170,7 @@
          * @throws Exception\MissingDataMapDefinition
          */
         public static function applyPostParamsToTable(ORM\Table $oTable, array $aPostParams): ORM\Table {
-            $aMap   = DataMap::getResponseMap($oTable->getTitle(), $oTable);
+            $aMap   = self::getResponseMap($oTable->getTitle(), $oTable);
             $oTable->mapArrayToFields($aPostParams, $aMap);
             return $oTable;
         }
@@ -187,11 +188,11 @@
             $aResponseMap = [];
             foreach($aMap as $sPublicField => $sTableField) {
                 if ($aExcludedFields) {
-                    if (in_array($sTableField, $aExcludedFields) !== false) {
+                    if (in_array($sTableField, $aExcludedFields, true) !== false) {
                         continue;
                     }
 
-                    if (in_array($sPublicField, $aExcludedFields) !== false) {
+                    if (in_array($sPublicField, $aExcludedFields, true) !== false) {
                         continue;
                     }
                 }
@@ -204,7 +205,7 @@
 
                 switch(true) {
                     case $oTable->$sTableField instanceof ORM\Field\JSONText:
-                        $mValue = json_decode($oTable->$sTableField->getValue());
+                        $mValue = json_decode($oTable->$sTableField->getValue(), false);
                         break;
 
                     case $oTable->$sTableField instanceof ORM\Field\Date:
@@ -256,7 +257,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function getPublicName(ORM\Table $oDatum, string $sPrivateField) {
+        public static function getPublicName(ORM\Table $oDatum, string $sPrivateField): ?string {
             if ($oDatum->$sPrivateField instanceof ORM\Field) {
                 $aMap = array_flip(self::getMap($oDatum->getTitle()));
                 return $aMap[$sPrivateField] ?? null;

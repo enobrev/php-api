@@ -7,7 +7,7 @@
     use Enobrev\API\OpenApiInterface;
 
     class Request implements ComponentInterface, OpenApiInterface {
-        const PREFIX = 'requestBodies';
+        private const PREFIX = 'requestBodies';
 
         /** @var string */
         private $sName;
@@ -31,7 +31,7 @@
                 array_unshift($aName, self::PREFIX);
             } else if ($aName[0] !== self::PREFIX) {
                 array_unshift($aName, self::PREFIX);
-            };
+            }
 
             $this->sName = implode('/', $aName);
         }
@@ -82,11 +82,11 @@
             ]);
 
             if ($this->mPost) {
-                $oResponse->set("content.multipart/form-data.schema", $this->mPost->getOpenAPI());
+                $oResponse->set('content.multipart/form-data.schema', $this->mPost->getOpenAPI());
             }
 
             if ($this->mJson) {
-                $oResponse->set("content.application/json.schema", $this->mJson->getOpenAPI());
+                $oResponse->set('content.application/json.schema', $this->mJson->getOpenAPI());
             }
 
             return $oResponse->all();

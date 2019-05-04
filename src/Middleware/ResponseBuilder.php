@@ -18,7 +18,7 @@
     class ResponseBuilder implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
-        public static function get(ServerRequestInterface $oRequest): ?Dot {
+        public static function get(ServerRequestInterface $oRequest): Dot {
             return self::getAttribute($oRequest);
         }
 

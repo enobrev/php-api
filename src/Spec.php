@@ -20,7 +20,7 @@
     use ReflectionException;
 
     class Spec {
-        const SKIP_PRIMARY = 1024;
+        private const SKIP_PRIMARY = 1024;
 
         /** @var string */
         private $sSummary;
@@ -79,7 +79,7 @@
         /** @var array */
         private $aResponses = [];
 
-        public static function create() {
+        public static function create(): Spec {
             return new self();
         }
 
@@ -88,7 +88,7 @@
         }
 
         public function getPathForDocs():string {
-            return str_replace('[/]', '/', str_replace('.', '_DOT_', $this->sPath));
+            return str_replace(['.', '[/]'], ['_DOT_', '/'], $this->sPath);
         }
 
         public function getSummary():string {
@@ -122,9 +122,13 @@
 
             if ($mResponse instanceof Response) {
                 return $mResponse->getDescription();
-            } else if (is_string($mResponse)) {
+            }
+
+            if (is_string($mResponse)) {
                 return $mResponse;
-            } else if (is_array($mResponse)) {
+            }
+
+            if (is_array($mResponse)) {
                 $aDescription = [];
                 foreach($mResponse as $mSubResponse) {
                     if ($mSubResponse instanceof Response) {
@@ -156,7 +160,7 @@
                 return false;
             }
 
-            return count(array_intersect($aScopes, $this->aScopes)) == count($aScopes);
+            return count(array_intersect($aScopes, $this->aScopes)) === count($aScopes);
         }
 
         /**
@@ -281,7 +285,9 @@
 
                 if ($oComponent instanceof ParamSchema) {
                     return $oComponent->getParam()->getJsonSchema();
-                } else if ($oComponent instanceof Request) {
+                }
+
+                if ($oComponent instanceof Request) {
                     $oJSON = $oComponent->getJson();
                     if ($oJSON instanceof ParamSchema) {
                         return $oJSON->getParam()->getJsonSchema();
@@ -397,13 +403,13 @@
             return $oClone;
         }
 
-        public function postBodySchemaSelector(callable $fSelector) {
+        public function postBodySchemaSelector(callable $fSelector): Spec {
             $oClone = clone $this;
             $oClone->oPostBodySchemaSelector = $fSelector;
             return $oClone;
         }
 
-        public function hasPostBodySchemaSelector() {
+        public function hasPostBodySchemaSelector(): bool {
             return is_callable($this->oPostBodySchemaSelector);
         }
 
@@ -428,13 +434,14 @@
             return $oClone;
         }
 
-        public function responseFromException(HttpErrorException $oException) {
+        public function responseFromException(HttpErrorException $oException): Spec {
             $oResponse = ProcessErrorResponse::createFromException($oException);
             return $this->response($oResponse->getCode(), $oResponse);
         }
 
         public function tags(array $aTags):self {
             $oClone = clone $this;
+            /** @noinspection AdditionOperationOnArraysInspection */
             $oClone->aTags += $aTags;
             $oClone->aTags = array_unique($aTags);
             return $oClone;
@@ -488,7 +495,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []) {
+        public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
             $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
 
@@ -497,7 +504,7 @@
                     continue;
                 }
 
-                if (in_array($oField->sColumn, $aExclude)) {
+                if (in_array($oField->sColumn, $aExclude, true)) {
                     continue;
                 }
 
@@ -559,7 +566,7 @@
                 $oParam = $oParam->nullable();
             }
 
-            if (strpos(strtolower($oField->sColumn), 'password') !== false) {
+            if (stripos($oField->sColumn, 'password') !== false) {
                 $oParam = $oParam->format('password');
             }
 
@@ -657,7 +664,7 @@
             ];
 
             if (!$this->bPublic && count($this->aScopes)) {
-                $aMethod['security'] = [["OAuth2" => $this->aScopes]];
+                $aMethod['security'] = [['OAuth2' => $this->aScopes]];
             }
 
             if ($this->bDeprecated) {
@@ -690,11 +697,11 @@
                 }
 
                 if ($oParam instanceof Param\_Object) {
-                    $aParam = $oParam->OpenAPI($sParam, 'query');
+                    $aParam = $oParam->OpenAPI($sParam);
                     $aParam['schema'] = $oQueryJsonParams->get("properties.{$sParam}");
                     $aParameters[] = $aParam;
                 } else {
-                    $aParameters[] = $oParam->OpenAPI($sParam, 'query');
+                    $aParameters[] = $oParam->OpenAPI($sParam);
                 }
             }
 
@@ -744,7 +751,7 @@
 
                 if (count($aPost)) {
                     $aMethod['requestBody'] = [
-                        "content" => [
+                        'content' => [
                             'multipart/form-data' => [
                                 'schema' => [
                                     'type' => 'object',
@@ -790,18 +797,18 @@
                         ];
                     }
 
-                    if (count($aDescription) == 0) {
+                    if (count($aDescription) === 0) {
                         $sDescription = $iStatus . ' Response';
-                    } else if (count($aDescription) == 1) {
+                    } else if (count($aDescription) === 1) {
                         $sDescription = array_shift($aDescription);
                     } else {
                         $sDescription = implode(', ', array_unique($aDescription));
                     }
 
                     $aMethod['responses'][$iStatus] = [
-                        "description" => $sDescription,
-                        "content" => [
-                            "application/json" => [
+                        'description' => $sDescription,
+                        'content'     => [
+                            'application/json' => [
                                 'schema' => $aSchemas
                             ]
                         ]
@@ -815,9 +822,9 @@
                         }
 
                         $aMethod['responses'][$iStatus] = [
-                            "description" => $sDescription,
-                            "content" => [
-                                "application/json" => [
+                            'description' => $sDescription,
+                            'content'     => [
+                                'application/json' => [
                                     'schema' => $oResponse->getOpenAPI()
                                 ]
                             ]
@@ -838,7 +845,7 @@
 
             if (!$this->bSkipDefaultResponses) {
 
-                if (count($aParameters) && !isset($aMethod['responses'][HTTP\BAD_REQUEST])) {
+                if (!isset($aMethod['responses'][HTTP\BAD_REQUEST]) && count($aParameters)) {
                     $aMethod['responses'][HTTP\BAD_REQUEST] = Reference::create(FullSpec::RESPONSE_BAD_REQUEST)->getOpenAPI();
                 }
 
@@ -873,7 +880,7 @@
          * @return array
          * @throws ReflectionException
          */
-        public function toArray() {
+        public function toArray(): array {
             $aPathParams = [];
             foreach($this->resolvePostParams() as $sParam => $oParam) {
                 $aPathParams[$sParam] = $oParam->getJsonSchema();

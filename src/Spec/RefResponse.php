@@ -11,8 +11,7 @@
         private $sName;
 
         public static function create(string $sName):self {
-            $oResponse = new self($sName);
-            return $oResponse;
+            return new self($sName);
         }
 
         public function __construct(string $sName) {

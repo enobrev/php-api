@@ -109,7 +109,7 @@
          * @return self
          * @throws ReflectionException
          */
-        public static function getFromCache() {
+        public static function getFromCache(): ?self {
             if (!file_exists(self::$sPathToSpec)) {
                 self::generateAndCache();
             }
@@ -129,11 +129,11 @@
          * @return FullSpec
          * @throws ReflectionException
          */
-        public static function generateLiveForDevelopment() {
+        public static function generateLiveForDevelopment(): FullSpec {
             return self::generateAndCache();
         }
 
-        public function getRoutes() {
+        public function getRoutes(): array {
             ksort($this->aSpecs, SORT_NATURAL);
             return $this->aSpecs;
         }
@@ -141,7 +141,7 @@
         /**
          * @throws ReflectionException
          */
-        protected function generateData() {
+        protected function generateData(): void {
             $this->specsFromSpecInterfaces();
         }
 
@@ -172,7 +172,7 @@
          *
          * @return Dot
          */
-        public function getOpenAPI(array $aScopes = []) {
+        public function getOpenAPI(array $aScopes = []): Dot {
             $oData = new Dot([
                 'openapi'   => '3.0.1',
                 'info'      => [],
@@ -183,11 +183,11 @@
                     'responses' => [
                         self::_DEFAULT => Component\Response::create(self::RESPONSE_DEFAULT)
                             ->summary('OK')
-                            ->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
+                            ->json(Component\Reference::create(self::SCHEMA_DEFAULT))
                             ->getOpenAPI(),
                         self::_CREATED => Component\Response::create(self::RESPONSE_CREATED)
                             ->summary('Created')
-                            ->json(Component\Reference::create(FullSpec::SCHEMA_DEFAULT))
+                            ->json(Component\Reference::create(self::SCHEMA_DEFAULT))
                             ->description('New record was created.  If a new key was generated for the record, See Location header')
                             ->getOpenAPI(),
                         self::_BAD_REQUEST => Component\Response::create(self::RESPONSE_BAD_REQUEST)
@@ -300,9 +300,9 @@ DESCRIPTION
                         self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_MULTI_STATUS)
                             ->json(
                                 JsonResponse::create()->allOf([
-                                    Component\Reference::create(FullSpec::SCHEMA_DEFAULT),
-                                    [
-                                        '_request.multiquery' => Component\Reference::create(FullSpec::RESPONSE_DEFAULT)
+                                                                  Component\Reference::create(self::SCHEMA_DEFAULT),
+                                                                  [
+                                        '_request.multiquery' => Component\Reference::create(self::RESPONSE_DEFAULT)
 
                                     ]
                                 ])
@@ -332,10 +332,8 @@ DESCRIPTION
                     $oSpecInterface = new $sSpecInterface;
                     $oSpec          = $oSpecInterface->spec();
 
-                    if (count($aScopes)) {
-                        if (!$oSpec->hasAnyOfTheseScopes($aScopes)) {
-                            continue;
-                        }
+                    if (count($aScopes) && !$oSpec->hasAnyOfTheseScopes($aScopes)) {
+                        continue;
                     }
 
                     $oData->set("paths.{$oSpec->getPathForDocs()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
@@ -348,7 +346,7 @@ DESCRIPTION
         /**
          * @throws ReflectionException
          */
-        private function specsFromSpecInterfaces() {
+        private function specsFromSpecInterfaces(): void {
             foreach (self::$aVersions as $sVersion) {
                 $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
@@ -366,7 +364,7 @@ DESCRIPTION
                     }
 
                     // Sort files by filename for consistent sorting on differing platforms
-                    usort($aSortable, function($oFileA, $oFileB) {
+                    usort($aSortable, static function($oFileA, $oFileB) {
                         /**
                          * @var SplFileInfo $oFileA
                          * @var SplFileInfo $oFileB
@@ -376,8 +374,8 @@ DESCRIPTION
 
                     foreach($aSortable as $oFile) {
                         $sContents = file_get_contents($oFile->getPathname());
-                        if (preg_match('/namespace\s([^;]+)/', (string) $sContents, $aMatchesNamespace)) {
-                            if (preg_match_all('/class\s+([^\s]+)/', (string) $sContents, $aMatchesClass)) {
+                        if (preg_match('/namespace\s([^;]+)/', (string)$sContents, $aMatchesNamespace) &&
+                            preg_match_all('/class\s+(\S+)/', (string)$sContents, $aMatchesClass)) {
                                 foreach($aMatchesClass[1] as $sClass) {
                                     if (strpos($sClass, 'Exception')) {
                                         continue;
@@ -410,92 +408,91 @@ DESCRIPTION
                                     }
                                 }
                             }
-                        }
                     }
                 }
             }
         }
 
-        const DEFAULT_RESPONSE_SCHEMAS = [
-            "_default" => [
-                "type" => "object",
-                "properties" => [
-                    "_server" => [
-                        '$ref' => "#/components/schemas/_server"
+        private const DEFAULT_RESPONSE_SCHEMAS = [
+            '_default' => [
+                'type'       => 'object',
+                'properties' => [
+                    '_server'  => [
+                        '$ref' => '#/components/schemas/_server'
                     ],
-                    "_request" => [
-                        '$ref' => "#/components/schemas/_request"
+                    '_request' => [
+                        '$ref' => '#/components/schemas/_request'
                     ]
                 ]
             ],
-            "_server" => [
-                "type" => "object",
-                "additionalProperties"=> false,
-                "properties"=> [
-                    "timezone"      => ["type" => "string", "example" => 'CDT'],
-                    "timezone_gmt"  => ["type" => "string", "example" => '-05:00'],
-                    "date"          => ["type" => "string", "example" => '2018-08-31 16:57:21'],
-                    "date_w3c"      => ["type" => "string", "example" => '2018-08-31T16:57:21-05:00']
+            '_server'  => [
+                'type'                 => 'object',
+                'additionalProperties' => false,
+                'properties'           => [
+                    'timezone'     => ['type' => 'string', 'example' => 'CDT'],
+                    'timezone_gmt' => ['type' => 'string', 'example' => '-05:00'],
+                    'date'         => ['type' => 'string', 'example' => '2018-08-31 16:57:21'],
+                    'date_w3c'     => ['type' => 'string', 'example' => '2018-08-31T16:57:21-05:00']
                 ],
-                "description" => <<<DESCRIPTION
+                'description'          => <<<DESCRIPTION
 The `_server` object lists the current time on our backend.  This is useful when trying to use `sync` functionality, 
 as well as for converting timestamps returned by the server to the client's local time.  The times given are
 retrieved from the database which should ensure that they are consistent, regardless of clock-skew between
 multiple servers.
 DESCRIPTION
             ],
-            "_request" => [
-                "type" => "object",
-                "additionalProperties"=> false,
-                "properties" => [
-                    "method"        => [
-                        "type" => "string",
-                        "enum" => ["GET", "POST", "DELETE"]
+            '_request' => [
+                'type'                 => 'object',
+                'additionalProperties' => false,
+                'properties'           => [
+                    'method'     => [
+                        'type' => 'string',
+                        'enum' => ['GET', 'POST', 'DELETE']
                     ],
-                    "path"          => ["type" => "string"],
-                    "params"         => [
-                        "type" => "object",
-                        "properties" => [
-                            "path" => [
-                                "type" => "object",
-                                "description" => "Parameters that were found in the URI Path"
+                    'path'       => ['type' => 'string'],
+                    'params'     => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'path'  => [
+                                'type'        => 'object',
+                                'description' => 'Parameters that were found in the URI Path'
                             ],
-                            "query" => [
-                                "type" => "object",
-                                "description" => "Parameters that were found in the URI Search"
+                            'query' => [
+                                'type'        => 'object',
+                                'description' => 'Parameters that were found in the URI Search'
                             ],
-                            "post" => [
-                                "type" => "object",
-                                "description" => "Parameters that were found in the Request Body"
+                            'post'  => [
+                                'type'        => 'object',
+                                'description' => 'Parameters that were found in the Request Body'
                             ]
                         ]
                     ],
-                    "headers"   => [
-                        "type" => "string",
-                        "description" => "JSON Encoded String of request headers"
+                    'headers'    => [
+                        'type'        => 'string',
+                        'description' => 'JSON Encoded String of request headers'
                     ],
-                    "logs"      => [
-                        "type" => "object",
-                        "properties" => [
-                            "thread" => [
-                                "type" => "string",
-                                "description" => "Alphanumeric hash for looking up entire request thread in logs"
+                    'logs'       => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'thread'  => [
+                                'type'        => 'string',
+                                'description' => 'Alphanumeric hash for looking up entire request thread in logs'
                             ],
-                            "request" => [
-                                "type" => "string",
-                                "description" => "Alphanumeric hash for looking up specific API request in logs"
+                            'request' => [
+                                'type'        => 'string',
+                                'description' => 'Alphanumeric hash for looking up specific API request in logs'
                             ]
                         ]
                     ],
-                    "status" => ["type" => "integer", "default" => 200, "description" => "This will not always show up, but is most useful when trying to find out what happened in `multiquery` requests"],
-                    "multiquery" => [
-                        "type" => "object",
-                        "additionalProperties" => false,
-                        "properties" => [
-                            "_request" => ['$ref' => '#/components/schemas/_request'],
-                            "_server"  => ['$ref' => '#/components/schemas/_server']
+                    'status'     => ['type' => 'integer', 'default' => 200, 'description' => 'This will not always show up, but is most useful when trying to find out what happened in `multiquery` requests'],
+                    'multiquery' => [
+                        'type'                 => 'object',
+                        'additionalProperties' => false,
+                        'properties'           => [
+                            '_request' => ['$ref' => '#/components/schemas/_request'],
+                            '_server'  => ['$ref' => '#/components/schemas/_server']
                         ],
-                        "description" => <<<DESCRIPTION
+                        'description'          => <<<DESCRIPTION
 The `_request.multiquery` object holds a collection of all the `_request` and `_server` objects from every sub-request that was preformed
 helps with finding out why you might not have received the data you were expecting. 
 
@@ -503,7 +500,7 @@ This will only show up in cases of multiquery requests.
 DESCRIPTION
                     ]
                 ],
-                "description" => <<<DESCRIPTION
+                'description'          => <<<DESCRIPTION
 The `_request` object can help the client developer find out if maybe what was sent was misinterpreted by the server for some reason.
 DESCRIPTION
             ]

@@ -8,24 +8,24 @@
     use function Enobrev\array_not_associative;
 
     class Component {
-        const SCHEMA_DEFAULT = self::TYPE_SCHEMA . '/_default';
+        private const SCHEMA_DEFAULT = self::TYPE_SCHEMA . '/_default';
 
-        const MIME_JSON      = 'application/json';
-        const MIME_FORM      = 'multipart/form-data';
+        private const MIME_JSON      = 'application/json';
+        private const MIME_FORM      = 'multipart/form-data';
 
-        const TYPE_SCHEMA    = 'schemas';
-        const TYPE_RESPONSE  = 'responses';
-        const TYPE_PARAMETER = 'parameters';
-        const TYPE_EXAMPLE   = 'examples';
-        const TYPE_REQUEST   = 'requestBodies';
-        const TYPE_HEADER    = 'headers';
-        const TYPE_SECURITY  = 'securitySchemes';
-        const TYPE_LINK      = 'links';
-        const TYPE_CALLBACK  = 'callbacks';
+        private const TYPE_SCHEMA    = 'schemas';
+        private const TYPE_RESPONSE  = 'responses';
+        private const TYPE_PARAMETER = 'parameters';
+        private const TYPE_EXAMPLE   = 'examples';
+        private const TYPE_REQUEST   = 'requestBodies';
+        private const TYPE_HEADER    = 'headers';
+        private const TYPE_SECURITY  = 'securitySchemes';
+        private const TYPE_LINK      = 'links';
+        private const TYPE_CALLBACK  = 'callbacks';
 
-        const TYPE_REFERENCE = 'references'; // Special Type
+        private const TYPE_REFERENCE = 'references'; // Special Type
 
-        const TYPES = [
+        private const TYPES = [
             self::TYPE_SCHEMA,   self::TYPE_RESPONSE, self::TYPE_PARAMETER,
             self::TYPE_EXAMPLE,  self::TYPE_REQUEST,  self::TYPE_HEADER,
             self::TYPE_SECURITY, self::TYPE_LINK,     self::TYPE_CALLBACK,
@@ -50,7 +50,7 @@
         }
 
         private static function ensureNameHasType(string $sType, string $sName):string {
-            if ($sType == self::TYPE_REFERENCE) {
+            if ($sType === self::TYPE_REFERENCE) {
                 return $sName;
             }
 
@@ -64,11 +64,11 @@
             return implode('/', $aName);
         }
 
-        public function getName() {
+        public function getName(): string {
             return $this->sName;
         }
 
-        public function getDescription() {
+        public function getDescription(): string {
             return $this->sDescription;
         }
 
@@ -122,28 +122,26 @@
                     foreach($oConvert->all() as $sConvertedKey => $aConvertedValue) {
                         $aOutput[$sConvertedKey] =  self::arrayToOAObject($aConvertedValue);
                     }
-                } else {
-                    if ($aValue instanceof self
-                    ||  $aValue instanceof Param) {
-                        $aOutput[$sKey] = $aValue;
-                    } else if (is_array($aValue)) {
-                        if (isset($aValue['type'])) { // Likely a Param Array
-                            $aOutput[$sKey] = [
-                                'type'       => 'object',
-                                "additionalProperties" => false,
-                                'properties' => $aValue
-                            ];
-                        } else {
-                            $aOutput[$sKey] = self::arrayToOAObject($aValue);
-                        }
+                } else if ($aValue instanceof self
+                       ||  $aValue instanceof Param) {
+                    $aOutput[$sKey] = $aValue;
+                } else if (is_array($aValue)) {
+                    if (isset($aValue['type'])) { // Likely a Param Array
+                        $aOutput[$sKey] = [
+                            'type'                 => 'object',
+                            'additionalProperties' => false,
+                            'properties'           => $aValue
+                        ];
+                    } else {
+                        $aOutput[$sKey] = self::arrayToOAObject($aValue);
                     }
                 }
             }
 
             return  [
-                'type'       => 'object',
-                "additionalProperties" => false,
-                'properties' => $aOutput
+                'type'                 => 'object',
+                'additionalProperties' => false,
+                'properties'           => $aOutput
             ];
         }
 
@@ -185,10 +183,8 @@
                     ]);
 
                     foreach($this->mSchema as $sMimeType => $mSubSchema) {
-                        switch(true) {
-                            case $mSubSchema instanceof self:
-                                $oResponse->set("content.$sMimeType.schema", $mSubSchema->getOpenAPI());
-                                break;
+                        if ($mSubSchema instanceof self) {
+                            $oResponse->set("content.$sMimeType.schema", $mSubSchema->getOpenAPI());
                         }
                     }
 
@@ -198,7 +194,7 @@
                 case self::TYPE_RESPONSE:
                     if (!$this->mSchema) {
                         // If No schema is given, then simply apply the name and description to the default
-                        return self::response($this->sName, $this->sDescription, [Component::MIME_JSON => Component::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI();
+                        return self::response($this->sName, $this->sDescription, [self::MIME_JSON => self::ref(FullSpec::SCHEMA_DEFAULT)])->getOpenAPI();
                     }
                     
                     $oResponse = new Dot([
@@ -224,7 +220,7 @@
                                 $oResponse->set("content.$sMimeType.schema.allOf", $aSubSchemas);
                                 break;
 
-                            case is_array($mSubSchema) && count($mSubSchema) == 1:
+                            case is_array($mSubSchema) && count($mSubSchema) === 1:
                                 if (array_not_associative($mSubSchema) && $mSubSchema[0] instanceof self) {
                                     $oResponse->set("content.$sMimeType.schema", $mSubSchema[0]->getOpenAPI());
                                 } else {
