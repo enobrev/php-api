@@ -2,7 +2,6 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use Enobrev\API\FullSpec\Component\Schema;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares\HttpErrorException;
@@ -13,6 +12,7 @@
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\FullSpec\Component\Request;
+    use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
     use Enobrev\API\Spec\ErrorResponseInterface;
     use Enobrev\API\Spec\ProcessErrorResponse;
@@ -31,15 +31,7 @@
         /** @var string */
         private $sDescription;
 
-        /**
-         * @var boolean
-         * @deprecated
-         */
-        private $bRequestValidated = false;
-
-        /**
-         * @var boolean
-         */
+        /** @var boolean */
         private $bSkipDefaultResponses = false;
 
         /** @var boolean */
@@ -77,18 +69,6 @@
 
         /** @var callable */
         private $oPostBodySchemaSelector;
-
-        /**
-         * @var array
-         * @deprecated
-         */
-        private $aResponseSchema;
-
-        /**
-         * @var string
-         * @deprecated
-         */
-        private $sResponseReference;
 
         /** @var array */
         private $aResponseHeaders = [];
@@ -428,23 +408,6 @@
             return $oClone;
         }
 
-        public function responseHeader(string $sHeader, string $sValue):self {
-            $oClone = clone $this;
-            $oClone->aResponseHeaders[$sHeader] = $sValue;
-            return $oClone;
-        }
-
-        /**
-         * @param int $iStatus
-         * @return Spec
-         * @deprecated
-         */
-        public function withoutResponse(int $iStatus):self {
-            $oClone = clone $this;
-            unset($oClone->aResponses[$iStatus]);
-            return $oClone;
-        }
-
         public function response($iStatus, $mResponse = null):self {
             $oClone = clone $this;
             if (!isset($this->aResponses[$iStatus])) {
@@ -479,38 +442,8 @@
             return $oClone;
         }
 
-        public function inTable(Table $oTable):self {
-            return $this->queryParams(self::tableToParams($oTable));
-        }
-
-        /**
-         * @param array $aSchema
-         * @return Spec
-         * @deprecated
-         */
-        public function responseSchema(array $aSchema):self {
-            $oClone = clone $this;
-            $oClone->aResponseSchema = $aSchema;
-            return $oClone;
-        }
-
-        /**
-         * @param string $aReference
-         * @return Spec
-         * @deprecated
-         */
-        public function responseReference(string $aReference):self {
-            $oClone = clone $this;
-            $oClone->sResponseReference = $aReference;
-            return $oClone;
-        }
-
         public static function tableToJsonSchema(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
             return self::toJsonSchema(self::tableToParams($oTable, $iOptions, $aExclude));
-        }
-
-        public static function tableToRequestBodyJsonSchema(Table $oTable, array $aExclude = [], $bAdditionalProperties = true): array {
-            return self::toJsonSchema(self::tableToParams($oTable, 0, $aExclude), $bAdditionalProperties);
         }
 
         public static function tableToParam(Table $oTable, array $aExclude = [], int $iOptions = 0, $bAdditionalProperties = false): Param\_Object {
@@ -623,86 +556,6 @@
             }
 
             return $oParam;
-        }
-
-        /**
-         * @param Request $oRequest
-         * @param Response $oResponse
-         * @throws InvalidRequest
-         * @deprecated
-         */
-        public function validateRequest(Request $oRequest,  Response $oResponse) {
-            $this->bRequestValidated = true;
-
-            $this->validatePathParameters($oRequest, $oResponse);
-            $this->validateQueryParameters($oRequest, $oResponse);
-        }
-
-        /**
-         * @param Request $oRequest
-         * @param Response $oResponse
-         * @throws InvalidRequest
-         */
-        private function validatePathParameters(Request $oRequest, Response $oResponse) {
-            $aParameters = $oRequest->pathParams();
-
-            $this->validateParameters($this->aPathParams, $aParameters, $oResponse);
-        }
-
-        /**
-         * @param Request $oRequest
-         * @param Response $oResponse
-         * @throws InvalidRequest
-         * @deprecated
-         */
-        private function validateQueryParameters(Request $oRequest, Response $oResponse) {
-            $aParameters = $oRequest->queryParams();
-
-            $this->validateParameters($this->aQueryParams, $aParameters, $oResponse);
-        }
-
-        /**
-         * @param array $aParameters
-         * @param Response $oResponse
-         * @throws InvalidRequest
-         * @deprecated
-         */
-        private function validateParameters(array $aSpecParameters, array $aParameters, Response $oResponse) {
-            // Coerce CSV Params
-            foreach($aSpecParameters as $oParam) {
-                if ($oParam->is(Param::ARRAY)) {
-                    if (isset($aParameters[$oParam->sName])) {
-                        $aParameters[$oParam->sName] = explode(',', $aParameters[$oParam->sName]);
-                    }
-                }
-            }
-
-            $oParameters = (object) $aParameters;
-            $oValidator  = new Validator;
-            $oValidator->validate(
-                $oParameters,
-                self::toJsonSchema($aSpecParameters),
-                Constraint::CHECK_MODE_APPLY_DEFAULTS | Constraint::CHECK_MODE_ONLY_REQUIRED_DEFAULTS | Constraint::CHECK_MODE_COERCE_TYPES
-            );
-
-            if (!$oValidator->isValid()) {
-                $oDot = new Dot();
-                $oDot->set('parameters', $aParameters);
-
-                $aErrors = [];
-                foreach($oValidator->getErrors() as $aError) {
-                    $aError['value'] = $oDot->get($aError['property']);
-                    $aErrors[]       = $aError;
-                }
-
-                $oResponse->add('_request.validation.status', 'FAIL');
-                $oResponse->add('_request.validation.errors', $aErrors);
-
-                throw new InvalidRequest();
-            } else {
-                $oResponse->add('_request.validation.status', 'PASS');
-                //$oRequest->ValidatedParams = (array) $oParameters;
-            }
         }
 
         /**

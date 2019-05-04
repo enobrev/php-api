@@ -22,42 +22,30 @@
 
     class FullSpec {
 
-        const _ANY                          = '_any';
-        const _DEFAULT                      = '_default';
-        const _CREATED                      = 'Created';
-        const _BAD_REQUEST                  = 'BadRequest';
-        const _UNAUTHORIZED                 = 'Unauthorized';
-        const _FORBIDDEN                    = 'Forbidden';
-        const _UNPROCESSABLE_ENTITY         = 'UnprocessableEntiry';
-        const _SERVER_ERROR                 = 'ServerError';
-        const _MULTI_STATUS                 = 'MultiStatus';
+        public const _ANY                          = '_any';
+        public const _DEFAULT                      = '_default';
+        public const _CREATED                      = 'Created';
+        public const _BAD_REQUEST                  = 'BadRequest';
+        public const _UNAUTHORIZED                 = 'Unauthorized';
+        public const _FORBIDDEN                    = 'Forbidden';
+        public const _UNPROCESSABLE_ENTITY         = 'UnprocessableEntiry';
+        public const _SERVER_ERROR                 = 'ServerError';
+        public const _MULTI_STATUS                 = 'MultiStatus';
 
-        const SCHEMA_ANY                    = 'schemas/' . self::_ANY;
-        const SCHEMA_DEFAULT                = 'schemas/' . self::_DEFAULT;
+        public const SCHEMA_ANY                    = 'schemas/' . self::_ANY;
+        public const SCHEMA_DEFAULT                = 'schemas/' . self::_DEFAULT;
 
-        const RESPONSE_DEFAULT              = 'responses/' . self::_DEFAULT;
-        const RESPONSE_CREATED              = 'responses/' . self::_CREATED;
-        const RESPONSE_BAD_REQUEST          = 'responses/' . self::_BAD_REQUEST;
-        const RESPONSE_UNAUTHORIZED         = 'responses/' . self::_UNAUTHORIZED;
-        const RESPONSE_FORBIDDEN            = 'responses/' . self::_FORBIDDEN;
-        const RESPONSE_UNPROCESSABLE_ENTITY = 'responses/' . self::_UNPROCESSABLE_ENTITY;
-        const RESPONSE_SERVER_ERROR         = 'responses/' . self::_SERVER_ERROR;
-        const RESPONSE_MULTI_STATUS         = 'responses/' . self::_MULTI_STATUS;
+        public const RESPONSE_DEFAULT              = 'responses/' . self::_DEFAULT;
+        public const RESPONSE_CREATED              = 'responses/' . self::_CREATED;
+        public const RESPONSE_BAD_REQUEST          = 'responses/' . self::_BAD_REQUEST;
+        public const RESPONSE_UNAUTHORIZED         = 'responses/' . self::_UNAUTHORIZED;
+        public const RESPONSE_FORBIDDEN            = 'responses/' . self::_FORBIDDEN;
+        public const RESPONSE_UNPROCESSABLE_ENTITY = 'responses/' . self::_UNPROCESSABLE_ENTITY;
+        public const RESPONSE_SERVER_ERROR         = 'responses/' . self::_SERVER_ERROR;
+        public const RESPONSE_MULTI_STATUS         = 'responses/' . self::_MULTI_STATUS;
 
         /** @var string */
         private static $sPathToSpec;
-
-        /**
-         * @var string
-         * @deprecated  Only used in V1
-         */
-        private static $sAppNamespace;
-
-        /**
-         * @var string
-         * @deprecated Only used in V1
-         */
-        private static $sPathToSQLJson;
 
         /** @var string */
         private static $sPathToAPIClasses;
@@ -65,26 +53,8 @@
         /** @var array */
         private static $aVersions;
 
-        /**
-         * @var array
-         * @deprecated Only used in V1
-         */
-        private $aSchemas;
-
-        /**
-         * @var array
-         * @deprecated Only used in V1
-         */
-        private $aResponses;
-
         /** @var OpenApiInterface[] */
         private $aComponents;
-
-        /**
-         * @var Spec[]
-         * @deprecated Only used in V1
-         */
-        private $aPaths;
 
         /** @var Spec[] */
         private $aSpecs;
@@ -92,23 +62,15 @@
         public function __construct() {
             $this->aComponents      = [];
             $this->aSpecs           = [];
-            $this->aPaths           = [];
-            $this->aResponses       = [];
-            $this->aSchemas         = [];
         }
 
         /**
          * @param string $sPathToSpec
-         * @param string $sPathToSQLJson
-         * @param string $sAppNamespace
          * @param string $sPathToAPIClasses
          * @param array $aVersions
-         * @throws Exception
          */
-        public static function init(string $sPathToSpec, string $sPathToSQLJson, string $sAppNamespace, string $sPathToAPIClasses, array $aVersions): void {
+        public static function init(string $sPathToSpec, string $sPathToAPIClasses, array $aVersions): void {
             self::$sPathToSpec          = $sPathToSpec;
-            self::$sPathToSQLJson       = $sPathToSQLJson;
-            self::$sAppNamespace        = $sAppNamespace;
             self::$sPathToAPIClasses    = $sPathToAPIClasses;
             self::$aVersions            = $aVersions;
         }
@@ -129,63 +91,6 @@
                 'specs'      => $this->aSpecs,
                 'components' => $aComponents
             ];
-        }
-
-        /**
-         * @param $sSchema
-         * @param $aSchema
-         * @deprecated Only used in v1
-         */
-        public function schemas($sSchema, $aSchema) {
-            return;
-            $this->aSchemas[$sSchema] = $aSchema;
-        }
-
-        /**
-         * @param string $sName
-         * @param string $sDescription
-         * @param array $aContent
-         * @deprecated Only used in v1
-         */
-        public function responses(string $sName, string $sDescription, array $aContent) {
-            return;
-            $this->aResponses[$sName] = [
-                'description' => $sDescription,
-                'content'     => $aContent
-            ];
-        }
-
-        /**
-         * @param string $sResponse
-         * @deprecated Only used in v1
-         */
-        public function defaultSchemaResponse(string $sResponse) {
-            return;
-            $this->responses($sResponse, "A successful response object with the $sResponse data and the standard metadata", [
-                'application/json' => [
-                    'schema' => [
-                        'allOf' => [
-                            ['$ref' => "#/components/schemas/_default"],
-                            ['$ref' => "#/components/schemas/$sResponse"],
-                        ]
-                    ]
-                ]
-            ]);
-        }
-
-        /**
-         * @param Spec $oSpec
-         * @deprecated Only used in V1
-         */
-        public function paths(Spec $oSpec) {
-            return;
-            $sPath       = $oSpec->getPath();
-            $sHttpMethod = $oSpec->getHttpMethod();
-            if (!isset($this->aPaths[$sPath])) {
-                $this->aPaths[$sPath] = [];
-            }
-
-            $this->aPaths[$sPath][$sHttpMethod] = $oSpec;
         }
 
         /**
