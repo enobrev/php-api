@@ -42,7 +42,7 @@
                 ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }}{% if spec.non_post %}, {{ spec.non_post|raw }}{% endif %})),
 {% endif %}
 {% if spec.show_post_in_body %}
-                ParamSchema::create(self::SCHEMA_POST_IN_BODY)->param(Spec::tableToParam(new {{ table.class }}{% if spec.non_post_in_body %}, {{ spec.non_post_in_body|raw }}{% endif %} }})),
+                ParamSchema::create(self::SCHEMA_POST_IN_BODY)->param(Spec::tableToParam(new {{ table.class }}{% if spec.non_post_in_body %}, {{ spec.non_post_in_body|raw }}{% endif %})),
 {% endif %}
 {% if spec.show_post %}
                 Request::create(self::REQUEST_POST)
