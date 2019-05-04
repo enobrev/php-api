@@ -1,5 +1,8 @@
 #!/usr/bin/env php
 <?php
+
+    use Commando\Command;
+
     $sAutoloadFile = current(
         array_filter([
             __DIR__ . '/../../../autoload.php',
@@ -14,16 +17,17 @@
         die(1);
     }
 
+    /** @noinspection PhpIncludeInspection */
     require $sAutoloadFile;
 
-    $oOptions = new \Commando\Command();
+    $oOptions = new Command();
 
     $oOptions->option('j')
              ->require()
              ->expectsFile()
              ->aka('json')
              ->describedAs('The JSON file output from sql_to_json.php')
-             ->must(function($sFile) {
+             ->must(static function($sFile) {
                  return file_exists($sFile);
              });
 
@@ -35,12 +39,18 @@
     $sPathJsonSQL = $oOptions['json'];
     $sPath        = rtrim($oOptions['output'], '/') . '/';
 
-    $oLoader    = new Twig_Loader_Filesystem(dirname(__FILE__));
-    $oTwig      = new Twig_Environment($oLoader, array('debug' => true));
-    $oTemplate  = $oTwig->loadTemplate('template_data_map.twig');
+    $oLoader    = new Twig\Loader\FilesystemLoader(__DIR__);
+    $oTwig      = new Twig\Environment($oLoader, array('debug' => true));
 
-    if (!file_exists($sPath)) {
-        mkdir($sPath, 0777, true);
+    try {
+        $oTemplate  = $oTwig->load('template_data_map.twig');
+    } catch (Exception $e) {
+        echo $e->getMessage() . "\n";
+        exit(1);
+    }
+
+    if (!file_exists($sPath) && !mkdir($sPath, 0777, true) && !is_dir($sPath)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', $sPath));
     }
 
     $aDatabase  = json_decode(file_get_contents($sPathJsonSQL), true);

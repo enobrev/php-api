@@ -1,5 +1,8 @@
 #!/usr/bin/env php
 <?php
+
+    use Commando\Command;
+
     $sAutoloadFile = current(
         array_filter([
             __DIR__ . '/../../../autoload.php',
@@ -14,16 +17,17 @@
         die(1);
     }
 
+    /** @noinspection PhpIncludeInspection */
     require $sAutoloadFile;
 
-    $oOptions = new \Commando\Command();
+    $oOptions = new Command();
 
     $oOptions->option('j')
              ->require()
              ->expectsFile()
              ->aka('json')
              ->describedAs('The JSON file output from sql_to_json.php')
-             ->must(function($sFile) {
+             ->must(static function($sFile) {
                  return file_exists($sFile);
              });
 
@@ -59,42 +63,48 @@
     $sPathPrefix     = $oOptions['path_prefix'];
     $sAuthScopes     = $oOptions['auth_scopes'];
 
-    $oLoader    = new Twig_Loader_Filesystem(dirname(__FILE__));
-    $oTwig      = new Twig_Environment($oLoader, array('debug' => true));
+    $oLoader    = new Twig\Loader\FilesystemLoader(__DIR__);
+    $oTwig      = new Twig\Environment($oLoader, array('debug' => true));
 
-    if (!file_exists($sPathOutput)) {
-        mkdir($sPathOutput, 0777, true);
+    try {
+        $oTemplateGet               = $oTwig->load('template_spec_get.twig');
+        $oTemplateGets              = $oTwig->load('template_spec_gets.twig');
+        $oTemplateDelete            = $oTwig->load('template_spec_delete.twig');
+        $oTemplatePost              = $oTwig->load('template_spec_post.twig');
+        $oTemplateKeylessPost       = $oTwig->load('template_spec_post_body_key.twig');
+        $oTemplateComponents        = $oTwig->load('template_spec_components.twig');
+        $oTemplateExceptions        = $oTwig->load('template_spec_exceptions.twig');
+        $oTemplateGetsNoKey         = $oTwig->load('template_spec_gets_no_key.twig');
+        $oTemplatePostNoKey         = $oTwig->load('template_spec_post_no_key.twig');
+        $oTemplateComponentsNoKey   = $oTwig->load('template_spec_components_no_key.twig');
+    } catch (Exception $e) {
+        echo $e->getMessage() . "\n";
+        exit(1);
     }
 
-    $oTemplateGet               = $oTwig->loadTemplate('template_spec_get.twig');
-    $oTemplateGets              = $oTwig->loadTemplate('template_spec_gets.twig');
-    $oTemplateDelete            = $oTwig->loadTemplate('template_spec_delete.twig');
-    $oTemplatePost              = $oTwig->loadTemplate('template_spec_post.twig');
-    $oTemplateKeylessPost       = $oTwig->loadTemplate('template_spec_post_body_key.twig');
-    $oTemplateComponents        = $oTwig->loadTemplate('template_spec_components.twig');
-    $oTemplateExceptions        = $oTwig->loadTemplate('template_spec_exceptions.twig');
-    $oTemplateGetsNoKey         = $oTwig->loadTemplate('template_spec_gets_no_key.twig');
-    $oTemplatePostNoKey         = $oTwig->loadTemplate('template_spec_post_no_key.twig');
-    $oTemplateComponentsNoKey   = $oTwig->loadTemplate('template_spec_components_no_key.twig');
+    if (!file_exists($sPathOutput) && !mkdir($sPathOutput, 0777, true) && !is_dir($sPathOutput)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', $sPathOutput));
+    }
+
 
     $aDatabase  = json_decode(file_get_contents($sPathJsonSQL), true);
 
     $sComponentsPath = $sPathOutput . '_components/';
     $sExceptionsPath = $sPathOutput . '_exceptions/';
 
-    if (!file_exists($sComponentsPath)) {
-        mkdir($sComponentsPath, 0755, true);
+    if (!file_exists($sComponentsPath) && !mkdir($sComponentsPath, 0755, true) && !is_dir($sComponentsPath)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', $sComponentsPath));
     }
 
-    if (!file_exists($sExceptionsPath)) {
-        mkdir($sExceptionsPath, 0755, true);
+    if (!file_exists($sExceptionsPath) && !mkdir($sExceptionsPath, 0755, true) && !is_dir($sExceptionsPath)) {
+        throw new RuntimeException(sprintf('Directory "%s" was not created', $sExceptionsPath));
     }
 
     foreach($aDatabase['tables'] as $sTable => $aTable) {
         $sRenderedPath = $sPathOutput . $sTable . '/';
 
-        if (!file_exists($sRenderedPath)) {
-            mkdir($sRenderedPath, 0777, true);
+        if (!file_exists($sRenderedPath) && !mkdir($sRenderedPath, 0777, true) && !is_dir($sRenderedPath)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $sRenderedPath));
         }
 
         $aTable['spec'] = [
@@ -110,7 +120,7 @@
         $aNonPost = [];
         $aNonPostInBody = [];
         foreach($aTable['fields'] as &$aField) {
-            if ($aField['type'] == 'Field\\DateTime') {
+            if ($aField['type'] === 'Field\\DateTime') {
                 $aNonPost[]       = "'" . $aField['name'] . "'";
                 $aNonPostInBody[] = "'" . $aField['name'] . "'";
             }
@@ -145,6 +155,7 @@
                     break;
             }
         }
+        unset($aField);
 
         foreach($aTable['primary'] as &$aField) {
             switch($aField['php_type']) {
@@ -169,6 +180,7 @@
                     break;
             }
         }
+        unset($aField);
 
         $aTable['spec']['non_post']          = '[' . implode(', ', $aNonPost) . ']';
         $aTable['spec']['show_post']         = count($aTable['fields']) > count($aNonPost);
@@ -181,7 +193,7 @@
         echo 'Created ' . $sRenderedFile . "\n";
 
 
-        if (count($aTable['primary']) == 0) {
+        if (count($aTable['primary']) === 0) {
 
             /// ------------------------
 
