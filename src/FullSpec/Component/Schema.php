@@ -12,7 +12,7 @@
         private const TYPE_ANYOF = 'anyOf';
         private const TYPE_ONEOF = 'oneOf';
 
-        private const PREFIX = 'schemas';
+        public const PREFIX = 'schemas';
 
         /** @var string */
         private $sName;

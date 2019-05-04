@@ -7,7 +7,7 @@
     use Enobrev\API\OpenApiInterface;
 
     class Response implements ComponentInterface, OpenApiInterface {
-        private const PREFIX = 'responses';
+        public const PREFIX = 'responses';
 
         /** @var string */
         private $sName;

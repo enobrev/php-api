@@ -6,7 +6,7 @@
     use Enobrev\API\Param;
 
     class ParamSchema implements ComponentInterface, OpenApiInterface {
-        private const PREFIX = 'schemas';
+        public const PREFIX = 'schemas';
 
         /** @var string */
         private $sName;

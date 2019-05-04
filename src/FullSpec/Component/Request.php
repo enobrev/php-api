@@ -7,7 +7,7 @@
     use Enobrev\API\OpenApiInterface;
 
     class Request implements ComponentInterface, OpenApiInterface {
-        private const PREFIX = 'requestBodies';
+        public const PREFIX = 'requestBodies';
 
         /** @var string */
         private $sName;
