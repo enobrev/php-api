@@ -112,7 +112,7 @@
 
             foreach($o{{ table.plural }} as $o{{ table.title }}) {
 {% if primary|length > 1 %}
-                $oResponse->push("sorts.{{ table.name }}", "{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}");
+                $oResponse->push('sorts.{{ table.name }}', "{% for field in primary %}{{ '{' }}$o{{ table.title }}->{{ field.name }}->getValue(){{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}");
 {% else %}
                 $oResponse->push('sorts.{{ table.name }}', $o{{ table.title }}->{{ primary.0.name }}->getValue());
 {% endif %}

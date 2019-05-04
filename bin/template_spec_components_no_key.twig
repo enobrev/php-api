@@ -33,7 +33,11 @@
         public function components(): array {
             return [
 {% if spec.show_post %}
+{% if spec.non_post %}
                 ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }}, {{ spec.non_post|raw }})),
+{% else %}
+                ParamSchema::create(self::SCHEMA_POST)->param(Spec::tableToParam(new {{ table.class }})),
+{% endif %}
                 Request::create(self::REQUEST_POST)
                     ->description('`{{ table.name }}` Request')
                     ->post(Reference::create(self::SCHEMA_POST))
@@ -63,7 +67,7 @@
          * @throws Exception\MissingDataMapDefinition
          */
         public static function add{{ table.title }}ToResponse(Dot $oResponse, {{ table.class }} $o{{ table.title }}): Dot {
-            $oResponse->push("{{ table.name }}", DataMap::convertTableToResponseArray($o{{ table.title }}));
+            $oResponse->push('{{ table.name }}', DataMap::convertTableToResponseArray($o{{ table.title }}));
             return $oResponse;
         }
 
