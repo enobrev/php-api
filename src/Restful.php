@@ -300,7 +300,7 @@
 
                     $oTable = $this->_getPrimaryTableFromPath();
 
-                    // Prefill empty POST object with url params
+                    // Pre-fill empty POST object with url params
                     while (count($aPairs) > 0) {
                         $aPart      = array_shift($aPairs);
                         $sClassName = DataMap::getClassName($aPart[0]);

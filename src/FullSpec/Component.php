@@ -99,7 +99,7 @@
             return $oComponent;
         }
 
-        public static function ref(string $sName, Component):self {
+        public static function ref(string $sName):self {
             return new self(self::TYPE_REFERENCE, $sName);
         }
 

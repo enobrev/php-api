@@ -28,7 +28,7 @@
         const _BAD_REQUEST                  = 'BadRequest';
         const _UNAUTHORIZED                 = 'Unauthorized';
         const _FORBIDDEN                    = 'Forbidden';
-        const _UNPROCESSABLE_ENTITY         = 'UnprocessableEntiry';
+        const _UNPROCESSABLE_ENTITY         = 'UnprocessableEntity';
         const _SERVER_ERROR                 = 'ServerError';
         const _MULTI_STATUS                 = 'MultiStatus';
 
@@ -423,7 +423,7 @@ DESCRIPTION
              * @var string $sPath
              * @var Spec $oSpec
              */
-            ksort($this->aSpecs, SORT_NATURAL); // ensures named sub-paths come before {var} subpaths
+            ksort($this->aSpecs, SORT_NATURAL); // ensures named sub-paths come before {var} sub-paths
             foreach($this->aSpecs as $sPath => $aMethods) {
                 foreach($aMethods as $sHttpMethod => $sSpecInterface) {
                     /** @var SpecInterface $oSpecInterface */
