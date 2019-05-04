@@ -11,8 +11,6 @@
     use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     class MetadataServer implements MiddlewareInterface {
         const SYNC_DATE_FORMAT = 'Y-m-d\TH:i:sP'; // ISO8601 - http://us3.php.net/manual/en/class.datetime.php#111532
 

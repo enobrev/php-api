@@ -6,3 +6,4 @@ vendor/
 /tests/Mock/Table/
 mysql2sqlite.sh
 .phpunit.result.cache
+composer.lock

@@ -7,7 +7,6 @@
     use Enobrev\API\OpenApiResponseSchemaInterface;
     use Enobrev\API\Param;
     use Enobrev\API\HTTP;
-    use Middlewares\HttpErrorException;
 
     class AuthenticationErrorResponse implements OpenApiInterface, OpenApiResponseSchemaInterface, ErrorResponseInterface {
         use ErrorResponseTrait;

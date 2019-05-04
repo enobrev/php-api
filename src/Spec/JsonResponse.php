@@ -5,7 +5,6 @@
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\OpenApiResponseSchemaInterface;
     use Enobrev\API\Spec;
-    use function Enobrev\dbg;
 
     class JsonResponse implements OpenApiInterface, OpenApiResponseSchemaInterface {
         const TYPE_ALLOF = 'allOf';

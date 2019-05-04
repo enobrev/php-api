@@ -1,8 +1,6 @@
 <?php
     namespace Enobrev\API;
 
-    use function Enobrev\dbg;
-
     abstract class Param implements JsonSchemaInterface {
         const STRING     = 'string';
         const NUMBER     = 'number';
@@ -81,6 +79,7 @@
          * @return Param\_Array|Param\_Boolean|Param\_Integer|Param\_Number|Param\_Object|Param\_String
          */
         public static function createFromJsonSchema(array $aSchema) {
+            $oParam = null;
             switch($aSchema['type']) {
                 case 'array':   $oParam = Param\_Array::create();   break;
                 case 'object':  $oParam = Param\_Object::create();  break;

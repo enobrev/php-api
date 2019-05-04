@@ -13,8 +13,6 @@
     use Enobrev\API\SpecInterface;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     class AttributeSpec implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 

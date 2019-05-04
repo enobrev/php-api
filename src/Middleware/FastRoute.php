@@ -19,8 +19,6 @@
     use Enobrev\API\RequestAttributeInterface;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     /**
      * Heavily Inspired By https://github.com/middlewares/fast-route/
      * @package Enobrev\API\Middleware

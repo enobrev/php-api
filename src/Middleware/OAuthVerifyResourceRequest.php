@@ -1,17 +1,14 @@
 <?php
     namespace Enobrev\API\Middleware;
 
-    use function Enobrev\dbg;
     use Middlewares;
     use OAuth2\Request;
+    use OAuth2\Response  as OAuth_Response;
+    use OAuth2\Server    as OAuth_Server;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use OAuth2\Response  as OAuth_Response;
-    use OAuth2\Request   as OAuth_Request;
-    use OAuth2\Server    as OAuth_Server;
-    use Zend\Diactoros\Response;
 
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\Request\AttributeSpec;

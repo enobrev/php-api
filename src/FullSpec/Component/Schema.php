@@ -5,9 +5,7 @@
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\OpenApiInterface;
-    use Enobrev\API\Param;
     use Enobrev\API\Spec;
-    use function Enobrev\dbg;
 
     class Schema implements ComponentInterface, OpenApiInterface {
         const TYPE_ALLOF = 'allOf';

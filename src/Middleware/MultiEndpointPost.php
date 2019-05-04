@@ -18,8 +18,6 @@
     use Enobrev\API\Method;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     /**
      * @package Enobrev\API\Middleware
      */
@@ -56,8 +54,8 @@
             while (count($aQuery) > 0) {
                 /** @var array $aPost */
                 $aPost = array_splice($aQuery, 0, 1);
+                $sEndpoint = key($aPost);
                 try {
-                    $sEndpoint = key($aPost);
                     $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
                     $sEscaped  = $sEndpoint;
                     if (strpos($sEndpoint, '.') !== false) {

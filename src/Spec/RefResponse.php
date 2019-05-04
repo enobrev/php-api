@@ -1,12 +1,9 @@
 <?php
     namespace Enobrev\API\Spec;
 
-    use Adbar\Dot;
-    use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\OpenApiResponseSchemaInterface;
-    use Enobrev\API\Spec;
 
     class RefResponse implements OpenApiInterface, OpenApiResponseSchemaInterface {
 

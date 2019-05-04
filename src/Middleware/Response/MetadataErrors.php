@@ -14,8 +14,6 @@
     use Enobrev\API\RequestAttributeInterface;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     class MetadataErrors implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 

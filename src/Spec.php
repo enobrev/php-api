@@ -2,11 +2,8 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use JsonSchema\Constraints\Constraint;
-    use JsonSchema\Validator;
     use Middlewares\HttpErrorException;
 
-    use Enobrev\API\Exception\InvalidRequest;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\FullSpec\Component\ParamSchema;
     use Enobrev\API\FullSpec\Component\Reference;
@@ -20,7 +17,6 @@
     use Enobrev\ORM\Table;
 
     use function Enobrev\array_not_associative;
-    use function Enobrev\dbg;
 
     class Spec {
         const SKIP_PRIMARY = 1024;

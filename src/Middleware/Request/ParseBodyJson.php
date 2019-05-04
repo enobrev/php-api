@@ -9,8 +9,6 @@
     use Enobrev\API\Exception;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     class ParseBodyJson implements MiddlewareInterface {
         /**
          * @param ServerRequestInterface $oRequest

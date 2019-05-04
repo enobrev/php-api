@@ -95,7 +95,6 @@
 
         /**
          * @return FullSpec
-         * @throws Exception\Response
          * @throws ReflectionException
          */
         public static function generateAndCache():self {
@@ -107,7 +106,6 @@
 
         /**
          * @return self
-         * @throws Exception\Response
          * @throws ReflectionException
          */
         public static function getFromCache() {
@@ -128,7 +126,6 @@
         /**
          * ReGenerates the Full Spec every time!!!  This is _SLOW_
          * @return FullSpec
-         * @throws Exception\Response
          * @throws ReflectionException
          */
         public static function generateLiveForDevelopment() {
@@ -141,7 +138,6 @@
         }
 
         /**
-         * @throws Exception\Response
          * @throws ReflectionException
          */
         protected function generateData() {
@@ -172,7 +168,6 @@
          * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
          * @param array $aScopes
          * @return Dot
-         * @throws Exception\Response
          * @throws ReflectionException
          */
         public function getOpenAPI(array $aScopes = []) {

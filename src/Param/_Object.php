@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\Param;
 
-    use Enobrev\API\OpenApiInterface;
     use stdClass;
 
     use Enobrev\API\JsonSchemaInterface;

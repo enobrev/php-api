@@ -3,7 +3,6 @@
 
     namespace Enobrev\API\Middleware;
 
-    use Enobrev\API\SpecInterface;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -11,7 +10,6 @@
     use RuntimeException;
 
     use Enobrev\Log;
-    use function Enobrev\dbg;
 
     /**
      * @package Enobrev\API\Middleware

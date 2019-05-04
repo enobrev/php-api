@@ -4,7 +4,6 @@
     use Enobrev\API\Exception;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
-    use function Enobrev\dbg;
 
     class _Array extends Param {
         use ParamTrait;

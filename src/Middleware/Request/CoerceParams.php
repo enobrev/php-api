@@ -8,9 +8,7 @@
 
     use Enobrev\Log;
     use Enobrev\API\Middleware\FastRoute;
-    use Enobrev\API\Param;
     use Enobrev\API\Spec;
-    use function Enobrev\dbg;
 
     class CoerceParams implements MiddlewareInterface {
 

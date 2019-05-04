@@ -21,8 +21,6 @@
     use Enobrev\API\Method;
     use Enobrev\Log;
 
-    use function Enobrev\dbg;
-
     /**
      * @package Enobrev\API\Middleware
      */
