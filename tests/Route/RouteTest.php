@@ -7,13 +7,15 @@
     use PHPUnit\Framework\TestCase;
 
     use Enobrev\API\Route;
+    use Enobrev\API\Mock\v2\Test2;
+    use Enobrev\API\Mock\v1\Test;
 
 
     class RouteTest extends TestCase {
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
-        public function testInit() {
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
+        public function testInit():void {
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\');
 
             $this->assertEquals('Enobrev\\API\\Mock\\Table\\test', Rest::_getNamespacedTableClassName('test'));
             $this->assertEquals('Enobrev\\API\\Mock\\v1\\test', Route::_getNamespacedAPIClassName('v1', 'test'));
@@ -31,10 +33,10 @@
             $this->assertArrayHasKey('v2/test2/methodA', $aCachedRoutes);
             $this->assertArrayHasKey('v2/test2/methodB', $aCachedRoutes);
 
-            $this->assertEquals('Enobrev\API\Mock\v1\Test', $aCachedRoutes['v1/test/methodA']['class']);
+            $this->assertEquals(Test::class, $aCachedRoutes['v1/test/methodA']['class']);
             $this->assertEquals('methodA',                  $aCachedRoutes['v1/test/methodA']['method']);
 
-            $this->assertEquals('Enobrev\API\Mock\v2\Test2', $aCachedRoutes['v2/test2/methodB']['class']);
+            $this->assertEquals(Test2::class, $aCachedRoutes['v2/test2/methodB']['class']);
             $this->assertEquals('methodB',                   $aCachedRoutes['v2/test2/methodB']['method']);
         }
     }

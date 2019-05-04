@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 8.0.15, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.26, for Linux (x86_64)
 --
--- Host: 192.168.1.2    Database: dev_api_mock
+-- Host: 192.168.1.2    Database: dev_orm_mock
 -- ------------------------------------------------------
 -- Server version	5.7.25
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
- SET NAMES utf8mb4 ;
+/*!40101 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -16,12 +16,12 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Current Database: `dev_api_mock`
+-- Current Database: `dev_orm_mock`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `dev_api_mock` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `dev_orm_mock` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
-USE `dev_api_mock`;
+USE `dev_orm_mock`;
 
 --
 -- Table structure for table `addresses`
@@ -29,12 +29,14 @@ USE `dev_api_mock`;
 
 DROP TABLE IF EXISTS `addresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `addresses` (
   `address_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` char(32) DEFAULT NULL,
+  `user_id` int(10) unsigned DEFAULT NULL,
   `address_line_1` varchar(100) DEFAULT NULL,
   `address_city` varchar(50) DEFAULT NULL,
+  `address_date_added` datetime DEFAULT NULL,
+  `address_date_updated` datetime DEFAULT NULL,
   PRIMARY KEY (`address_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `addresses_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -47,10 +49,10 @@ CREATE TABLE `addresses` (
 
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
-  `user_id` char(32) NOT NULL,
-  `user_name` varchar(30) DEFAULT NULL,
+  `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_name` varchar(50) DEFAULT NULL,
   `user_email` varchar(100) DEFAULT NULL,
   `user_happy` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `user_date_added` datetime DEFAULT NULL,
@@ -67,4 +69,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-28  5:56:48
+-- Dump completed on 2019-05-03 21:47:41

@@ -6,15 +6,15 @@
     use Enobrev\API\Base;
 
     class Test extends Base {
-        public function methodA() {
+        public function methodA(): void {
             $this->Response->add('test.method.a', [1, 2, 3]);
         }
 
-        public function methodB() {
+        public function methodB(): void {
             $this->Response->add('test.method.b', [1, 2, 3]);
         }
 
-        public function detailedMethod() {
+        public function detailedMethod(): void {
             $iUserId = $this->Request->OriginalRequest->getAttribute('id');
             if (!$iUserId) {
                 $this->Response->statusNotFound();

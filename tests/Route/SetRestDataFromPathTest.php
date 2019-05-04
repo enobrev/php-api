@@ -4,7 +4,6 @@
     require __DIR__ . '/../../vendor/autoload.php';
 
     use Enobrev\API\DataMap;
-    use Enobrev\API\Rest;
     use Enobrev\API\Restful;
     use Enobrev\Log;
     use PHPUnit\Framework\TestCase;
@@ -22,7 +21,7 @@
 
     class SetRestDataFromPathTest extends TestCase {
 
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
         /** @var PDO */
         private $oPDO;
@@ -33,21 +32,21 @@
         /** @var  Table\Address[] */
         private $aAddresses;
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('TEST');
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\');
             Response::init(self::DOMAIN);
         }
 
-        public function setUp() {
+        public function setUp():void {
             $sDatabase = file_get_contents(__DIR__ . '/../Mock/sqlite.sql');
             $aDatabase = explode(';', $sDatabase);
             $aDatabase = array_filter($aDatabase);
 
             $this->oPDO = Db::defaultSQLiteMemory();
-            $this->oPDO->exec("DROP TABLE IF EXISTS users");
-            $this->oPDO->exec("DROP TABLE IF EXISTS addresses");
+            $this->oPDO->exec('DROP TABLE IF EXISTS users');
+            $this->oPDO->exec('DROP TABLE IF EXISTS addresses');
             Db::getInstance($this->oPDO);
 
             foreach($aDatabase as $sCreate) {
@@ -69,6 +68,7 @@
             foreach($this->aUsers as &$oUser) {
                 $oUser->insert();
             }
+            unset($oUser);
 
             $this->aAddresses[] = Table\Address::createFromArray([
                 'user_id'               => $this->aUsers[0]->user_id,
@@ -93,12 +93,12 @@
             }
         }
 
-        public function tearDown() {
-            Db::getInstance()->query("DROP TABLE IF EXISTS users");
-            Db::getInstance()->query("DROP TABLE IF EXISTS addresses");
+        public function tearDown():void {
+            Db::getInstance()->query('DROP TABLE IF EXISTS users');
+            Db::getInstance()->query('DROP TABLE IF EXISTS addresses');
         }
 
-        public function testExistingTableUser() {
+        public function testExistingTableUser(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -114,7 +114,7 @@
             $this->assertEquals($this->aUsers[0]->toArray(), $oRest->getData()->toArray());
         }
 
-        public function testExistingTableAddress() {
+        public function testExistingTableAddress(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -130,7 +130,7 @@
             $this->assertEquals($this->aAddresses[0]->toArray(), $oRest->getData()->toArray());
         }
 
-        public function testExistingTableUsers() {
+        public function testExistingTableUsers(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -149,7 +149,7 @@
             $this->assertEquals($this->aUsers[1], $oData[1]);
         }
 
-        public function testExistingTableAddresses() {
+        public function testExistingTableAddresses(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');

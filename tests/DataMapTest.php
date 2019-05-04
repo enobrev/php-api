@@ -3,13 +3,14 @@
 
     require __DIR__ . '/../vendor/autoload.php';
 
+    use DateTime;
     use PHPUnit\Framework\TestCase;
     use Enobrev\API\DataMap;
     use Enobrev\API\Mock\Table\User;
     use Enobrev\ORM\Field;
 
     class DataMapTest extends TestCase {
-        public function testHasClassPath() {
+        public function testHasClassPath(): void {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 
             $this->assertTrue(DataMap::hasClassPath('users'));
@@ -17,14 +18,14 @@
             $this->assertFalse(DataMap::hasClassPath('whatever'));
         }
 
-        public function testGetClassName() {
+        public function testGetClassName(): void {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 
             $this->assertEquals(DataMap::getClassName('users'),     'User');
             $this->assertEquals(DataMap::getClassName('addresses'), 'Address');
         }
 
-        public function testGetField() {
+        public function testGetField(): void {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 
             $oUser = new User;
@@ -32,9 +33,9 @@
             $oUser->user_email->setValue('test@testington.com');
             $oUser->user_name->setValue('test');
             $oUser->user_happy->setValue(true);
-            $oUser->user_date_added->setValue(new \DateTime('2016-11-05'));
+            $oUser->user_date_added->setValue(new DateTime('2016-11-05'));
 
-            $this->assertInstanceOf(Field\UUID::class,         DataMap::getField($oUser, 'id'));
+            $this->assertInstanceOf(Field\Id::class,         DataMap::getField($oUser, 'id'));
             $this->assertInstanceOf(Field\TextNullable::class, DataMap::getField($oUser, 'email'));
             $this->assertInstanceOf(Field\TextNullable::class, DataMap::getField($oUser, 'name'));
             $this->assertInstanceOf(Field\Boolean::class,      DataMap::getField($oUser, 'happy'));
@@ -47,7 +48,7 @@
             $this->assertEquals('2016-11-05',           DataMap::getField($oUser, 'date_added')->getValue()->format('Y-m-d'));
         }
 
-        public function testGetResponseMap() {
+        public function testGetResponseMap(): void {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 
             $oUser = new User;
@@ -55,7 +56,7 @@
             $oUser->user_email->setValue('test@testington.com');
             $oUser->user_name->setValue('test');
             $oUser->user_happy->setValue(true);
-            $oUser->user_date_added->setValue(new \DateTime('2016-11-05'));
+            $oUser->user_date_added->setValue(new DateTime('2016-11-05'));
 
             /** @var Field[] $aMap */
             $aMap = DataMap::getResponseMap('users', $oUser);
@@ -67,7 +68,7 @@
             $this->assertEquals('2016-11-05',           $aMap['date_added']->getValue()->format('Y-m-d'));
         }
 
-        public function testGetIndexedResponseMap() {
+        public function testGetIndexedResponseMap(): void {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 
             $oUser = new User;
@@ -75,7 +76,7 @@
             $oUser->user_email->setValue('test@testington.com');
             $oUser->user_name->setValue('test');
             $oUser->user_happy->setValue(true);
-            $oUser->user_date_added->setValue(new \DateTime('2016-11-05'));
+            $oUser->user_date_added->setValue(new DateTime('2016-11-05'));
 
             /** @var Field[][] $aIndexedMap */
             $aIndexedMap = DataMap::getIndexedResponseMap('users', $oUser);
@@ -91,7 +92,7 @@
             $this->assertEquals('2016-11-05',           $aMap['date_added']->getValue()->format('Y-m-d'));
         }
 
-        public function testGetIndexedResponseMaps() {
+        public function testGetIndexedResponseMaps(): void {
             DataMap::setDataFile(__DIR__ . '/Mock/DataMap.json');
 
             $oFirstUser = new User;
@@ -99,14 +100,14 @@
             $oFirstUser->user_email->setValue('test@testington.com');
             $oFirstUser->user_name->setValue('test');
             $oFirstUser->user_happy->setValue(true);
-            $oFirstUser->user_date_added->setValue(new \DateTime('2016-11-05'));
+            $oFirstUser->user_date_added->setValue(new DateTime('2016-11-05'));
 
             $oSecondUser = new User;
             $oSecondUser->user_id->setValue(6);
             $oSecondUser->user_email->setValue('test2@testington.com');
             $oSecondUser->user_name->setValue('test2');
             $oSecondUser->user_happy->setValue(false);
-            $oSecondUser->user_date_added->setValue(new \DateTime('2016-11-05'));
+            $oSecondUser->user_date_added->setValue(new DateTime('2016-11-05'));
 
             /** @var Field[][] $aIndexedMaps */
             $aIndexedMaps = DataMap::getIndexedResponseMaps('users', [$oFirstUser, $oSecondUser]);

@@ -14,24 +14,25 @@
 
     use Zend\Diactoros\ServerRequest;
     use Zend\Diactoros\Uri;
+    use Enobrev\API\Mock\v1\Address;
 
     class GetRestClassTest extends TestCase {
 
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('TEST');
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\');
             Response::init(self::DOMAIN);
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
-        public function testInit() {
+        public function testInit(): void {
             $this->assertEquals('Enobrev\\API\\Mock\\Table\\test', Rest::_getNamespacedTableClassName('test'));
             $this->assertEquals('Enobrev\\API\\Mock\\v1\\test', Route::_getNamespacedAPIClassName('v1', 'test'));
         }
 
-        public function testGetRestClassOverridden() {
+        public function testGetRestClassOverridden(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -40,10 +41,10 @@
             $oRequest = new Request($oServerRequest);
             $oRest = Route::_getRestClass($oRequest);
 
-            $this->assertInstanceOf('\\Enobrev\\API\\Mock\\v1\\Address', $oRest);
+            $this->assertInstanceOf(Address::class, $oRest);
         }
 
-        public function testGetRestClassNotOverridden() {
+        public function testGetRestClassNotOverridden(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -52,10 +53,10 @@
             $oRequest = new Request($oServerRequest);
             $oRest = Route::_getRestClass($oRequest);
 
-            $this->assertInstanceOf('\\Enobrev\\API\\Rest', $oRest);
+            $this->assertInstanceOf(Rest::class, $oRest);
         }
 
-        public function testGetRestClassAnything() {
+        public function testGetRestClassAnything(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -64,6 +65,6 @@
             $oRequest = new Request($oServerRequest);
             $oRest = Route::_getRestClass($oRequest);
 
-            $this->assertInstanceOf('\\Enobrev\\API\\Rest', $oRest);
+            $this->assertInstanceOf(Rest::class, $oRest);
         }
     }

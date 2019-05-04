@@ -46,7 +46,8 @@
     "require-dev": {
         "nategood/commando": "^0.3.0",
         "phpunit/phpunit": "^8.1",
-        "vimeo/psalm": "^3.0"
+        "vimeo/psalm": "^3.0",
+      "ext-pdo": "*"
     },
     "autoload": {
         "psr-4": {

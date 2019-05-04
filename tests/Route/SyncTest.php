@@ -4,7 +4,6 @@
     require __DIR__ . '/../../vendor/autoload.php';
 
     use Enobrev\API\DataMap;
-    use Enobrev\API\Rest;
     use Enobrev\Log;
     use PHPUnit\Framework\TestCase;
 
@@ -20,7 +19,7 @@
 
     class SyncTest extends TestCase {
 
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
         /** @var PDO */
         private $oPDO;
@@ -28,21 +27,21 @@
         /** @var  Table\User[] */
         private $aUsers;
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('SyncTest');
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\');
             Response::init(self::DOMAIN);
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
-        public function setUp() {
+        public function setUp():void {
             $sDatabase = file_get_contents(__DIR__ . '/../Mock/sqlite.sql');
             $aDatabase = explode(';', $sDatabase);
             $aDatabase = array_filter($aDatabase);
 
             $this->oPDO = Db::defaultSQLiteMemory();
-            $this->oPDO->exec("DROP TABLE IF EXISTS users");
-            $this->oPDO->exec("DROP TABLE IF EXISTS addresses");
+            $this->oPDO->exec('DROP TABLE IF EXISTS users');
+            $this->oPDO->exec('DROP TABLE IF EXISTS addresses');
             Db::getInstance($this->oPDO);
 
             foreach($aDatabase as $sCreate) {
@@ -87,21 +86,22 @@
             foreach($this->aUsers as &$oUser) {
                 $oUser->insert();
             }
+            unset($oUser);
 
             $oStatement = Db::getInstance()->prepare('UPDATE users SET user_date_added = ? WHERE user_id = ?');
-            $oStatement->execute(["2016-01-01 01:02:03", $this->aUsers[0]->user_id->getValue()]);
-            $oStatement->execute(["2016-02-02 01:02:03", $this->aUsers[1]->user_id->getValue()]);
-            $oStatement->execute(["2016-03-03 01:02:03", $this->aUsers[2]->user_id->getValue()]);
-            $oStatement->execute(["2016-04-04 01:02:03", $this->aUsers[3]->user_id->getValue()]);
-            $oStatement->execute(["2016-05-05 01:02:03", $this->aUsers[4]->user_id->getValue()]);
+            $oStatement->execute(['2016-01-01 01:02:03', $this->aUsers[0]->user_id->getValue()]);
+            $oStatement->execute(['2016-02-02 01:02:03', $this->aUsers[1]->user_id->getValue()]);
+            $oStatement->execute(['2016-03-03 01:02:03', $this->aUsers[2]->user_id->getValue()]);
+            $oStatement->execute(['2016-04-04 01:02:03', $this->aUsers[3]->user_id->getValue()]);
+            $oStatement->execute(['2016-05-05 01:02:03', $this->aUsers[4]->user_id->getValue()]);
         }
 
-        public function tearDown() {
-            Db::getInstance()->query("DROP TABLE IF EXISTS users");
-            Db::getInstance()->query("DROP TABLE IF EXISTS addresses");
+        public function tearDown():void {
+            Db::getInstance()->query('DROP TABLE IF EXISTS users');
+            Db::getInstance()->query('DROP TABLE IF EXISTS addresses');
         }
 
-        public function testSyncUsers() {
+        public function testSyncUsers(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -136,7 +136,7 @@
             $this->assertEquals($this->aUsers[$iIndex]->user_happy->getValue(),      $aUser['happy']);
         }
 
-        public function testNoSyncUsers() {
+        public function testNoSyncUsers(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -154,7 +154,7 @@
             $this->assertArrayHasKey($this->aUsers[4]->user_id->getValue(), $oOutput->users);
         }
 
-        public function testSyncPost() {
+        public function testSyncPost(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');

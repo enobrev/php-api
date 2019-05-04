@@ -17,16 +17,16 @@
     use Zend\Diactoros\Uri;
 
     class GetQueryFromPathTest extends TestCase {
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('TEST');
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\');
             Response::init(self::DOMAIN);
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
-        public function testExistingTableUsers() {
+        public function testExistingTableUsers(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -39,7 +39,7 @@
             $this->assertEquals('SELECT * FROM users LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testExistingTableAddresses() {
+        public function testExistingTableAddresses(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -52,7 +52,7 @@
             $this->assertEquals('SELECT * FROM addresses LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testExistingNonExistentTable() {
+        public function testExistingNonExistentTable(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -65,20 +65,7 @@
             $oRest->_getQueryFromPath();
         }
 
-        public function testWithStringId() {
-            /** @var ServerRequest $oServerRequest */
-            $oServerRequest = new ServerRequest;
-            $oServerRequest = $oServerRequest->withMethod('GET');
-            $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users/1'));
-
-            $oRequest = new Request($oServerRequest);
-            $oRest    = new Rest($oRequest);
-            $oQuery   = $oRest->_getQueryFromPath();
-
-            $this->assertEquals('SELECT * FROM users WHERE users.user_id = "1"', (string) $oQuery);
-        }
-
-        public function testWithIntId() {
+        public function testWithIntId(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -91,7 +78,7 @@
             $this->assertEquals('SELECT * FROM addresses WHERE addresses.address_id = 1', (string) $oQuery);
         }
 
-        public function testWithPaging() {
+        public function testWithPaging(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -105,7 +92,7 @@
             $this->assertEquals('SELECT * FROM addresses LIMIT 20, 10', (string) $oQuery);
         }
 
-        public function testWithSort() {
+        public function testWithSort(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -119,7 +106,7 @@
             $this->assertEquals('SELECT * FROM users ORDER BY users.user_name ASC LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithSortAndPaging() {
+        public function testWithSortAndPaging(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -133,7 +120,7 @@
             $this->assertEquals('SELECT * FROM users ORDER BY users.user_name ASC LIMIT 20, 10', (string) $oQuery);
         }
 
-        public function testWithForeignSort() {
+        public function testWithForeignSort(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -147,7 +134,7 @@
             $this->assertEquals('SELECT users.user_id, users.user_name, users.user_email, users.user_happy, users.user_date_added FROM users LEFT OUTER JOIN addresses ON users.user_id = addresses.user_id ORDER BY addresses.address_city ASC LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithOppositeForeignSort() {
+        public function testWithOppositeForeignSort(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -158,10 +145,10 @@
             $oRest    = new Rest($oRequest);
             $oQuery   = $oRest->_getQueryFromPath();
 
-            $this->assertEquals('SELECT addresses.address_id, addresses.user_id, addresses.address_line_1, addresses.address_city FROM addresses LEFT OUTER JOIN users ON addresses.user_id = users.user_id ORDER BY users.user_name ASC LIMIT 0, 1000', (string) $oQuery);
+            $this->assertEquals('SELECT addresses.address_id, addresses.user_id, addresses.address_line_1, addresses.address_city, addresses.address_date_added, addresses.address_date_updated FROM addresses LEFT OUTER JOIN users ON addresses.user_id = users.user_id ORDER BY users.user_name ASC LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithMultipleSort() {
+        public function testWithMultipleSort(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -175,7 +162,7 @@
             $this->assertEquals('SELECT * FROM users ORDER BY users.user_name ASC, users.user_happy ASC LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithMultipleSortSpaced() {
+        public function testWithMultipleSortSpaced(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -189,7 +176,7 @@
             $this->assertEquals('SELECT * FROM users ORDER BY users.user_name ASC, users.user_happy ASC LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithMultipleSortWithForeign() {
+        public function testWithMultipleSortWithForeign(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -203,7 +190,7 @@
             $this->assertEquals('SELECT users.user_id, users.user_name, users.user_email, users.user_happy, users.user_date_added FROM users LEFT OUTER JOIN addresses ON users.user_id = addresses.user_id ORDER BY users.user_name ASC, addresses.address_city ASC LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithPlainSearch() {
+        public function testWithPlainSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -214,10 +201,10 @@
             $oRest    = new Rest($oRequest);
             $oQuery   = $oRest->_getQueryFromPath();
 
-            $this->assertEquals('SELECT * FROM users WHERE users.user_id LIKE "%test%" OR users.user_name LIKE "%test%" OR users.user_email LIKE "%test%" LIMIT 0, 1000', (string) $oQuery);
+            $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%test%" OR users.user_email LIKE "%test%" LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithFieldSearch() {
+        public function testWithFieldSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -231,7 +218,7 @@
             $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%test%" LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithFieldNumericSearch() {
+        public function testWithFieldNumericSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -245,7 +232,7 @@
             $this->assertEquals('SELECT * FROM addresses WHERE addresses.address_id = 1 LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithFieldNullSearch() {
+        public function testWithFieldNullSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -259,7 +246,7 @@
             $this->assertEquals('SELECT * FROM users WHERE users.user_name IS NULL LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithFieldGreaterThanSearch() {
+        public function testWithFieldGreaterThanSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -273,7 +260,7 @@
             $this->assertEquals('SELECT * FROM addresses WHERE addresses.address_id > 5 LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithQuotedFieldSearch() {
+        public function testWithQuotedFieldSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -287,32 +274,32 @@
             $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%this is a test%" LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithMultiFieldSearch() {
+        public function testWithMultiFieldSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
             $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users'));
-            $oServerRequest = $oServerRequest->withQueryParams(['search' => 'name:"this is a test" id:whatever']);
+            $oServerRequest = $oServerRequest->withQueryParams(['search' => 'name:"this is a test" id:1']);
 
             $oRequest = new Request($oServerRequest);
             $oRest    = new Rest($oRequest);
             $oQuery   = $oRest->_getQueryFromPath();
 
-            $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%this is a test%" OR users.user_id LIKE "%whatever%" LIMIT 0, 1000', (string) $oQuery);
+            $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%this is a test%" OR users.user_id = 1 LIMIT 0, 1000', (string) $oQuery);
         }
 
-        public function testWithMultiAndFieldSearch() {
+        public function testWithMultiAndFieldSearch(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
             $oServerRequest = $oServerRequest->withUri(new Uri('http://' . self::DOMAIN . '/v1/users'));
-            $oServerRequest = $oServerRequest->withQueryParams(['search' => 'AND name:"this is a test" id:whatever']);
+            $oServerRequest = $oServerRequest->withQueryParams(['search' => 'AND name:"this is a test" id:1']);
 
             $oRequest = new Request($oServerRequest);
             $oRest    = new Rest($oRequest);
             $oQuery   = $oRest->_getQueryFromPath();
 
-            $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%this is a test%" AND users.user_id LIKE "%whatever%" LIMIT 0, 1000', (string) $oQuery);
+            $this->assertEquals('SELECT * FROM users WHERE users.user_name LIKE "%this is a test%" AND users.user_id = 1 LIMIT 0, 1000', (string) $oQuery);
         }
 
         /*

@@ -19,16 +19,16 @@
 
     class GetPrimaryTableFromPathTest extends TestCase {
 
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('TEST');
-            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1']);
+            Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\');
             Response::init(self::DOMAIN);
             DataMap::setDataFile(__DIR__ . '/../Mock/DataMap.json');
         }
 
-        public function test_getPrimaryTableFromPath() {
+        public function test_getPrimaryTableFromPath(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -41,7 +41,7 @@
             $this->assertInstanceOf(User::class, $oTable);
         }
 
-        public function test_getPrimaryTableFromInvalidPath() {
+        public function test_getPrimaryTableFromInvalidPath(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');

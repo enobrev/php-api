@@ -22,7 +22,7 @@
     use Zend\Diactoros\Uri;
 
     class QueryRouteTest extends TestCase {
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
         /** @var PDO */
         private $oPDO;
@@ -30,7 +30,7 @@
         /** @var  Table\User[] */
         private $aUsers;
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('TEST');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1', 'v2']);
             Response::init(self::DOMAIN);
@@ -42,14 +42,14 @@
             Route::addEndpointRoute('user/{id}/city/{city}', Test::class,            'detailedMethod');
         }
 
-        public function setUp() {
+        public function setUp():void {
             $sDatabase = file_get_contents(__DIR__ . '/../Mock/sqlite.sql');
             $aDatabase = explode(';', $sDatabase);
             $aDatabase = array_filter($aDatabase);
 
             $this->oPDO = Db::defaultSQLiteMemory();
-            $this->oPDO->exec("DROP TABLE IF EXISTS users");
-            $this->oPDO->exec("DROP TABLE IF EXISTS addresses");
+            $this->oPDO->exec('DROP TABLE IF EXISTS users');
+            $this->oPDO->exec('DROP TABLE IF EXISTS addresses');
             Db::getInstance($this->oPDO);
 
             foreach($aDatabase as $sCreate) {
@@ -73,12 +73,12 @@
             }
         }
 
-        public function tearDown() {
-            Db::getInstance()->query("DROP TABLE IF EXISTS users");
-            Db::getInstance()->query("DROP TABLE IF EXISTS addresses");
+        public function tearDown():void {
+            Db::getInstance()->query('DROP TABLE IF EXISTS users');
+            Db::getInstance()->query('DROP TABLE IF EXISTS addresses');
         }
 
-        public function testAllUsers() {
+        public function testAllUsers(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -100,7 +100,7 @@
             $this->assertEquals((string) $this->aUsers[0]->user_date_added,    $aUser['date_added']);
         }
 
-        public function testDetailedMethod() {
+        public function testDetailedMethod(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');

@@ -16,9 +16,9 @@
     use Zend\Diactoros\Uri;
 
     class GeneratedRouteTest extends TestCase {
-        const DOMAIN = 'example.com';
+        public const DOMAIN = 'example.com';
 
-        public static function setUpBeforeClass() {
+        public static function setUpBeforeClass():void {
             Log::setService('TEST');
             Route::init(__DIR__ . '/../Mock/API/', '\\Enobrev\\API\\Mock\\', '\\Enobrev\\API\\Mock\\Table\\', Rest::class, ['v1', 'v2']);
             Response::init(self::DOMAIN);
@@ -26,7 +26,7 @@
             // dbg(Route::_getCachedRoutes());
         }
 
-        public function testRouteA() {
+        public function testRouteA(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -43,7 +43,7 @@
             $this->assertEquals([1, 2, 3], $oOutput->test['method']['a']);
         }
 
-        public function testRoute2B() {
+        public function testRoute2B(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -60,7 +60,7 @@
             $this->assertEquals([2, 3, 4], $oOutput->test2['method']['b']);
         }
 
-        public function testRoute2BV2() {
+        public function testRoute2BV2(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');

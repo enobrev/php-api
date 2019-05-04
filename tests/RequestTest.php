@@ -13,7 +13,7 @@
     Log::setService('RequestTest');
 
     class RequestTest extends TestCase {
-        public function testGet() {
+        public function testGet(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -36,7 +36,7 @@
             $this->assertEquals('TEST',      $oRequest->GET['test']);
         }
 
-        public function testGetJPG() {
+        public function testGetJPG(): void {
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
             $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/testing.jpg'));
@@ -46,7 +46,7 @@
             $this->assertEquals('jpg',      $oRequest->Format);
         }
 
-        public function testGetRoot() {
+        public function testGetRoot(): void {
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
             $oServerRequest = $oServerRequest->withUri(new Uri('http://example.com/'));
@@ -56,7 +56,7 @@
             $this->assertTrue($oRequest->pathIsRoot());
         }
 
-        public function testGetWithAttributes() {
+        public function testGetWithAttributes(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('GET');
@@ -68,14 +68,9 @@
 
             $this->assertEquals('TEST', $oRequest->paramFromUriPath('test'));
             $this->assertEquals('TEST2', $oRequest->paramFromUriPath('test2'));
-
-            $oRequest->updatePathParams(['test' => 'TEST!!!', 'test2' => 'TEST2!!!']);
-
-            $this->assertEquals('TEST!!!', $oRequest->paramFromUriPath('test'));
-            $this->assertEquals('TEST2!!!', $oRequest->paramFromUriPath('test2'));
         }
 
-        public function testPost() {
+        public function testPost(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -98,7 +93,7 @@
             $this->assertEquals('TEST',      $oRequest->POST['test']);
         }
 
-        public function testPost__Json() {
+        public function testPost__Json(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('POST');
@@ -111,7 +106,7 @@
             $this->assertEquals('TEST',      $oRequest->POST['test']);
         }
 
-        public function testPostApplicationJson() {
+        public function testPostApplicationJson(): void {
 
             $sBody   = json_encode(['test' => 'TEST']);
             $oStream = new Stream('php://memory', 'wb+');
@@ -130,7 +125,7 @@
             $this->assertEquals('TEST',      $oRequest->POST['test']);
         }
 
-        public function testPut() {
+        public function testPut(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('PUT');
@@ -149,7 +144,7 @@
             $this->assertEquals('json',      $oRequest->Format);
         }
 
-        public function testPutFormEncoded() {
+        public function testPutFormEncoded(): void {
             $sBody   = 'test=TEST';
             $oStream = new Stream('php://memory', 'wb+');
             $oStream->write($sBody);
@@ -167,7 +162,7 @@
             $this->assertEquals('TEST',      $oRequest->PUT['test']);
         }
 
-        public function testOptions() {
+        public function testOptions(): void {
             /** @var ServerRequest $oServerRequest */
             $oServerRequest = new ServerRequest;
             $oServerRequest = $oServerRequest->withMethod('OPTIONS');

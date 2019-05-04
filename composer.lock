@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4b05688637f8acdd8517ac954e2f9822",
+    "content-hash": "2b1eacc2857f6b8b188833689b08bc2c",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -61,12 +61,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "6fdda22dfe42a5c36c405f3bae5f083e2430b15f"
+                "reference": "fcd9111d0447b9a2282ea2f220f606e20e5cacde"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/6fdda22dfe42a5c36c405f3bae5f083e2430b15f",
-                "reference": "6fdda22dfe42a5c36c405f3bae5f083e2430b15f",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/fcd9111d0447b9a2282ea2f220f606e20e5cacde",
+                "reference": "fcd9111d0447b9a2282ea2f220f606e20e5cacde",
                 "shasum": ""
             },
             "require": {
@@ -82,7 +82,8 @@
                 "twig/twig": "^2.9"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.1"
+                "ext-sqlite3": "*",
+                "phpunit/phpunit": "^8.1"
             },
             "bin": [
                 "bin/generate_tables.php",
@@ -114,7 +115,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-05-03T21:37:12+00:00"
+            "time": "2019-05-04T03:03:12+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -3602,7 +3603,9 @@
         "php": ">=7.2",
         "ext-json": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {
+        "ext-pdo": "*"
+    },
     "platform-overrides": {
         "php": "7.2"
     }
