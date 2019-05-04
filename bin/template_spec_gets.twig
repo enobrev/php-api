@@ -54,9 +54,10 @@
          * Either return a ResponseInterface (and stop processing other Middleware)
          *     or return a call to Handler::handle (and allow other Middleware to continue processing)
          * The ResponseBuilder data should match the Schema defined in spec();
-
+         *
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @throws Exception
          * @throws DbDuplicateException
          * @throws DbException
@@ -83,6 +84,7 @@
          * @param array|null $aQueryParams  Params from Request Query
          * @param array|null $aPostParams   Params from Request Body
          * @param Dot $oResponse            Response Object
+         *
          * @throws Exception
          * @throws DbDuplicateException
          * @throws DbException

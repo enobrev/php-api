@@ -7,6 +7,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\Exception;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
@@ -56,11 +57,14 @@
          * Either return a ResponseInterface (and stop processing other Middleware)
          *     or return a call to Handler::handle (and allow other Middleware to continue processing)
          * The ResponseBuilder data should match the Schema defined in spec();
-
-         * @param ServerRequestInterface $oRequest
+         *
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
          * @throws DbException
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -77,12 +81,15 @@
         }
 
         /**
-         * @param array|null $aPathParams   Params from Request Path
-         * @param array|null $aQueryParams  Params from Request Query
-         * @param array|null $aPostParams   Params from Request Body
-         * @param Dot $oResponse            Response Object
+         * @param array|null $aPathParams  Params from Request Path
+         * @param array|null $aQueryParams Params from Request Query
+         * @param array|null $aPostParams  Params from Request Body
+         * @param Dot        $oResponse    Response Object
+         *
          * @return Dot
          * @throws DbException
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          * @throws _exceptions\{{ table.title }}NotFound
          */
         protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
