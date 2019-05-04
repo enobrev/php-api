@@ -9,13 +9,16 @@
     use Enobrev\Log;
     use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Spec;
+    use ReflectionException;
 
     class CoerceParams implements MiddlewareInterface {
 
         /**
-         * @param ServerRequestInterface $oRequest
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
+         * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.CoerceParams');

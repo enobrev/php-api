@@ -19,6 +19,7 @@
     use ReflectionException;
 
     use Adbar\Dot;
+    use SplFileInfo;
 
     class FullSpec {
 
@@ -166,9 +167,10 @@
 
         /**
          * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
+         *
          * @param array $aScopes
+         *
          * @return Dot
-         * @throws ReflectionException
          */
         public function getOpenAPI(array $aScopes = []) {
             $oData = new Dot([
@@ -350,7 +352,7 @@ DESCRIPTION
             foreach (self::$aVersions as $sVersion) {
                 $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
-                    /** @var \SplFileInfo[] $aFiles */
+                    /** @var SplFileInfo[] $aFiles */
                     $aFiles  = new RecursiveIteratorIterator(
                         new RecursiveDirectoryIterator(
                             $sVersionPath,
@@ -366,8 +368,8 @@ DESCRIPTION
                     // Sort files by filename for consistent sorting on differing platforms
                     usort($aSortable, function($oFileA, $oFileB) {
                         /**
-                         * @var \SplFileInfo $oFileA
-                         * @var \SplFileInfo $oFileB
+                         * @var SplFileInfo $oFileA
+                         * @var SplFileInfo $oFileB
                          */
                         return strnatcmp($oFileA->getRealPath(), $oFileB->getRealPath());
                     });

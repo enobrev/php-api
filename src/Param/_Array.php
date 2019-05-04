@@ -36,6 +36,12 @@
             return $aValidation;
         }
 
+        /**
+         * @param bool $bOpenSchema
+         *
+         * @return array
+         * @throws Exception
+         */
         public function getJsonSchema($bOpenSchema = false): array {
             if (!isset($this->aValidation['items'])) {
                 throw new Exception('Array Param requires items definition');

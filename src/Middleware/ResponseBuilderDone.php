@@ -3,6 +3,7 @@
 
     namespace Enobrev\API\Middleware;
 
+    use Exception;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -27,7 +28,7 @@
             $sBody = null;
             try {
                 $sBody = json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Skip it
             }
 

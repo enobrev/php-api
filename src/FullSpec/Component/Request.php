@@ -63,6 +63,10 @@
             return $this;
         }
 
+        /**
+         * @return array
+         * @throws Exception
+         */
         public function getOpenAPI(): array {
             if (!$this->sDescription) {
                 throw new Exception('Full Scope Request Components require a description');

@@ -88,6 +88,11 @@
         /**
          * Defines a Response Schema or Reference.  If no Schema is given, it will use the schema for the default response as defined in FullSpecComponent
          *
+         * @param string                  $sName
+         * @param string                  $sDescription
+         * @param Component\Response|null $oResponse
+         *
+         * @return Component
          */
         public static function response(string $sName, string $sDescription, ?Component\Response $oResponse = null):self {
             $oComponent = new self(self::TYPE_RESPONSE, $sName);
@@ -232,5 +237,7 @@
                     return $oResponse->all();
                     break;
             }
+
+            return null;
         }
     }

@@ -3,6 +3,7 @@
 
     use DateTime;
 
+    use Exception;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
@@ -15,9 +16,11 @@
         const SYNC_DATE_FORMAT = 'Y-m-d\TH:i:sP'; // ISO8601 - http://us3.php.net/manual/en/class.datetime.php#111532
 
         /**
-         * @param ServerRequestInterface $oRequest
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
+         * @throws Exception
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.MetadataServer');

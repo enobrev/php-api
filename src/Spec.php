@@ -17,6 +17,7 @@
     use Enobrev\ORM\Table;
 
     use function Enobrev\array_not_associative;
+    use ReflectionException;
 
     class Spec {
         const SKIP_PRIMARY = 1024;
@@ -106,6 +107,12 @@
             return implode($sDivider, $this->aScopes);
         }
 
+        /**
+         * @param int $iStatus
+         *
+         * @return array|mixed|string|null
+         * @throws Exception
+         */
         public function getResponseDescription(int $iStatus) {
             $mResponse = $this->aResponses[$iStatus] ?? null;
 
@@ -175,6 +182,7 @@
 
         /**
          * @return Param[]
+         * @throws ReflectionException
          */
         public function resolvePostParams(): array {
             if ($this->oPostBodyReference) {
@@ -249,12 +257,18 @@
                     return $oPost->getSchema();
                 }
             }
+
+            return null;
         }
 
         public function hasAPostBodyReference(): bool {
             return $this->oPostBodyReference instanceof Reference;
         }
 
+        /**
+         * @return array
+         * @throws ReflectionException
+         */
         public function postParamsToJsonSchema():array {
             if ($this->hasAPostBodyReference()) {
                 if ($this->oPostBodyReference instanceof Reference) {
@@ -438,19 +452,41 @@
             return $oClone;
         }
 
+        /**
+         * @param Table $oTable
+         * @param int   $iOptions
+         * @param array $aExclude
+         *
+         * @return array
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
+         */
         public static function tableToJsonSchema(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
             return self::toJsonSchema(self::tableToParams($oTable, $iOptions, $aExclude));
         }
 
+        /**
+         * @param Table $oTable
+         * @param array $aExclude
+         * @param int   $iOptions
+         * @param bool  $bAdditionalProperties
+         *
+         * @return Param\_Object
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
+         */
         public static function tableToParam(Table $oTable, array $aExclude = [], int $iOptions = 0, $bAdditionalProperties = false): Param\_Object {
             return Param\_Object::create()->items(self::tableToParams($oTable, $iOptions, $aExclude))->additionalProperties($bAdditionalProperties);
         }
 
         /**
          * @param Table $oTable
-         * @param int $iOptions
+         * @param int   $iOptions
          * @param array $aExclude
+         *
          * @return Param[]
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []) {
             $aDefinitions = [];
@@ -833,6 +869,10 @@
             return $aMethod;
         }
 
+        /**
+         * @return array
+         * @throws ReflectionException
+         */
         public function toArray() {
             $aPathParams = [];
             foreach($this->resolvePostParams() as $sParam => $oParam) {
@@ -869,6 +909,10 @@
             ];
         }
 
+        /**
+         * @return false|string
+         * @throws ReflectionException
+         */
         public function toJson() {
             return json_encode($this->toArray());
         }

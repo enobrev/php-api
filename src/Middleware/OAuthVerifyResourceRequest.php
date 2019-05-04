@@ -33,6 +33,12 @@
 
         /**
          * Process a server request and return a response.
+         *
+         * @param ServerRequestInterface  $oRequest
+         * @param RequestHandlerInterface $oHandler
+         *
+         * @return ResponseInterface
+         * @throws Middlewares\Utils\HttpErrorException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.OAuthVerifyResourceRequest');

@@ -25,7 +25,7 @@
         /**
          * Heavily inspired by justinrainbow/json-schema, except tries not to coerce nulls into non-nulls
          * @param $mValue
-         * @return string
+         * @return bool|null
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {

@@ -16,13 +16,16 @@
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
+    use ReflectionException;
 
     class ValidateSpec implements MiddlewareInterface {
         /**
-         * @param ServerRequestInterface $oRequest
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
          * @throws Middlewares\Utils\HttpErrorException
+         * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.ValidateSpec');
@@ -94,8 +97,10 @@
 
         /**
          * @param ServerRequestInterface $oRequest
+         *
          * @return ServerRequestInterface
          * @throws Middlewares\Utils\HttpErrorException
+         * @throws ReflectionException
          */
         private function validatePostParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);

@@ -9,6 +9,7 @@
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
+    use RuntimeException;
     use Zend\Diactoros\Response\JsonResponse;
     use Zend\Diactoros\ServerRequestFactory;
     use Zend\Diactoros\Stream;
@@ -37,12 +38,13 @@
         }
 
         /**
-         * @param ServerRequestInterface $oSubRequest
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
          * @throws Exception\InvalidJmesPath
          * @throws Exception\InvalidSegmentVariable
-         * @throws Exception\NoTemplateValues
+         * @throws \Exception
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointPost');
@@ -136,10 +138,10 @@
         /**
          * Turns something like /city_fonts/{cities.id} into /city_fonts/1,2,3 using results of previously called API endpoints
          *
-         * @param $sEndpoint
+         * @param string $sEndpoint
+         *
          * @return string
          * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidSegmentVariable
          * @throws Exception\NoTemplateValues
          */
         private function fillEndpointTemplateFromData(string $sEndpoint) {
@@ -161,9 +163,9 @@
 
         /**
          * @param string $sTemplate
+         *
          * @return string
          * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidSegmentVariable
          * @throws Exception\NoTemplateValues
          */
         private function getTemplateValue($sTemplate) {
@@ -186,7 +188,7 @@
 
                     try {
                         $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
-                    } catch (\RuntimeException $e) {
+                    } catch (RuntimeException $e) {
                         Log::e('MultiEndpointPost.getTemplateValue.JMESPath.error', [
                             'template'   => $sTemplate,
                             'expression' => $sExpression,

@@ -87,5 +87,7 @@
             } else if (is_array($this->mSchema)) {
                 return Spec::toJsonSchema($this->mSchema);
             }
+
+            return null;
         }
     }

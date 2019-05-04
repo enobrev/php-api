@@ -3,6 +3,7 @@
 
     use Adbar\Dot;
 
+    use Enobrev\API\Exception;
     use Enobrev\API\SpecInterface;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
@@ -72,7 +73,7 @@
          * @param RequestHandlerInterface $oHandler
          * @param int $iStatus
          * @return ResponseInterface
-         * @throws \Enobrev\API\Exception
+         * @throws Exception
          */
         public static function handleProcessingError(SpecInterface $oSpec, ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler, int $iStatus): ResponseInterface {
             Log::setProcessIsError(true);

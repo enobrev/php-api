@@ -8,7 +8,10 @@
 
         /**
          * Call this method from a public method to expose this attribute with the correct type
+         *
          * @param ServerRequestInterface $oRequest
+         * @param                        $mValue
+         *
          * @return ServerRequestInterface
          */
         public static function setAttribute(ServerRequestInterface $oRequest, $mValue): ServerRequestInterface {

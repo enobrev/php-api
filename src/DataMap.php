@@ -3,6 +3,7 @@
 
     use ArrayIterator;
 
+    use DateTime;
     use Money\Money;
 
     use Enobrev\ORM;
@@ -39,8 +40,11 @@
 
         /**
          * @param string $sPath
+         *
          * @return mixed
          * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
+         * @throws Exception\MissingDataMapDefinition
          */
         private static function getMap(string $sPath) {
             $aData = self::getData();
@@ -53,7 +57,10 @@
 
         /**
          * @param string $sPath
+         *
          * @return bool
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function hasClassPath($sPath) {
             $aMap = self::getMap('_CLASSES_');
@@ -62,7 +69,10 @@
 
         /**
          * @param string $sPath
+         *
          * @return string
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getClassName($sPath) {
             $aMap = self::getMap('_CLASSES_');
@@ -71,7 +81,10 @@
 
         /**
          * @param $oClass
+         *
          * @return string
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getClassPath($oClass) {
             $aMap     = self::getMap('_CLASSES_');
@@ -95,7 +108,10 @@
          * @param string                               $sPath
          * @param ArrayIterator|ORM\Table[]|ORM\Tables $oData
          * @param string                               $sKeyField
+         *
          * @return array
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getIndexedResponseMaps(string $sPath, $oData, string $sKeyField = null): array {
             $aResponse = [];
@@ -107,10 +123,13 @@
         }
 
         /**
-         * @param string $sPath
+         * @param string    $sPath
          * @param ORM\Table $oDatum
          * @param string    $sKeyField
+         *
          * @return array
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum, string $sKeyField = null): array {
             if (!$sKeyField) {
@@ -123,9 +142,12 @@
         }
 
         /**
-         * @param string $sPath
+         * @param string    $sPath
          * @param ORM\Table $oDatum
+         *
          * @return ORM\Field[]
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getResponseMap(string $sPath, ORM\Table $oDatum): array {
             $aMap         = self::getMap($sPath);
@@ -140,8 +162,11 @@
 
         /**
          * @param ORM\Table $oTable
-         * @param array $aPostParams
+         * @param array     $aPostParams
+         *
          * @return ORM\Table
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function applyPostParamsToTable(ORM\Table $oTable, array $aPostParams): ORM\Table {
             $aMap   = DataMap::getResponseMap($oTable->getTitle(), $oTable);
@@ -150,10 +175,12 @@
         }
 
         /**
-         * @param ORM\Table $oTable
+         * @param ORM\Table  $oTable
          * @param array|null $aExcludedFields
+         *
          * @return array
          * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function convertTableToResponseArray(ORM\Table $oTable, ?array $aExcludedFields = null): array {
             $aMap         = self::getMap($oTable->getTitle());
@@ -186,8 +213,8 @@
                 }
 
                 switch(true) {
-                    case $mValue instanceof \DateTime:
-                        $mValue = $mValue->format(\DateTime::RFC3339);
+                    case $mValue instanceof DateTime:
+                        $mValue = $mValue->format(DateTime::RFC3339);
                         break;
 
                     case $mValue instanceof Money:
@@ -204,7 +231,10 @@
         /**
          * @param ORM\Table $oDatum
          * @param string    $sPublicField
+         *
          * @return mixed
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getField(ORM\Table $oDatum, string $sPublicField) {
             $aMap          = self::getMap($oDatum->getTitle());
@@ -221,7 +251,10 @@
         /**
          * @param ORM\Table $oDatum
          * @param string    $sPrivateField
+         *
          * @return null|string
+         * @throws Exception\InvalidDataMapPath
+         * @throws Exception\MissingDataMapDefinition
          */
         public static function getPublicName(ORM\Table $oDatum, string $sPrivateField) {
             if ($oDatum->$sPrivateField instanceof ORM\Field) {
@@ -235,8 +268,9 @@
         /**
          * @param ORM\Table $oBaseTable
          * @param null|string $sSearch
+         *
          * @return array|null
-         * @throws \Enobrev\API\Exception
+         * @throws Exception
          */
         public static function convertSearchTablesToORMTables(ORM\Table $oBaseTable, ?string $sSearch): ?array {
             if (!$sSearch) {
@@ -264,8 +298,9 @@
         /**
          * @param ORM\Table $oBaseTable
          * @param null|string $sSort
+         *
          * @return array|null
-         * @throws \Enobrev\API\Exception
+         * @throws Exception
          */
         public static function convertSortTablesToORMTables(ORM\Table $oBaseTable, ?string $sSort): ?array {
             if (!$sSort) {
