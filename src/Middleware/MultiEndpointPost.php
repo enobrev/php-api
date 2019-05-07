@@ -139,11 +139,11 @@
          *
          * @param string $sEndpoint
          *
-         * @return string
+         * @return mixed
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function fillEndpointTemplateFromData(string $sEndpoint): string {
+        private function fillEndpointTemplateFromData(string $sEndpoint) {
             //dbg($sEndpoint);
             $bMatched = preg_match_all('/{[^}]+}/', $sEndpoint, $aMatches);
             if ($bMatched && count($aMatches) > 0) {
@@ -163,11 +163,11 @@
         /**
          * @param string $sTemplate
          *
-         * @return string
+         * @return mixed
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function getTemplateValue($sTemplate): string {
+        private function getTemplateValue($sTemplate) {
             if (!is_string($sTemplate)) {
                 return $sTemplate;
             }
