@@ -111,7 +111,7 @@
          */
         public static function getFromCache(): ?self {
             if (!file_exists(self::$sPathToSpec)) {
-                self::generateAndCache();
+                return self::generateAndCache();
             }
 
             $sFullSpec = file_get_contents(self::$sPathToSpec);
