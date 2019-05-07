@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "144faaaef8a264121c0d0cb8e49ba152",
+    "content-hash": "248fc1726947501245826d9257252852",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -119,12 +119,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "fe53c01102b5d684254ccac4c0b3fb527c2a11c9"
+                "reference": "a43250400e1714f6f41989e79786fa86e2784b8f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/fe53c01102b5d684254ccac4c0b3fb527c2a11c9",
-                "reference": "fe53c01102b5d684254ccac4c0b3fb527c2a11c9",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/a43250400e1714f6f41989e79786fa86e2784b8f",
+                "reference": "a43250400e1714f6f41989e79786fa86e2784b8f",
                 "shasum": ""
             },
             "require": {
@@ -173,7 +173,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-05-04T05:19:03+00:00"
+            "time": "2019-05-07T18:16:57+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -3627,7 +3627,9 @@
     "prefer-lowest": false,
     "platform": {
         "php": ">=7.2",
-        "ext-json": "*"
+        "ext-json": "*",
+        "ext-readline": "*",
+        "ext-pdo": "*"
     },
     "platform-dev": {
         "ext-pdo": "*"
