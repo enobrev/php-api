@@ -119,12 +119,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "732320fa1fb38fd34f3c09cccccb3d0c98a9f4b5"
+                "reference": "b9ab87ff818a2b6c4eee8a5305d12b93040d219a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/732320fa1fb38fd34f3c09cccccb3d0c98a9f4b5",
-                "reference": "732320fa1fb38fd34f3c09cccccb3d0c98a9f4b5",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/b9ab87ff818a2b6c4eee8a5305d12b93040d219a",
+                "reference": "b9ab87ff818a2b6c4eee8a5305d12b93040d219a",
                 "shasum": ""
             },
             "require": {
@@ -173,7 +173,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-05-25T03:09:01+00:00"
+            "time": "2019-06-10T23:26:44+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -181,12 +181,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "53d5ccf1e49b5f2bb9892c816525d85bb2f64b33"
+                "reference": "512b212b7d24a2b4ee76bbb6ab419f3cb9bd372b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/53d5ccf1e49b5f2bb9892c816525d85bb2f64b33",
-                "reference": "53d5ccf1e49b5f2bb9892c816525d85bb2f64b33",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/512b212b7d24a2b4ee76bbb6ab419f3cb9bd372b",
+                "reference": "512b212b7d24a2b4ee76bbb6ab419f3cb9bd372b",
                 "shasum": ""
             },
             "require": {
@@ -228,19 +228,19 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2019-05-22T10:00:15+00:00"
+            "time": "2019-06-10T23:26:16+00:00"
         },
         {
             "name": "icecave/parity",
             "version": "1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/IcecaveStudios/parity.git",
+                "url": "https://github.com/icecave/parity.git",
                 "reference": "0109fef58b3230d23b20b2ac52ecdf477218d300"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/IcecaveStudios/parity/zipball/0109fef58b3230d23b20b2ac52ecdf477218d300",
+                "url": "https://api.github.com/repos/icecave/parity/zipball/0109fef58b3230d23b20b2ac52ecdf477218d300",
                 "reference": "0109fef58b3230d23b20b2ac52ecdf477218d300",
                 "shasum": ""
             },
@@ -291,12 +291,12 @@
             "version": "1.0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/IcecaveStudios/repr.git",
+                "url": "https://github.com/icecave/repr.git",
                 "reference": "8a3d2953adf5f464a06e3e2587aeacc97e2bed07"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/IcecaveStudios/repr/zipball/8a3d2953adf5f464a06e3e2587aeacc97e2bed07",
+                "url": "https://api.github.com/repos/icecave/repr/zipball/8a3d2953adf5f464a06e3e2587aeacc97e2bed07",
                 "reference": "8a3d2953adf5f464a06e3e2587aeacc97e2bed07",
                 "shasum": ""
             },
