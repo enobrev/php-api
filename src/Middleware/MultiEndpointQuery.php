@@ -158,10 +158,9 @@
                     try {
                         $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
                     } catch (RuntimeException $e) {
-                        Log::e('MultiEndpointQuery.getTemplateValue.JMESPath.error', [
+                        Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath.error', $e, [
                             'template'   => $sTemplate,
-                            'expression' => $sExpression,
-                            'error'      => $e
+                            'expression' => $sExpression
                         ]);
 
                         $aValues = [];
@@ -171,7 +170,7 @@
                         if (!is_array($aValues)) {
                             $aValues = [$aValues];
                         } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                            Log::e('MultiEndpointQuery.getTemplateValue.JMESPath', [
+                            Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath', $e, [
                                 'template'   => $sTemplate,
                                 'expression' => $sExpression,
                                 'values'     => json_encode($aValues)

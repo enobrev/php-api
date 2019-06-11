@@ -119,7 +119,7 @@
             try {
                 return unserialize($sFullSpec);
             } catch (Exception $e) {
-                Log::e('FullSpec.getFromCache.Invalid');
+                Log::ex('FullSpec.getFromCache.Invalid', $e);
                 return self::generateAndCache();
             }
         }

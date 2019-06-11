@@ -187,10 +187,9 @@
                     try {
                         $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
                     } catch (RuntimeException $e) {
-                        Log::e('MultiEndpointPost.getTemplateValue.JMESPath.error', [
+                        Log::ex('MultiEndpointPost.getTemplateValue.JMESPath.error', $e, [
                             'template'   => $sTemplate,
-                            'expression' => $sExpression,
-                            'error'      => $e
+                            'expression' => $sExpression
                         ]);
 
                         $aValues = [];
@@ -200,10 +199,9 @@
                         if (!is_array($aValues)) {
                             $aValues = [$aValues];
                         } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                            Log::e('MultiEndpointPost.getTemplateValue.JMESPath', [
+                            Log::ex('MultiEndpointPost.getTemplateValue.JMESPath', $e, [
                                 'template'   => $sTemplate,
-                                'expression' => $sExpression,
-                                'values'     => $aValues
+                                'expression' => $sExpression
                             ]);
 
                             throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
