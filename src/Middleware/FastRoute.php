@@ -98,7 +98,7 @@
 
             $oRequest = self::setAttribute($oRequest, (object) [
                 'class'      => $sClass,
-                'pathParams' => $aPathParams
+                'pathParams' => json_encode($aPathParams)
             ]);
 
             $oBuilder = ResponseBuilder::get($oRequest);
@@ -111,7 +111,7 @@
                 'method'     => $oRequest->getMethod(),
                 'path'       => $oRequest->getUri()->getPath(),
                 'class'      => $sClass,
-                'pathParams' => $aPathParams
+                'pathParams' => json_encode($aPathParams)
             ]);
 
             Log::justAddContext([
