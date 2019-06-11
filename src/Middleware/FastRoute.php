@@ -98,7 +98,7 @@
 
             $oRequest = self::setAttribute($oRequest, (object) [
                 'class'      => $sClass,
-                'pathParams' => json_encode($aPathParams)
+                'pathParams' => $aPathParams
             ]);
 
             $oBuilder = ResponseBuilder::get($oRequest);
