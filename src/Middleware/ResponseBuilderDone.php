@@ -27,7 +27,7 @@
             $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
             $sBody = null;
             try {
-                $sBody = json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+                $sBody = json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
             } catch (Exception $e) {
                 Log::ex('Enobrev.Middleware.ResponseBuilderDone', $e);
             }
