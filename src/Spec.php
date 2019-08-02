@@ -547,6 +547,10 @@
                     $oParam = $oParam->nullable();
                     break;
 
+                case $oField instanceof Field\Time:
+                    // No Formatting
+                    break;
+
                 case $oField instanceof Field\DateTime:
                     $oParam = $oParam->format('date-time');
                     break;
