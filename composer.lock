@@ -181,12 +181,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "93bda80b68ba0c69cd6ea1e8b6a73d843cb150be"
+                "reference": "01809a2d9abbe189c82270e26b02325f0265ffe7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/93bda80b68ba0c69cd6ea1e8b6a73d843cb150be",
-                "reference": "93bda80b68ba0c69cd6ea1e8b6a73d843cb150be",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/01809a2d9abbe189c82270e26b02325f0265ffe7",
+                "reference": "01809a2d9abbe189c82270e26b02325f0265ffe7",
                 "shasum": ""
             },
             "require": {
@@ -228,7 +228,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2019-09-05T16:39:40+00:00"
+            "time": "2019-09-05T17:06:37+00:00"
         },
         {
             "name": "icecave/parity",
