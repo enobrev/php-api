@@ -47,10 +47,10 @@
         "zendframework/zend-diactoros": "^1.8.6"
     },
     "require-dev": {
-        "nategood/commando": "^0.3.0",
+        "ext-pdo": "*",
+        "nategood/commando": "^0.4.0",
         "phpunit/phpunit": "^8.1",
-        "vimeo/psalm": "^3.0",
-      "ext-pdo": "*"
+        "vimeo/psalm": "^3.0"
     },
     "autoload": {
         "psr-4": {
