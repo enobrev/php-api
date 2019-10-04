@@ -26,7 +26,8 @@
                         'query' => $oRequest->getQueryParams(),
                         'post'  => $oRequest->getParsedBody()
                     ],
-                    'headers'    => json_encode($oRequest->getHeaders())
+                    'headers'    => json_encode($oRequest->getHeaders()),
+                    'status'     => 200 // assumes any non-200 status will be set by the error handler
                 ]);
                 $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
             }
