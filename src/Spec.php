@@ -2,7 +2,7 @@
     namespace Enobrev\API;
 
     use Adbar\Dot;
-    use Middlewares\Utils\HttpErrorException;
+    use Middlewares\HttpErrorException;
 
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\FullSpec\Component\ParamSchema;

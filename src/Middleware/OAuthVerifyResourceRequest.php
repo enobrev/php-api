@@ -98,7 +98,7 @@
                     $aContext = [$sDescription];
                 }
 
-                throw Middlewares\Utils\HttpErrorException::create($iStatusCode, $aContext);
+                throw Middlewares\HttpErrorException::create($iStatusCode, $aContext);
             }
 
             Log::dt($oTimer);
