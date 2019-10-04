@@ -40,6 +40,7 @@
         "enobrev/php-orm": "dev-master",
         "enobrev/php-tools": "dev-master",
         "justinrainbow/json-schema": "dev-master",
+        "middlewares/error-handler": "^2.0",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
         "twig/twig": "^2.9",

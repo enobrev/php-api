@@ -1,7 +1,7 @@
 <?php
     namespace Enobrev\API\Exception;
 
-    use Middlewares\HttpErrorException;
+    use Middlewares\Utils\HttpErrorException;
 
     use Enobrev\API\HTTP;
 
