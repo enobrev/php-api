@@ -96,16 +96,20 @@
         }
 
         /**
-         * @param string        $sParam
-         * @param Param\_Object $oParam
-         * @param array         $aRequestParams
+         * @param string         $sParam
+         * @param Param\_Object  $oParam
+         * @param array|stdClass $aRequestParams
          *
-         * @return array
+         * @return array|stdClass
          */
-        private function coerceObject(string $sParam, Param\_Object $oParam, array $aRequestParams) {
+        private function coerceObject(string $sParam, Param\_Object $oParam, $mRequestParams) {
             $bCoerced = false;
             if ($oParam->hasItems()) {
-                $oCoerced = $aRequestParams[$sParam] ?? new stdClass();
+                if ($mRequestParams instanceof stdClass) {
+                    $oCoerced = $mRequestParams->$sParam ?? new stdClass();
+                } else {
+                    $oCoerced = $mRequestParams[$sParam] ?? new stdClass();
+                }
 
                 /** @var Param $oSubParam */
                 foreach($oParam->getItems() as $sSubParam => $oSubParam) {
@@ -125,10 +129,14 @@
                 }
 
                 if ($bCoerced) {
-                    $aRequestParams[$sParam] = $oCoerced;
+                    if ($mRequestParams instanceof stdClass) {
+                        $mRequestParams->$sParam = $oCoerced;
+                    } else {
+                        $mRequestParams[$sParam] = $oCoerced;
+                    }
                 }
             }
 
-            return $aRequestParams;
+            return $mRequestParams;
         }
     }
