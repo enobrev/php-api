@@ -121,7 +121,7 @@
                     );
 
                     if ($oValidator->isValid() === false) {
-                        Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'PostBodySchemaSelector.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                        Log::e('Enobrev.Middleware.ValidateSpec.validatePostParameters', ['state' => 'PostBodySchemaSelector.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
                         throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
                     }
                 } else {
@@ -142,7 +142,7 @@
                         if ($oValidator->isValid()) {
                             $bValid = true;
                         } else {
-                            Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'PostBodyOneOf.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                            Log::e('Enobrev.Middleware.ValidateSpec.validatePostParameters', ['state' => 'PostBodyOneOf.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
                             $oError = ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
                         }
                     }
@@ -160,7 +160,7 @@
                 );
 
                 if ($oValidator->isValid() === false) {
-                    Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'Other.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                    Log::e('Enobrev.Middleware.ValidateSpec.validatePostParameters', ['state' => 'Other.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
                     throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
                 }
             }
