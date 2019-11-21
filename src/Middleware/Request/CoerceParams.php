@@ -71,6 +71,7 @@
                 foreach ($oSpec->resolvePostParams() as $sParam => $oParam) {
                     if (isset($aPostParams[$sParam])) {
                         $mCoerced = $oParam->coerce($aPostParams[$sParam]);
+                        Log::d('Enobrev.Middleware.CoerceParams.post', ['original' => var_export($aPostParams[$sParam], true), 'coerced' => var_export($mCoerced)])
                         if ($mCoerced !== $aPostParams[$sParam]) {
                             $aPostParams[$sParam] = $mCoerced;
                             $aCoerced['post'][] = $sParam;
