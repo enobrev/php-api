@@ -93,11 +93,13 @@
                 $mValue = (object) $mValue;
             }
 
-            if (isset($this->aValidation['items'])) {
-                $oItems = $this->aValidation['items'];
-                if ($oItems instanceof Param) {
-                    foreach ($mValue as &$mItem) {
-                        $mItem = $oItems->coerce($mItem);
+            if (isset($this->aValidation['items']) && is_array($this->aValidation['items'])) {
+                foreach ($mValue as $sProperty => &$mItem) {
+                    if (isset($this->aValidation['items'][$sProperty])) {
+                        $oParam = $this->aValidation['items'][$sProperty];
+                        if ($oParam instanceof Param) {
+                            $mItem = $oParam->coerce($mItem);
+                        }
                     }
                 }
             }
