@@ -133,9 +133,31 @@
             return self::generateAndCache();
         }
 
+        /**
+         * ensures named sub-paths come before {var} subpaths
+         * @return array
+         */
+        protected function sortPaths(): void {
+            foreach($this->aSpecs as $sVersion => &$aSpec) {
+                ksort($aSpec, SORT_NATURAL);
+            }
+            unset($aSpec);
+        }
+
+        /**
+         * Flatten the specs array for routing
+         * @return array
+         */
         public function getRoutes(): array {
-            ksort($this->aSpecs, SORT_NATURAL);
-            return $this->aSpecs;
+            $this->sortPaths();
+
+            $aRoutes = [];
+            foreach($this->aSpecs as $sVersion => $aPaths) {
+                foreach($aPaths as $sPath => $aMethods) {
+                    $aRoutes[$sPath] = $aMethods;
+                }
+            }
+            return $aRoutes;
         }
 
         /**
@@ -168,11 +190,12 @@
         /**
          * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
          *
+         * @param string $sVersion
          * @param array $aScopes
          *
          * @return Dot
          */
-        public function getOpenAPI(array $aScopes = []): Dot {
+        public function getOpenAPI(string $sVersion, array $aScopes = []): Dot {
             $oData = new Dot([
                 'openapi'   => '3.0.1',
                 'info'      => [],
@@ -325,18 +348,25 @@ DESCRIPTION
              * @var string $sPath
              * @var Spec $oSpec
              */
-            ksort($this->aSpecs, SORT_NATURAL); // ensures named sub-paths come before {var} subpaths
-            foreach($this->aSpecs as $sPath => $aMethods) {
-                foreach($aMethods as $sHttpMethod => $sSpecInterface) {
-                    /** @var SpecInterface $oSpecInterface */
-                    $oSpecInterface = new $sSpecInterface;
-                    $oSpec          = $oSpecInterface->spec();
 
-                    if (count($aScopes) && !$oSpec->hasAnyOfTheseScopes($aScopes)) {
-                        continue;
+            $this->sortPaths();
+            foreach($this->aSpecs as $sSpecVersion => $aPaths) {
+                if ($sVersion !== $sSpecVersion) {
+                    continue;
+                }
+
+                foreach($aPaths as $sPath => $aMethods) {
+                    foreach($aMethods as $sHttpMethod => $sSpecInterface) {
+                        /** @var SpecInterface $oSpecInterface */
+                        $oSpecInterface = new $sSpecInterface;
+                        $oSpec          = $oSpecInterface->spec();
+
+                        if (count($aScopes) && !$oSpec->hasAnyOfTheseScopes($aScopes)) {
+                            continue;
+                        }
+
+                        $oData->set("paths.{$oSpec->getPathForDocs()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
                     }
-
-                    $oData->set("paths.{$oSpec->getPathForDocs()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
                 }
             }
 
@@ -348,6 +378,10 @@ DESCRIPTION
          */
         private function specsFromSpecInterfaces(): void {
             foreach (self::$aVersions as $sVersion) {
+                if (!isset($this->aSpecs[$sVersion])) {
+                    $this->aSpecs[$sVersion] = [];
+                }
+
                 $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
                     /** @var SplFileInfo[] $aFiles */
@@ -393,11 +427,11 @@ DESCRIPTION
                                         $sPath       = $oSpec->getPath();
                                         $sHttpMethod = $oSpec->getHttpMethod();
 
-                                        if (!isset($this->aSpecs[$sPath])) {
-                                            $this->aSpecs[$sPath] = [];
+                                        if (!isset($this->aSpecs[$sVersion][$sPath])) {
+                                            $this->aSpecs[$sVersion][$sPath] = [];
                                         }
 
-                                        $this->aSpecs[$sPath][$sHttpMethod] = $sFullClass;
+                                        $this->aSpecs[$sVersion][$sPath][$sHttpMethod] = $sFullClass;
                                     } else if ($oReflectionClass->implementsInterface(ComponentListInterface::class)) {
                                         /** @var ComponentListInterface $oClass */
                                         $oClass      = new $sFullClass();
