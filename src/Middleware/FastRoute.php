@@ -3,8 +3,6 @@
 
     namespace Enobrev\API\Middleware;
 
-    use Enobrev\API\Exception\EndpointNotFound;
-    use Enobrev\API\Exception\MethodNotAllowed;
     use FastRoute as FastRouteLib;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
@@ -13,6 +11,8 @@
     use Zend\Diactoros\Response;
 
     use Enobrev\API\HTTP;
+    use Enobrev\API\Exception\EndpointNotFound;
+    use Enobrev\API\Exception\MethodNotAllowed;
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\Request\AttributeFullSpecRoutes;
     use Enobrev\API\RequestAttribute;
@@ -54,9 +54,11 @@
             $oTimerDispatcher  = Log::startTimer('Enobrev.Middleware.FastRoute.Dispatcher');
             $oRouter = FastRouteLib\simpleDispatcher(static function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
                 $aRoutes = AttributeFullSpecRoutes::getRoutes($oRequest);
-                foreach($aRoutes as $sPath => $aMethods) {
-                    foreach($aMethods as $sMethod => $sClass) {
-                        $oRouteCollector->addRoute($sMethod, $sPath, $sClass);
+                if ($aRoutes) {
+                    foreach ($aRoutes as $sPath => $aMethods) {
+                        foreach ($aMethods as $sMethod => $sClass) {
+                            $oRouteCollector->addRoute($sMethod, $sPath, $sClass);
+                        }
                     }
                 }
             });
