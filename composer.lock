@@ -119,12 +119,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "c0b0f26fd9897ee1961f9a83dec9e21c5546cf69"
+                "reference": "05e50f9f07095834c57be50519c99a3abd1db558"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/c0b0f26fd9897ee1961f9a83dec9e21c5546cf69",
-                "reference": "c0b0f26fd9897ee1961f9a83dec9e21c5546cf69",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/05e50f9f07095834c57be50519c99a3abd1db558",
+                "reference": "05e50f9f07095834c57be50519c99a3abd1db558",
                 "shasum": ""
             },
             "require": {
@@ -173,7 +173,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2019-12-08T09:35:25+00:00"
+            "time": "2020-02-12T08:23:21+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -1491,6 +1491,7 @@
                 "psr",
                 "psr-7"
             ],
+            "abandoned": "laminas/laminas-diactoros",
             "time": "2018-09-05T19:29:37+00:00"
         }
     ],
