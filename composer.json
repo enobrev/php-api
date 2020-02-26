@@ -24,10 +24,6 @@
         {
             "type": "vcs",
             "url":  "https://github.com/enobrev/php-tools"
-        },
-        {
-            "type": "vcs",
-            "url":  "https://github.com/melbings/php-dot-notation.git"
         }
     ],
     "require": {
@@ -39,7 +35,7 @@
         "bshaffer/oauth2-server-php": "^1.11",
         "enobrev/php-orm": "dev-master",
         "enobrev/php-tools": "dev-master",
-        "justinrainbow/json-schema": "dev-master",
+        "justinrainbow/json-schema": "^5.2",
         "middlewares/error-handler": "^1.2",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
