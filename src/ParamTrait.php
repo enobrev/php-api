@@ -61,12 +61,14 @@
             return $this->validation(['default' => $mDefault]);
         }
 
-        public function example($mDefault): self {
-            return $this->validation(['example' => $mDefault]);
+        public function example($mExample): self {
+            $oClone = clone $this;
+            $oClone->sExample = $mExample;
+            return $oClone;
         }
 
-        public function addExample(string $sName, $mValue, ?string $sSummary = null): self {
-            $aExamples = $this->aValidation['examples'] ?? [];
+        public function addExample(string $sName, $mValue, ?string $sSummary = null, ?string $sDescription = null): self {
+            $aExamples = $this->aExamples;
             $aExamples[$sName] = [
                 'value' => $mValue
             ];
@@ -74,8 +76,14 @@
             if ($sSummary) {
                 $aExamples[$sName]['summary'] = $sSummary;
             }
-            
-            return $this->validation(['examples' => $aExamples]);
+
+            if ($sDescription) {
+                $aExamples[$sName]['description'] = $sDescription;
+            }
+
+            $oClone = clone $this;
+            $oClone->aExamples = $aExamples;
+            return $oClone;
         }
 
         public function description(string $sDescription):self {

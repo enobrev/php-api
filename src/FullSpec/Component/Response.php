@@ -16,7 +16,7 @@
         private $sSummary;
 
         /** @var string */
-        private $sDescription;
+        private $sDescription = '';
 
         /** @var OpenApiInterface[] */
         private $aSchemas;

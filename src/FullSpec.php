@@ -197,7 +197,7 @@
          */
         public function getOpenAPI(string $sVersion, array $aScopes = []): Dot {
             $oData = new Dot([
-                'openapi'   => '3.0.1',
+                'openapi'   => '3.0.3',
                 'info'      => [],
                 'servers'   => [],
                 'paths'     => [],
@@ -457,7 +457,8 @@ DESCRIPTION
                     '_request' => [
                         '$ref' => '#/components/schemas/_request'
                     ]
-                ]
+                ],
+                'description' => 'This schema gets merged with every response as the standard baseline response'
             ],
             '_server'  => [
                 'type'                 => 'object',

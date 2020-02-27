@@ -634,7 +634,7 @@
                     $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getJsonSchemaForOpenAPI());
 
                     if ($mValue instanceof Param && $mValue->isRequired()) {
-                        $oResponse->push('required', $sName);
+                        $oResponse->push('required', (string) $sName);
                     }
                 } else if ($mValue instanceof OpenApiInterface) {
                     $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getOpenAPI());
@@ -735,22 +735,17 @@
             } else {
                 $oPostJsonParams = new Dot(self::toJsonSchema($this->aPostParams));
                 $aPost = [];
+                $aRequired = [];
 
                 foreach ($this->aPostParams as $sParam => $oParam) {
                     if (strpos($sParam, '.') !== false) {
                         continue;
                     }
 
-                    if ($oParam instanceof Param\_Object) {
-                        $aParam = $oParam->OpenAPI($sParam, null);
-                        $aParam['schema'] = $oPostJsonParams->get("properties.{$sParam}");
-                        $aPost[$sParam] = $aParam;
-                    } else {
-                        $aPost[$sParam] = $oParam->getJsonSchemaForOpenAPI();
+                    $aPost[$sParam] = $oParam->getJsonSchemaForOpenAPI();
 
-                        if ($oParam->isRequired()) {
-                            $aPost[$sParam]['required'] = true;
-                        }
+                    if ($oParam->isRequired()) {
+                        $aRequired[] = $sParam;
                     }
                 }
 
@@ -765,6 +760,10 @@
                             ]
                         ]
                     ];
+
+                    if (count($aRequired)) {
+                        $aMethod['requestBody']['content']['multipart/form-data']['schema']['required'] = $aRequired;
+                    }
                 }
             }
 
@@ -781,7 +780,15 @@
                     $aDescription = [];
                     $aSchemas     = [];
                     foreach ($aResponses as $oResponse) {
-                        if ($oResponse instanceof OpenApiResponseSchemaInterface) {
+                        if ($oResponse instanceof JsonSchemaInterface) {
+                            $sDescription = $iStatus . ' Response';
+                            if ($oResponse instanceof ErrorResponseInterface) {
+                                $sDescription = $oResponse->getMessage();
+                            }
+
+                            $aDescription[] = $sDescription;
+                            $aSchemas[]     = $oResponse->getJsonSchemaForOpenAPI();
+                        } else if ($oResponse instanceof OpenApiResponseSchemaInterface) {
                             $sDescription = $iStatus . ' Response';
                             if ($oResponse instanceof ErrorResponseInterface) {
                                 $sDescription = $oResponse->getMessage();

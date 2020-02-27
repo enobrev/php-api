@@ -28,8 +28,15 @@
         /** @var int */
         protected $iOptions;
 
+        /** @var string */
+        protected $sExample;
+
+        /** @var array */
+        protected $aExamples;
+
         public function __construct() {
             $this->aValidation  = [];
+            $this->aExamples    = [];
         }
 
         public function isRequired(): bool {
@@ -117,12 +124,7 @@
             $aSchema['type'] = $this->getType();
 
             if ($this->isNullable()) {
-                return [
-                    'anyOf' => [
-                        $aSchema,
-                        ['type' => 'null']
-                    ]
-                ];
+                $aSchema['nullable'] = true;
             }
 
             if ($this->sDescription) {
@@ -182,12 +184,16 @@
                 $aOutput['deprecated'] = true;
             }
 
-            if ($this->isNullable()) {
-                $aOutput['nullable'] = true;
-            }
-
             if ($this->sDescription) {
                 $aOutput['description'] = $this->sDescription;
+            }
+
+            if (!empty($this->sExample)) {
+                $aOutput['example'] = $this->sExample;
+            }
+
+            if (!empty($this->aExamples)) {
+                $aOutput['examples'] = $this->aExamples;
             }
 
             return $aOutput;
