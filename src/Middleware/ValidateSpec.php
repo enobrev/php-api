@@ -2,7 +2,6 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
-    use Enobrev\API\FullSpec\Component\Schema;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares;
@@ -10,13 +9,14 @@
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
+    use ReflectionException;
 
     use Enobrev\API\Exception\ValidationException;
+    use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
-    use ReflectionException;
 
     class ValidateSpec implements MiddlewareInterface {
         /**

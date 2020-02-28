@@ -124,7 +124,12 @@
             $aSchema['type'] = $this->getType();
 
             if ($this->isNullable()) {
-                $aSchema['nullable'] = true;
+                return [
+                    'anyOf' => [
+                        $aSchema,
+                        ['type' => 'null']
+                    ]
+                ];
             }
 
             if ($this->sDescription) {
