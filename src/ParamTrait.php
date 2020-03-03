@@ -2,6 +2,8 @@
     namespace Enobrev\API;
 
 
+    use cebe\openapi\spec\Schema;
+
     trait ParamTrait {
         public static function create(): self {
             return new self();

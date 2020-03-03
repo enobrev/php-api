@@ -1,11 +1,12 @@
 <?php
     namespace Enobrev\API\Spec;
 
+    use cebe\openapi\SpecObjectInterface;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\OpenApiInterface;
-    use Enobrev\API\OpenApiResponseSchemaInterface;
 
-    class RefResponse implements OpenApiInterface, OpenApiResponseSchemaInterface {
+    /** @deprecated ?? */
+    class RefResponse implements OpenApiInterface {
 
         /** @var string */
         private $sName;
@@ -20,5 +21,9 @@
 
         public function getOpenAPI(): array {
             return Reference::create($this->sName)->getOpenAPI();
+        }
+
+        public function getSpecObject(): SpecObjectInterface {
+            throw new \Exception('I did not think this would ever be called.');
         }
     }

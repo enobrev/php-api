@@ -1,12 +1,16 @@
 <?php
     namespace Enobrev\API\Spec;
 
+    use cebe\openapi\spec\Schema;
+    use cebe\openapi\spec\Reference;
+    use cebe\openapi\SpecObjectInterface;
+
     use Enobrev\API\FullSpec;
     use Enobrev\API\OpenApiInterface;
-    use Enobrev\API\OpenApiResponseSchemaInterface;
     use Enobrev\API\Spec;
+    use function Enobrev\dbg;
 
-    class JsonResponse implements OpenApiInterface, OpenApiResponseSchemaInterface {
+    class JsonResponse implements OpenApiInterface {
         private const TYPE_ALLOF = 'allOf';
         private const TYPE_ANYOF = 'anyOf';
         private const TYPE_ONEOF = 'oneOf';
@@ -93,5 +97,48 @@
             }
 
             return null;
+        }
+
+        public function getSpecObject(): SpecObjectInterface {
+            if (!$this->mSchema) {
+                return new Reference(['$ref' => FullSpec::RESPONSE_DEFAULT]);
+            }
+
+            if ($this->sType) {
+                $aResponse = [];
+
+                foreach($this->mSchema as $mSchemaItem) {
+                    if ($mSchemaItem instanceof OpenApiInterface) {
+                        $aResponse[] = $mSchemaItem->getSpecObject();
+                    } else if ($mSchemaItem instanceof SpecObjectInterface) {
+                        $aResponse[] = $mSchemaItem;
+                    } else if (is_array($mSchemaItem)) {
+                        $aResponse[] = Spec::arrayToSchema($mSchemaItem);
+                    } else {
+                        dbg('JsonResponse.getSpecObject.NoIdea', $mSchemaItem);
+                        //$aResponse[] = $mSchemaItem;
+                    }
+                }
+
+                $aReturn = [
+                    $this->sType => $aResponse
+                ];
+
+                if ($this->sTitle) {
+                    $aReturn['title'] = $this->sTitle;
+                }
+
+                return new Schema($aReturn);
+            }
+
+            if ($this->mSchema instanceof OpenApiInterface) {
+                return $this->mSchema->getSpecObject();
+            }
+
+            if (is_array($this->mSchema)) {
+                return Spec::arrayToSchema($this->mSchema);
+            }
+
+            throw new \Exception('No Schema to Return');
         }
     }

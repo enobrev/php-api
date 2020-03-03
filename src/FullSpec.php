@@ -2,6 +2,20 @@
     namespace Enobrev\API;
 
     use Exception;
+    use FilesystemIterator;
+    use RecursiveIteratorIterator;
+    use RecursiveDirectoryIterator;
+    use ReflectionClass;
+    use ReflectionException;
+    use SplFileInfo;
+
+    use Adbar\Dot;
+    use cebe\openapi\spec\Components;
+    use cebe\openapi\spec\PathItem;
+    use cebe\openapi\spec\Paths;
+    use cebe\openapi\spec\Reference;
+    use cebe\openapi\spec\Schema;
+    use cebe\openapi\Writer;
 
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component;
@@ -11,15 +25,6 @@
     use Enobrev\API\Spec\ServerErrorResponse;
     use Enobrev\API\Spec\ValidationErrorResponse;
     use Enobrev\Log;
-
-    use FilesystemIterator;
-    use RecursiveIteratorIterator;
-    use RecursiveDirectoryIterator;
-    use ReflectionClass;
-    use ReflectionException;
-
-    use Adbar\Dot;
-    use SplFileInfo;
 
     class FullSpec {
 
@@ -188,34 +193,173 @@
         }
 
         /**
-         * Generates paths and components for openapi spec.  Final spec still requires info and servers stanzas
+         * Generates paths for openapi spec.
          *
-         * @param string $sVersion
-         * @param array $aScopes
-         *
-         * @return Dot
+         * @return Paths
          */
-        public function getOpenAPI(string $sVersion, array $aScopes = []): Dot {
+        public function getPaths(string $sVersion, array $aScopes, array $aOnlyPaths = []): Paths {
+            $oData = new Dot();
+
+            $oPaths = new Paths([]);
+            $this->sortPaths();
+            foreach($this->aSpecs as $sSpecVersion => $aPaths) {
+                if ($sVersion !== $sSpecVersion) {
+                    continue;
+                }
+
+                foreach($aPaths as $sPath => $aMethods) {
+                    if (count($aOnlyPaths) && !in_array($sPath, $aOnlyPaths)) {
+                        continue;
+                    }
+
+                    foreach($aMethods as $sHttpMethod => $sSpecInterface) {
+                        /** @var SpecInterface $oSpecInterface */
+                        $oSpecInterface = new $sSpecInterface;
+                        $oSpec          = $oSpecInterface->spec();
+
+                        if (count($aScopes) && !$oSpec->hasAnyOfTheseScopes($aScopes)) {
+                            continue;
+                        }
+
+                        // It's easiset to simply merge everything here and then sort through the remains
+                        $oData->set("{$oSpec->getPathForDocs()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOperation());
+                    }
+                }
+            }
+
+            foreach($oData->all() as $sPath => $aPath) {
+                $oPathItem = new PathItem([]);
+                foreach($aPath as $sMethod => $oOperation) {
+                    $oPathItem->$sMethod = $oOperation;
+                }
+                $oPaths->addPath($sPath, $oPathItem);
+            }
+
+            return $oPaths;
+        }
+
+        /**
+         * Generates components for openapi spec.
+         *
+         * @return array
+         */
+        public function getComponents(): Components {
             $oData = new Dot([
-                'openapi'   => '3.0.3',
-                'info'      => [],
-                'servers'   => [],
-                'paths'     => [],
-                'components' => [
-                    'schemas' => self::DEFAULT_RESPONSE_SCHEMAS,
-                    'responses' => [
-                        self::_DEFAULT => Component\Response::create(self::RESPONSE_DEFAULT)
-                            ->summary('OK')
-                            ->json(Component\Reference::create(self::SCHEMA_DEFAULT))
-                            ->getOpenAPI(),
-                        self::_CREATED => Component\Response::create(self::RESPONSE_CREATED)
-                            ->summary('Created')
-                            ->json(Component\Reference::create(self::SCHEMA_DEFAULT))
-                            ->description('New record was created.  If a new key was generated for the record, See Location header')
-                            ->getOpenAPI(),
-                        self::_BAD_REQUEST => Component\Response::create(self::RESPONSE_BAD_REQUEST)
-                            ->summary('Bad Request')
-                            ->description(<<<DESCRIPTION
+                'responses' => self::getDefaultResponses()
+            ]);
+
+            self::setDefaultSchemas($oData);
+
+            ksort($this->aComponents, SORT_NATURAL); // because why not
+
+            foreach($this->aComponents as $oComponent) {
+                [$sCategory, $sName] = explode('/', $oComponent->getName());
+                $oData->set("$sCategory.$sName", $oComponent->getSpecObject());
+            }
+
+            /*
+            foreach($oData->all() as $sCategory => $aComponents) {
+                foreach($aComponents as $sComponent => $oComponent) {
+                    dbg($sCategory . ' - ' . $sComponent . ' - ' . get_class($oComponent));
+                }
+            }
+            */
+
+            return new Components($oData->all());
+        }
+
+        private function setDefaultSchemas(Dot &$oData): void {
+            $oData->set('schemas._default', new Schema([
+                'type'       => 'object',
+                'properties' => [
+                    '_server'  => new Reference(['$ref' => '#/components/schemas/_server']),
+                    '_request' => new Reference(['$ref' => '#/components/schemas/_request'])
+                ],
+                'description' => 'This schema gets merged with every response as the standard baseline response'
+            ]));
+
+            $oData->set('schemas._server', new Schema([
+                'type'        => 'object',
+                'additionalProperties' => false,
+                'properties'  => [
+                    'timezone'      => new Schema(['type' => 'string', 'example' => 'CDT']),
+                    'timezone_gmt'  => new Schema(['type' => 'string', 'example' => '-05:00']),
+                    'date'          => new Schema(['type' => 'string', 'example' => '2018-08-31 16:57:21']),
+                    'date_w3c'      => new Schema(['type' => 'string', 'example' => '2018-08-31T16:57:21-05:00'])
+                ],
+                'description' => <<<DESCRIPTION
+The `_server` object lists the current time on our backend.  This is useful when trying to use `sync` functionality, 
+as well as for converting timestamps returned by the server to the client's local time.  The times given are
+retrieved from the database which should ensure that they are consistent, regardless of clock-skew between
+multiple servers.
+DESCRIPTION
+            ]));
+
+            $oData->set('schemas._request', new Schema([
+                'type'       => 'object',
+                'additionalProperties' => false,
+                'properties' => [
+                    'method'      => new Schema(['type' => 'string', 'enum' => ['GET', 'POST', 'DELETE']]),
+                    'path'        => new Schema(['type' => 'string']),
+                    'params'      => new Schema([
+                        'type' => 'object',
+                        'properties' => [
+                            'path'      => new Schema(['type' => 'object', 'description' => 'Parameters that were found in the URI Path']),
+                            'query'     => new Schema(['type' => 'object', 'description' => 'Parameters that were found in the URI Search']),
+                            'post'      => new Schema(['type' => 'object', 'description' => 'Parameters that were found in the Request Body']),
+                        ],
+                    ]),
+                    'headers' => new Schema(['type' => 'string', 'description' => 'JSON Encoded String of request headers']),
+                    'logs'      => new Schema([
+                        'type' => 'object',
+                        'properties' => [
+                            'thread'      => new Schema(['type' => 'string', 'description' => 'Alphanumeric hash for looking up entire request thread in logs']),
+                            'request'     => new Schema(['type' => 'string', 'description' => 'Alphanumeric hash for looking up specific API request in logs'])
+                        ],
+                    ]),
+                    'status' => new Schema(['type' => 'integer', 'default' => 200, 'description' => 'This will not always show up, but is most useful when trying to find out what happened in `multiquery` requests']),
+                    'multiquery'      => new Schema([
+                        'type' => 'object',
+                        'properties' => [
+                            '_server'  => new Reference(['$ref' => '#/components/schemas/_server']),
+                            '_request' => new Reference(['$ref' => '#/components/schemas/_request'])
+                        ],
+                         'description'          => <<<DESCRIPTION
+The `_request.multiquery` object holds a collection of all the `_request` and `_server` objects from every sub-request that was preformed
+helps with finding out why you might not have received the data you were expecting. 
+
+This will only show up in cases of multiquery requests.
+DESCRIPTION
+                    ]),
+                ],
+                'description'          => <<<DESCRIPTION
+The `_request` object can help the client developer find out if maybe what was sent was misinterpreted by the server for some reason.
+DESCRIPTION
+            ]));
+
+            $oData->set('schemas._any', new Schema([]));
+
+        }
+
+        /**
+         * Generates responses for openapi spec.
+         *
+         * @return array
+         */
+        private function getDefaultResponses(): array {
+            return [
+                self::_DEFAULT => Component\Response::create(self::RESPONSE_DEFAULT)
+                    ->summary('OK')
+                    ->json(Component\Reference::create(self::SCHEMA_DEFAULT))
+                    ->getSpecObject(),
+                self::_CREATED => Component\Response::create(self::RESPONSE_CREATED)
+                    ->summary('Created')
+                    ->json(Component\Reference::create(self::SCHEMA_DEFAULT))
+                    ->description('New record was created.  If a new key was generated for the record, See Location header')
+                    ->getSpecObject(),
+                self::_BAD_REQUEST => Component\Response::create(self::RESPONSE_BAD_REQUEST)
+                    ->summary('Bad Request')
+                    ->description(<<<DESCRIPTION
 ### Validation Errors
 
 See `_errors.validation` in the response for details
@@ -229,32 +373,32 @@ is a bit different from our standard error / message error responses.
 When dealing with these errors, first look at the `constraint` portion of the error to figure out why what the client sent was not found
 acceptable.  If it should be, contact an API developer to adjust the specification to meet the needs of the client in question. 
 DESCRIPTION
-                            )
-                            ->json(
-                                ValidationErrorResponse::create()
-                                    ->message('Request Validation Error')
-                                    ->code(HTTP\BAD_REQUEST)
-                            )
-                            ->getOpenAPI(),
-                        self::_UNAUTHORIZED => Component\Response::create(self::RESPONSE_UNAUTHORIZED)
-                            ->summary('Unauthorized')
-                            ->description(<<<DESCRIPTION
+                    )
+                    ->json(
+                        ValidationErrorResponse::create()
+                            ->message('Request Validation Error')
+                            ->code(HTTP\BAD_REQUEST)
+                    )
+                    ->getSpecObject(),
+                self::_UNAUTHORIZED => Component\Response::create(self::RESPONSE_UNAUTHORIZED)
+                    ->summary('Unauthorized')
+                    ->description(<<<DESCRIPTION
 ### Unauthorized Access
 
 See `_errors.authentication` in the response for details
 
 The Access Token in the request was invalid. The client should re-authenticate in order to use this endpoint.
 DESCRIPTION
-                            )
-                            ->json(
-                                AuthenticationErrorResponse::create()
-                                    ->message('Unauthorized')
-                                    ->code(HTTP\UNAUTHORIZED)
-                            )
-                            ->getOpenAPI(),
-                        self::_FORBIDDEN => Component\Response::create(self::RESPONSE_FORBIDDEN)
-                            ->summary('Forbidden')
-                            ->description(<<<DESCRIPTION
+                    )
+                    ->json(
+                        AuthenticationErrorResponse::create()
+                            ->message('Unauthorized')
+                            ->code(HTTP\UNAUTHORIZED)
+                    )
+                    ->getSpecObject(),
+                self::_FORBIDDEN => Component\Response::create(self::RESPONSE_FORBIDDEN)
+                    ->summary('Forbidden')
+                    ->description(<<<DESCRIPTION
 ## Forbidden Access
 
 See `_errors.authentication` in the response for details
@@ -262,27 +406,27 @@ See `_errors.authentication` in the response for details
 The authenticated profile does not have access to this endpoint.  The auth token may be for a different scope (like trying 
 to use a `cms` token for an `ios` action, or there may be some other reason described in the error output.
 DESCRIPTION
-                            )
-                            ->json(
-                                AuthenticationErrorResponse::create()
-                                    ->message('Forbidden')
-                                    ->code(HTTP\FORBIDDEN)
-                            )
-                            ->getOpenAPI(),
-                        self::_UNPROCESSABLE_ENTITY => Component\Response::create(self::RESPONSE_UNPROCESSABLE_ENTITY)
-                            ->summary('Error while Processing Request')
-                            ->description(<<<DESCRIPTION
+                    )
+                    ->json(
+                        AuthenticationErrorResponse::create()
+                            ->message('Forbidden')
+                            ->code(HTTP\FORBIDDEN)
+                    )
+                    ->getSpecObject(),
+                self::_UNPROCESSABLE_ENTITY => Component\Response::create(self::RESPONSE_UNPROCESSABLE_ENTITY)
+                    ->summary('Error while Processing Request')
+                    ->description(<<<DESCRIPTION
 ### Process Errors
 
 See `_errors.process` in the response for details
 
 Process errors occur when everything is working as expected, but something went wrong anyway.  This may include validation that runs beyond the
 scope of our validation library, which has its own explicit output format (see `400` Request Validation Error documentation for details).
-  
+
 When trying to figure out what happened in these cases, keep in mind that process errors were explicitly written into the endpoint source, and are
 not part of the standard validation.  If the client developer can't figure out what's going wrong, reviewing the code of the endpoint or discussing it
 with the backend team is the best way to resolve the issue.
-  
+
 One example of error that falls under this category is when groups of parameters are required 
 
 > `city_id` OR (`latitude` AND `longitude`)  
@@ -290,16 +434,16 @@ One example of error that falls under this category is when groups of parameters
 Our validation library does not enable us to check for this sort of requirement automatically, and so the source of the endpoint would handle that.
 Technically the request would have passed validation, and now, as the endpoint tried to process the request, it was not able to for some reason.
 DESCRIPTION
-                            )
-                            ->json(
-                                ProcessErrorResponse::create()
-                                    ->message('Request was Valid and Server OK, but something else went wrong')
-                                    ->code(HTTP\UNPROCESSABLE_ENTITY)
-                            )
-                            ->getOpenAPI(),
-                        self::_SERVER_ERROR => Component\Response::create(self::RESPONSE_SERVER_ERROR)
-                            ->summary('Server Error')
-                            ->description(<<<DESCRIPTION
+                    )
+                    ->json(
+                        ProcessErrorResponse::create()
+                            ->message('Request was Valid and Server OK, but something else went wrong')
+                            ->code(HTTP\UNPROCESSABLE_ENTITY)
+                    )
+                    ->getSpecObject(),
+                self::_SERVER_ERROR => Component\Response::create(self::RESPONSE_SERVER_ERROR)
+                    ->summary('Server Error')
+                    ->description(<<<DESCRIPTION
 ### Server Errors
 
 See `_errors.server` in the response
@@ -313,67 +457,30 @@ sending the contents of `_request.logs` to the backend team will help them find 
 If the contents of the response are empty, send as much information to the backend team as you can gather - including the path, the parameters
 and headers and what ever information you have about the response.  A timestamp will also help in this case since there is no log request hash to report.
 DESCRIPTION
-                            )
-                            ->json(
-                                ServerErrorResponse::create()
-                                    ->message('Something went wrong on the server')
-                                    ->code(HTTP\INTERNAL_SERVER_ERROR)
-                            )
-                            ->getOpenAPI(),
-                        self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_MULTI_STATUS)
-                            ->json(
-                                JsonResponse::create()->allOf([
-                                                                  Component\Reference::create(self::SCHEMA_DEFAULT),
-                                                                  [
-                                        '_request.multiquery' => Component\Reference::create(self::RESPONSE_DEFAULT)
+                    )
+                    ->json(
+                        ServerErrorResponse::create()
+                            ->message('Something went wrong on the server')
+                            ->code(HTTP\INTERNAL_SERVER_ERROR)
+                    )
+                    ->getSpecObject(),
+                self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_MULTI_STATUS)
+                    ->json(
+                        JsonResponse::create()->allOf([
+                            Component\Reference::create(self::SCHEMA_DEFAULT),
+                            [
+                                '_request.multiquery' => Component\Reference::create(self::RESPONSE_DEFAULT)
+                            ]
+                        ])
+                    )
+                    ->description('The overall multi-endpoint query was successful, but some endpoints were not.  See `_request.multiquery` in the response for more information')
+                    ->getSpecObject()
+            ];
 
-                                    ]
-                                ])
-                            )
-                            ->description('The overall multi-endpoint query was successful, but some endpoints were not.  See `_request.multiquery` in the response for more information')
-                            ->getOpenAPI()
-                    ]
-                ]
-            ]);
-
-            $oData->set('components.schemas._any', (object) []);
-
-            ksort($this->aComponents, SORT_NATURAL); // because why not
-            foreach($this->aComponents as $oComponent) {
-                $sName = str_replace('/', '.', $oComponent->getName());
-                $oData->set("components.$sName", $oComponent->getOpenAPI());
-            }
-
-            /**
-             * @var string $sPath
-             * @var Spec $oSpec
-             */
-
-            $this->sortPaths();
-            foreach($this->aSpecs as $sSpecVersion => $aPaths) {
-                if ($sVersion !== $sSpecVersion) {
-                    continue;
-                }
-
-                foreach($aPaths as $sPath => $aMethods) {
-                    foreach($aMethods as $sHttpMethod => $sSpecInterface) {
-                        /** @var SpecInterface $oSpecInterface */
-                        $oSpecInterface = new $sSpecInterface;
-                        $oSpec          = $oSpecInterface->spec();
-
-                        if (count($aScopes) && !$oSpec->hasAnyOfTheseScopes($aScopes)) {
-                            continue;
-                        }
-
-                        $oData->set("paths.{$oSpec->getPathForDocs()}.{$oSpec->getLowerHttpMethod()}", $oSpec->generateOpenAPI());
-                    }
-                }
-            }
-
-            return $oData;
         }
 
         /**
+         * This method goes through the given paths and runs the spec() and components() methods in the classes to gather the results
          * @throws ReflectionException
          */
         private function specsFromSpecInterfaces(): void {
@@ -446,98 +553,4 @@ DESCRIPTION
                 }
             }
         }
-
-        private const DEFAULT_RESPONSE_SCHEMAS = [
-            '_default' => [
-                'type'       => 'object',
-                'properties' => [
-                    '_server'  => [
-                        '$ref' => '#/components/schemas/_server'
-                    ],
-                    '_request' => [
-                        '$ref' => '#/components/schemas/_request'
-                    ]
-                ],
-                'description' => 'This schema gets merged with every response as the standard baseline response'
-            ],
-            '_server'  => [
-                'type'                 => 'object',
-                'additionalProperties' => false,
-                'properties'           => [
-                    'timezone'     => ['type' => 'string', 'example' => 'CDT'],
-                    'timezone_gmt' => ['type' => 'string', 'example' => '-05:00'],
-                    'date'         => ['type' => 'string', 'example' => '2018-08-31 16:57:21'],
-                    'date_w3c'     => ['type' => 'string', 'example' => '2018-08-31T16:57:21-05:00']
-                ],
-                'description'          => <<<DESCRIPTION
-The `_server` object lists the current time on our backend.  This is useful when trying to use `sync` functionality, 
-as well as for converting timestamps returned by the server to the client's local time.  The times given are
-retrieved from the database which should ensure that they are consistent, regardless of clock-skew between
-multiple servers.
-DESCRIPTION
-            ],
-            '_request' => [
-                'type'                 => 'object',
-                'additionalProperties' => false,
-                'properties'           => [
-                    'method'     => [
-                        'type' => 'string',
-                        'enum' => ['GET', 'POST', 'DELETE']
-                    ],
-                    'path'       => ['type' => 'string'],
-                    'params'     => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'path'  => [
-                                'type'        => 'object',
-                                'description' => 'Parameters that were found in the URI Path'
-                            ],
-                            'query' => [
-                                'type'        => 'object',
-                                'description' => 'Parameters that were found in the URI Search'
-                            ],
-                            'post'  => [
-                                'type'        => 'object',
-                                'description' => 'Parameters that were found in the Request Body'
-                            ]
-                        ]
-                    ],
-                    'headers'    => [
-                        'type'        => 'string',
-                        'description' => 'JSON Encoded String of request headers'
-                    ],
-                    'logs'       => [
-                        'type'       => 'object',
-                        'properties' => [
-                            'thread'  => [
-                                'type'        => 'string',
-                                'description' => 'Alphanumeric hash for looking up entire request thread in logs'
-                            ],
-                            'request' => [
-                                'type'        => 'string',
-                                'description' => 'Alphanumeric hash for looking up specific API request in logs'
-                            ]
-                        ]
-                    ],
-                    'status'     => ['type' => 'integer', 'default' => 200, 'description' => 'This will not always show up, but is most useful when trying to find out what happened in `multiquery` requests'],
-                    'multiquery' => [
-                        'type'                 => 'object',
-                        'additionalProperties' => false,
-                        'properties'           => [
-                            '_request' => ['$ref' => '#/components/schemas/_request'],
-                            '_server'  => ['$ref' => '#/components/schemas/_server']
-                        ],
-                        'description'          => <<<DESCRIPTION
-The `_request.multiquery` object holds a collection of all the `_request` and `_server` objects from every sub-request that was preformed
-helps with finding out why you might not have received the data you were expecting. 
-
-This will only show up in cases of multiquery requests.
-DESCRIPTION
-                    ]
-                ],
-                'description'          => <<<DESCRIPTION
-The `_request` object can help the client developer find out if maybe what was sent was misinterpreted by the server for some reason.
-DESCRIPTION
-            ]
-        ];
     }

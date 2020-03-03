@@ -1,6 +1,9 @@
 <?php
     namespace Enobrev\API;
 
+    use cebe\openapi\spec\Parameter;
+    use cebe\openapi\spec\Schema;
+
     abstract class Param implements JsonSchemaInterface {
         protected const STRING     = 'string';
         protected const NUMBER     = 'number';
@@ -15,9 +18,6 @@
 
         /** @var array */
         protected $aValidation;
-
-        /** @var string */
-        protected $sName;
 
         /** @var string */
         protected $sType;
@@ -61,10 +61,6 @@
 
         private function is(int $iOption):bool {
             return $this->iOptions & $iOption;
-        }
-
-        public function getName():string {
-            return $this->sName;
         }
 
         protected function getType(): string {
@@ -119,17 +115,72 @@
             return $oParam;
         }
 
+        public function getParameter(string $sName, ?string $sIn = 'query'): Parameter {
+            $aOptions = [
+                'name'   => $sName,
+                'schema' => $this->getSchema()
+            ];
+
+            if ($sIn) {
+                $aOptions['in'] = $sIn;
+            }
+
+            if ($this->isRequired()) {
+                $aOptions['required'] = true;
+            }
+
+            if ($this->isDeprecated()) {
+                $aOptions['deprecated'] = true;
+            }
+
+            if ($this->sDescription) {
+                $aOptions['description'] = $this->sDescription;
+            }
+
+            if (!empty($this->sExample)) {
+                $aOptions['example'] = $this->sExample;
+            }
+
+            if (!empty($this->aExamples)) {
+                $aOptions['examples'] = $this->aExamples;
+            }
+
+            return new Parameter($aOptions);
+        }
+
+        public function getSchema(): Schema {
+            $aSchema = $this->aValidation;
+
+            if ($this->isDeprecated()) {
+                $aSchema['deprecated'] = true;
+            }
+
+            if ($this->isNullable()) {
+                $aSchema['nullable'] = true;
+            }
+
+            if ($this->sDescription) {
+                $aSchema['description'] = $this->sDescription;
+            }
+
+            $aSchema['type'] = $this->getType();
+
+            return new Schema($aSchema);
+        }
+
         public function getJsonSchema($bOpenSchema = false): array {
             $aSchema = $this->getValidationForSchema();
             $aSchema['type'] = $this->getType();
 
             if ($this->isNullable()) {
+                // This is required for the justin-rainbow validation library to work
                 return [
                     'anyOf' => [
                         $aSchema,
                         ['type' => 'null']
                     ]
                 ];
+                // $aSchema['nullable'] = true;
             }
 
             if ($this->sDescription) {

@@ -2,6 +2,9 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
+    use cebe\openapi\spec\Reference as OpenApi_Reference;
+    use cebe\openapi\spec\RequestBody;
+    use cebe\openapi\SpecObjectInterface;
     use Enobrev\API\Exception;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
@@ -90,5 +93,35 @@
             }
 
             return $oResponse->all();
+        }
+
+        /**
+         * @return array
+         * @throws Exception
+         */
+
+        public function getSpecObject(): SpecObjectInterface {
+            if (!$this->sDescription) {
+                throw new Exception('Full Scope Request Components require a description');
+            }
+
+            if (!$this->mPost && !$this->mJson) {
+                throw new Exception('Full Scope Request Components needs a JSON or form-data schema');
+            }
+
+            $oResponse = new Dot([
+                'description' => $this->sDescription,
+                'content'     => []
+            ]);
+
+            if ($this->mPost) {
+                $oResponse->set('content.multipart/form-data.schema', $this->mPost->getSpecObject());
+            }
+
+            if ($this->mJson) {
+                $oResponse->set('content.application/json.schema', $this->mJson->getSpecObject());
+            }
+
+            return new RequestBody($oResponse->all());
         }
     }

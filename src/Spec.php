@@ -1,7 +1,19 @@
 <?php
     namespace Enobrev\API;
 
+    use ReflectionException;
+
     use Adbar\Dot;
+    use cebe\openapi\spec\MediaType as OpenApi_MediaType;
+    use cebe\openapi\spec\Operation as OpenApi_Operation;
+    use cebe\openapi\spec\RequestBody as OpenApi_RequestBody;
+    use cebe\openapi\spec\Reference as OpenApi_Reference;
+    use cebe\openapi\spec\Responses as OpenApi_Responses;
+    use cebe\openapi\spec\Response as OpenApi_Response;
+    use cebe\openapi\spec\Schema as OpenAPI_Schema;
+    use cebe\openapi\spec\SecurityRequirement;
+    use cebe\openapi\SpecObjectInterface;
+    use cebe\openapi\Writer;
     use Middlewares\HttpErrorException;
 
     use Enobrev\API\FullSpec\ComponentInterface;
@@ -17,7 +29,7 @@
     use Enobrev\ORM\Table;
 
     use function Enobrev\array_not_associative;
-    use ReflectionException;
+    use function Enobrev\dbg;
 
     class Spec {
         private const SKIP_PRIMARY = 1024;
@@ -61,8 +73,11 @@
         /** @var Param[] */
         private $aHeaderParams = [];
 
-        /** @var OpenApiInterface */
+        /** @var Reference */
         private $oPostBodyReference;
+
+        /** @var Request */
+        private $oPostBodyRequest;
 
         /** @var callable */
         private $oPostBodySchemaSelector;
@@ -144,24 +159,12 @@
             throw new Exception\InvalidDescription('Not Sure What the Response Description Is');
         }
 
-        public function getResponse(int $iStatus) {
-            return $this->aResponses[$iStatus] ?? null;
-        }
-
         public function hasAnyOfTheseScopes(array $aScopes): bool {
             if (count($this->aScopes) === 0) {
                 return false;
             }
 
             return count(array_intersect($aScopes, $this->aScopes)) > 0;
-        }
-
-        public function hasAllOfTheseScopes(array $aScopes): bool {
-            if (count($this->aScopes)) {
-                return false;
-            }
-
-            return count(array_intersect($aScopes, $this->aScopes)) === count($aScopes);
         }
 
         /**
@@ -180,25 +183,20 @@
 
         /**
          * @return Param[]
-         */
-        public function getPostParams(): array {
-            return $this->aPostParams;
-        }
-
-        /**
-         * @return Param[]
          * @throws ReflectionException
          */
         public function resolvePostParams(): array {
-            if ($this->oPostBodyReference) {
-                if ($this->oPostBodyReference instanceof Reference) {
-                    // FIXME: This _may_ be a big fat hack
-                    $oFullSpec = FullSpec::getFromCache();
-                    $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
-                } else {
-                    $oComponent = $this->oPostBodyReference;
-                }
+            $oComponent = null;
 
+            if ($this->hasAPostBodyRequest()) {
+                $oComponent = $this->oPostBodyRequest;
+            } else if ($this->hasAPostBodyReference()) {
+                // FIXME: This _may_ be a big fat hack
+                $oFullSpec  = FullSpec::getFromCache();
+                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+            }
+
+            if ($oComponent) {
                 $aParams = [];
                 if ($oComponent instanceof ParamSchema) {
                     $oParam = $oComponent->getParam();
@@ -246,8 +244,8 @@
         }
 
         public function hasAPostBodyOneOf(): bool {
-            if ($this->oPostBodyReference instanceof Request) {
-                $oPost = $this->oPostBodyReference->getPost();
+            if ($this->oPostBodyRequest instanceof Request) {
+                $oPost = $this->oPostBodyRequest->getPost();
                 return $oPost instanceof Schema && $oPost->isOneOf();
             }
 
@@ -255,19 +253,23 @@
         }
 
         public function getPostBodySchemas() {
-            if ($this->oPostBodyReference instanceof Request) {
-                $oPost = $this->oPostBodyReference->getPost();
+            if ($this->oPostBodyRequest instanceof Request) {
+                $oPost = $this->oPostBodyRequest->getPost();
 
                 if ($oPost instanceof Schema && $oPost->isOneOf()) {
-                    return $oPost->getSchema();
+                    return $oPost->getBodySchema();
                 }
             }
 
             return null;
         }
 
-        public function hasAPostBodyReference(): bool {
+        private function hasAPostBodyReference(): bool {
             return $this->oPostBodyReference instanceof Reference;
+        }
+
+        private function hasAPostBodyRequest(): bool {
+            return $this->oPostBodyRequest instanceof Request;
         }
 
         /**
@@ -275,15 +277,17 @@
          * @throws ReflectionException
          */
         public function postParamsToJsonSchema():array {
-            if ($this->hasAPostBodyReference()) {
-                if ($this->oPostBodyReference instanceof Reference) {
-                    // FIXME: This _may_ be a big fat hack
-                    $oFullSpec = FullSpec::getFromCache();
-                    $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
-                } else {
-                    $oComponent = $this->oPostBodyReference;
-                }
+            $oComponent = null;
 
+            if ($this->hasAPostBodyRequest()) {
+                $oComponent = $this->oPostBodyRequest;
+            } else if ($this->hasAPostBodyReference()) {
+                // FIXME: This _may_ be a big fat hack
+                $oFullSpec = FullSpec::getFromCache();
+                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+            }
+
+            if ($oComponent) {
                 if ($oComponent instanceof ParamSchema) {
                     return $oComponent->getParam()->getJsonSchema();
                 }
@@ -398,9 +402,15 @@
             return $oClone;
         }
 
-        public function postBodyReference(ComponentInterface $oReference):self {
+        public function postBodyReference(Reference $oReference):self {
             $oClone = clone $this;
             $oClone->oPostBodyReference = $oReference;
+            return $oClone;
+        }
+
+        public function postBodyRequest(Request $oRequest):self {
+            $oClone = clone $this;
+            $oClone->oPostBodyRequest = $oRequest;
             return $oClone;
         }
 
@@ -527,7 +537,7 @@
          * @param Field $oField
          * @param int $iOptions
          * @param bool $bIncludeDefault
-         * @return Param
+         * @return Param\_String|Param\_Boolean|Param\_Integer|Param\_Number
          */
         public static function fieldToParam(Field $oField, int $iOptions = 0, $bIncludeDefault = false): Param {
             switch(true) {
@@ -613,11 +623,8 @@
                 return $aArray;
             }
 
-            $oResponse = new Dot([
-                'type'                  => 'object',
-                'additionalProperties'  => $bAdditionalProperties,
-                'properties'            => []
-            ]);
+            $oProperties = new Dot();
+            $aRequired   = [];
 
             /** @var Param $oParam */
             foreach ($aArray as $sName => $mValue) {
@@ -629,55 +636,122 @@
                     $oDot->set(implode('.', $aName), $mValue);
                     $aValue = $oDot->all();
 
-                    $oResponse->mergeRecursiveDistinct("properties.$sSubName", self::toJsonSchema($aValue));
+                    $oProperties->set($sSubName, self::toJsonSchema($aValue));
                 } else if ($mValue instanceof JsonSchemaInterface) {
-                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getJsonSchemaForOpenAPI());
+                    $oProperties->set($sName, $mValue->getJsonSchemaForOpenAPI());
 
                     if ($mValue instanceof Param && $mValue->isRequired()) {
-                        $oResponse->push('required', (string) $sName);
+                        $aRequired[] = (string) $sName;
                     }
                 } else if ($mValue instanceof OpenApiInterface) {
-                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue->getOpenAPI());
+                    $oProperties->set($sName, $mValue->getOpenAPI());
                 } else if ($mValue instanceof Dot) {
                     $aValue = $mValue->all();
-                    $oResponse->mergeRecursiveDistinct("properties.$sName", self::toJsonSchema($aValue));
+                    $oProperties->set($sName, self::toJsonSchema($aValue));
                 } else if (is_array($mValue)) {
-                    $oResponse->mergeRecursiveDistinct("properties.$sName", self::toJsonSchema($mValue));
+                    $oProperties->set($sName, self::toJsonSchema($mValue));
                 } else {
-                    $oResponse->mergeRecursiveDistinct("properties.$sName", $mValue);
+                    $oProperties->set($sName, $mValue);
                 }
             }
 
-            return $oResponse->all();
+            $aResponse = [
+                'type'                  => 'object',
+                'additionalProperties'  => $bAdditionalProperties,
+                'properties'            => $oProperties->all()
+            ];
+
+            if (count($aRequired)) {
+                $aResponse['required'] = $aRequired;
+            }
+
+            return $aResponse;
+        }
+
+        /**
+         * @param array $aArray
+         * @param bool $bAdditionalProperties
+         * @return OpenAPI_Schema
+         */
+        public static function arrayToSchema(array $aArray, $bAdditionalProperties = false): OpenAPI_Schema {
+            if (isset($aArray['type']) && in_array($aArray['type'], ['object', 'array', 'integer', 'number', 'boolean', 'string'])) {
+                // this is likely already a jsonschema
+                return new OpenAPI_Schema($aArray);
+            }
+
+            $oProperties = new Dot();
+            $aRequired   = [];
+
+            /** @var Param $oParam */
+            foreach ($aArray as $sName => $mValue) {
+                if (strpos($sName, '.') !== false) {
+                    $aName    = explode('.', $sName);
+                    $sSubName = array_shift($aName);
+
+                    $oDot = new Dot();
+                    $oDot->set(implode('.', $aName), $mValue);
+                    $aValue = $oDot->all();
+
+                    $oProperties->set($sSubName, self::arrayToSchema($aValue));
+                } else if ($mValue instanceof Param) {
+                    $oProperties->set($sName, $mValue->getSchema());
+                    if ($mValue->isRequired()) {
+                        $aRequired[] = $sName;
+                    }
+                } else if ($mValue instanceof SpecObjectInterface) {
+                    $oProperties->set($sName, $mValue);
+
+                    if ($mValue instanceof OpenAPI_Schema && $mValue->required) {
+                        $aRequired[] = $sName;
+                    }
+                } else if ($mValue instanceof OpenApiInterface) {
+                    $oProperties->set($sName, $mValue->getSpecObject());
+                } else if ($mValue instanceof Dot) {
+                    $oProperties->set($sName, self::arrayToSchema($mValue->all()));
+                } else if (is_array($mValue)) {
+                    $oProperties->set($sName, self::arrayToSchema($mValue));
+                } else if ($mValue instanceof JsonSchemaInterface) {
+                    dbg('Spec.arrayToSchema.Unhandled.JsonSchemaInterface.' . $sName, $mValue);
+                } else {
+                    dbg('Spec.arrayToSchema.Unhandled.Else.' . $sName, $mValue);
+                }
+            }
+
+            $aSchema = [
+                'type'                  => 'object',
+                'additionalProperties'  => $bAdditionalProperties,
+                'properties'            => $oProperties->all()
+            ];
+
+            if (count($aRequired)) {
+                $aSchema['required'] = $aRequired;
+            }
+
+            return new OpenAPI_Schema($aSchema);
         }
 
         private function getOperationId() {
-            $sPath = $this->sPath;
-            $sPath = $this->sHttpMethod . $sPath;
+            return self::generateOperationId($this->sHttpMethod, $this->sPath);
+        }
+
+        public static function generateOperationId($sHttpMethod, $sPath) {
+            $sPath = $sHttpMethod . $sPath;
             $sPath = preg_replace('~^/~',        '',    $sPath);
             $sPath = preg_replace('/{([^}]+)}/', ':$1', $sPath);
             $sPath = str_replace('[/]',           '',        $sPath);
             return $sPath;
         }
 
-        public function generateOpenAPI(): array {
-            $aMethod = [
-                'operationId'   => $this->getOperationId(),
+        public function generateOperation(): OpenApi_Operation {
+            $aOperation = [
+                'tags'          => $this->aTags,
                 'summary'       => $this->sSummary ?? $this->sPath,
                 'description'   => $this->sDescription ?? $this->sSummary ?? $this->sPath,
-                'tags'          => $this->aTags
+                'operationId'   => $this->getOperationId(),
             ];
 
-            if (!$this->bPublic && count($this->aScopes)) {
-                $aMethod['security'] = [['OAuth2' => $this->aScopes]];
-            }
 
-            if ($this->bDeprecated) {
-                $aMethod['deprecated'] = true;
-            }
-
-            $oPathJsonParams = new Dot(self::toJsonSchema($this->aPathParams));
-            $aParameters   = [];
+            $aParameters     = [];
 
             foreach($this->aPathParams as $sParam => $oParam) {
                 if (strpos($sParam, '.') !== false) {
@@ -685,64 +759,46 @@
                 }
 
                 if ($oParam instanceof Param\_Object) {
-                    $aParam = $oParam->OpenAPI($sParam, 'path');
-                    $aParam['schema'] = $oPathJsonParams->get("properties.$sParam");
-                    $aParam['required'] = true;
-                    $aParameters[] = $aParam;
+                    $oParameter = $oParam->getParameter($sParam, 'path');
+                    $oParameter->required = true;
+                    $aParameters[] = $oParameter;
                 } else {
-                    $aParameters[] = $oParam->OpenAPI($sParam, 'path');
+                    $aParameters[] = $oParam->getParameter($sParam, 'path');
                 }
             }
-
-            $oQueryJsonParams = new Dot(self::toJsonSchema($this->aQueryParams));
 
             foreach($this->aQueryParams as $sParam => $oParam) {
                 if (strpos($sParam, '.') !== false) {
                     continue;
                 }
 
-                if ($oParam instanceof Param\_Object) {
-                    $aParam = $oParam->OpenAPI($sParam);
-                    $aParam['schema'] = $oQueryJsonParams->get("properties.{$sParam}");
-                    $aParameters[] = $aParam;
-                } else {
-                    $aParameters[] = $oParam->OpenAPI($sParam);
-                }
+                $aParameters[] = $oParam->getParameter($sParam, 'query');
             }
-
-            $oHeaderJsonParams = new Dot(self::toJsonSchema($this->aHeaderParams));
 
             foreach($this->aHeaderParams as $sParam => $oParam) {
                 if (strpos($sParam, '.') !== false) {
                     continue;
                 }
 
-                if ($oParam instanceof Param\_Object) {
-                    $aParam = $oParam->OpenAPI($sParam, 'header');
-                    $aParam['schema'] = $oHeaderJsonParams->get("properties.{$sParam}");
-                    $aParameters[] = $aParam;
-                } else {
-                    $aParameters[] = $oParam->OpenAPI($sParam, 'header');
-                }
+                $aParameters[] = $oParam->getParameter($sParam, 'header');
             }
 
             if (count($aParameters)) {
-                $aMethod['parameters'] = $aParameters;
+                $aOperation['parameters'] = $aParameters;
             }
 
             if ($this->oPostBodyReference) {
-                $aMethod['requestBody'] = $this->oPostBodyReference->getOpenAPI();
+                $aOperation['requestBody'] = $this->oPostBodyReference->getSpecObject();
             } else {
-                $oPostJsonParams = new Dot(self::toJsonSchema($this->aPostParams));
-                $aPost = [];
-                $aRequired = [];
+                $aPost      = [];
+                $aRequired  = [];
 
                 foreach ($this->aPostParams as $sParam => $oParam) {
                     if (strpos($sParam, '.') !== false) {
                         continue;
                     }
 
-                    $aPost[$sParam] = $oParam->getJsonSchemaForOpenAPI();
+                    $aPost[$sParam] = $oParam->getSchema();
 
                     if ($oParam->isRequired()) {
                         $aRequired[] = $sParam;
@@ -750,20 +806,22 @@
                 }
 
                 if (count($aPost)) {
-                    $aMethod['requestBody'] = [
+                    $aRequestBody = [
                         'content' => [
-                            'multipart/form-data' => [
-                                'schema' => [
-                                    'type' => 'object',
+                            'multipart/form-data' => new OpenApi_MediaType([
+                                'schema' => new OpenAPI_Schema([
+                                    'type'       => 'object',
                                     'properties' => $aPost
-                                ]
-                            ]
+                                ])
+                            ])
                         ]
                     ];
 
                     if (count($aRequired)) {
-                        $aMethod['requestBody']['content']['multipart/form-data']['schema']['required'] = $aRequired;
+                        $aRequestBody['content']['multipart/form-data']->schema->required = $aRequired;
                     }
+
+                    $aOperation['requestBody'] = new OpenApi_RequestBody($aRequestBody);
                 }
             }
 
@@ -774,32 +832,22 @@
             // If the status has just one response, fine, well, and good, generate the response and carry on
             // If the status has multiple responses, collect those responses as `schemas` and then output them as an "anyof" stanza
             // The swagger UI does not handle this properly, but the Redoc UI does, which is correct as this is allowed in the Spec.
-            $aMethod['responses'] = [];
+            $aOperation['responses'] = new OpenApi_Responses([]);
             foreach($this->aResponses as $iStatus => $aResponses) {
                 if (count($aResponses) > 1) {
                     $aDescription = [];
                     $aSchemas     = [];
                     foreach ($aResponses as $oResponse) {
-                        if ($oResponse instanceof JsonSchemaInterface) {
-                            $sDescription = $iStatus . ' Response';
-                            if ($oResponse instanceof ErrorResponseInterface) {
-                                $sDescription = $oResponse->getMessage();
-                            }
+                        $sDescription = $iStatus . ' Response';
+                        if ($oResponse instanceof ErrorResponseInterface) {
+                            $sDescription = $oResponse->getMessage();
+                        }
 
+                        if ($oResponse instanceof OpenApiInterface) {
                             $aDescription[] = $sDescription;
-                            $aSchemas[]     = $oResponse->getJsonSchemaForOpenAPI();
-                        } else if ($oResponse instanceof OpenApiResponseSchemaInterface) {
-                            $sDescription = $iStatus . ' Response';
-                            if ($oResponse instanceof ErrorResponseInterface) {
-                                $sDescription = $oResponse->getMessage();
-                            }
-
-                            $aDescription[] = $sDescription;
-                            $aSchemas[]     = $oResponse->getOpenAPI();
-                        } else if ($oResponse instanceof OpenApiInterface) {
-                            $aSchemas[]     = $oResponse->getOpenAPI();
+                            $aSchemas[]     = $oResponse->getSpecObject();
                         } else {
-                            $aSchemas[]     = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
+                            $aSchemas[]     = Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
                         }
                     }
 
@@ -817,115 +865,98 @@
                         $sDescription = implode(', ', array_unique($aDescription));
                     }
 
-                    $aMethod['responses'][$iStatus] = [
+                    $aOperation['responses']->addResponse($iStatus, new OpenApi_Response([
                         'description' => $sDescription,
                         'content'     => [
                             'application/json' => [
                                 'schema' => $aSchemas
                             ]
                         ]
-                    ];
+                    ]));
                 } else {
+                    $aResponse = [];
                     $oResponse = $aResponses[0];
-                    if ($oResponse instanceof OpenApiResponseSchemaInterface) {
+
+                    if ($oResponse instanceof Reference) {
+                        $aOperation['responses']->addResponse($iStatus, $oResponse->getSpecObject());
+                    } else if ($oResponse instanceof OpenApiInterface) {
                         $sDescription = $iStatus . ' Response';
                         if ($oResponse instanceof ErrorResponseInterface) {
                             $sDescription = $oResponse->getMessage();
                         }
 
-                        $aMethod['responses'][$iStatus] = [
+                        $aResponse = [
                             'description' => $sDescription,
                             'content'     => [
                                 'application/json' => [
-                                    'schema' => $oResponse->getOpenAPI()
+                                    'schema' => $oResponse->getSpecObject()
                                 ]
                             ]
                         ];
-                    } else if ($oResponse instanceof OpenApiInterface) {
-                        $aMethod['responses'][$iStatus] = $oResponse->getOpenAPI();
-                    } else if (is_string($oResponse)) {
-                        $aMethod['responses'][$iStatus] = ['description' => $oResponse];
-                    } else  {
-                        $aMethod['responses'][$iStatus] = Reference::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
-                    }
-                }
 
-                if ($this->aResponseHeaders) {
-                    $aMethod['responses'][$iStatus]['headers'] = $this->aResponseHeaders;
+                        if ($this->aResponseHeaders) {
+                            $aResponse['headers'] = $this->aResponseHeaders;
+                        }
+
+                        $aOperation['responses']->addResponse($iStatus, new OpenApi_Response($aResponse));
+                    } else if (is_string($oResponse)) {
+                        $aResponse = [
+                            'description' => $oResponse
+                        ];
+
+                        if ($this->aResponseHeaders) {
+                            $aResponse['headers'] = $this->aResponseHeaders;
+                        }
+
+                        $aOperation['responses']->addResponse($iStatus, new OpenApi_Response($aResponse));
+                    } else  {
+                        $aOperation['responses']->addResponse($iStatus, Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject());
+                    }
                 }
             }
 
+            $bRequiresSecurity = !$this->bPublic && count($this->aScopes) > 0;
+
             if (!$this->bSkipDefaultResponses) {
-
-                if (!isset($aMethod['responses'][HTTP\BAD_REQUEST]) && count($aParameters)) {
-                    $aMethod['responses'][HTTP\BAD_REQUEST] = Reference::create(FullSpec::RESPONSE_BAD_REQUEST)->getOpenAPI();
+                if (!$aOperation['responses']->hasResponse(HTTP\BAD_REQUEST) && count($aParameters)) {
+                    $aOperation['responses']->addResponse(HTTP\BAD_REQUEST, Reference::create(FullSpec::RESPONSE_BAD_REQUEST)->getSpecObject());
                 }
 
-                if (isset($aMethod['security'])) {
-                    if (!isset($aMethod['responses'][HTTP\UNAUTHORIZED])) {
-                        $aMethod['responses'][HTTP\UNAUTHORIZED] = Reference::create(FullSpec::RESPONSE_UNAUTHORIZED)->getOpenAPI();
+                if ($bRequiresSecurity) {
+                    if (!$aOperation['responses']->hasResponse(HTTP\UNAUTHORIZED)) {
+                        $aOperation['responses']->addResponse(HTTP\UNAUTHORIZED, Reference::create(FullSpec::RESPONSE_UNAUTHORIZED)->getSpecObject());
                     }
 
-                    if (!isset($aMethod['responses'][HTTP\FORBIDDEN])) {
-                        $aMethod['responses'][HTTP\FORBIDDEN] = Reference::create(FullSpec::RESPONSE_FORBIDDEN)->getOpenAPI();
+                    if (!$aOperation['responses']->hasResponse(HTTP\FORBIDDEN)) {
+                        $aOperation['responses']->addResponse(HTTP\FORBIDDEN, Reference::create(FullSpec::RESPONSE_FORBIDDEN)->getSpecObject());
                     }
                 }
 
-                if (!isset($aMethod['responses'][HTTP\INTERNAL_SERVER_ERROR])) {
-                    $aMethod['responses'][HTTP\INTERNAL_SERVER_ERROR] = Reference::create(FullSpec::RESPONSE_SERVER_ERROR)->getOpenAPI();
+                if (!$aOperation['responses']->hasResponse(HTTP\INTERNAL_SERVER_ERROR)) {
+                    $aOperation['responses']->addResponse(HTTP\INTERNAL_SERVER_ERROR, Reference::create(FullSpec::RESPONSE_SERVER_ERROR)->getSpecObject());
                 }
+            }
+
+            if ($this->bDeprecated) {
+                $aOperation['deprecated'] = true;
+            }
+
+            if ($bRequiresSecurity) {
+                $aOperation['security'] = [
+                    new SecurityRequirement(['OAuth2' => $this->aScopes])
+                ];
             }
 
             if (count($this->aCodeSamples)) {
                 foreach($this->aCodeSamples as $sLanguage => $sSource) {
-                    $aMethod['x-code-samples'][] = [
+                    $aOperation['x-code-samples'][] = [
                         'lang'   => $sLanguage,
                         'source' => str_replace('{{PATH}}', $this->sPath, $sSource)
                     ];
                 }
             }
 
-            return $aMethod;
-        }
-
-        /**
-         * @return array
-         * @throws ReflectionException
-         */
-        public function toArray(): array {
-            $aPathParams = [];
-            foreach($this->resolvePostParams() as $sParam => $oParam) {
-                $aPathParams[$sParam] = $oParam->getJsonSchema();
-            }
-
-            $aQueryParams = [];
-            foreach($this->aQueryParams as $sParam => $oParam) {
-                $aQueryParams[$sParam] = $oParam->getJsonSchema();
-            }
-
-            $aPostParams = [];
-            foreach($this->aPostParams as $sParam => $oParam) {
-                $aPostParams[$sParam] = $oParam->getJsonSchema();
-            }
-
-            return [
-                'summary'           => $this->sSummary,
-                'description'       => $this->sDescription,
-                'deprecated'        => $this->bDeprecated,
-                'path'              => $this->sPath,
-                'public'            => $this->bPublic,
-                'httpMethod'        => $this->sHttpMethod,
-                'method'            => $this->sMethod,
-                'scopes'            => $this->aScopes,
-                'pathParams'        => $aPathParams,
-                'queryParams'       => $aQueryParams,
-                'postParams'        => $aPostParams,
-                'headerParams'      => $this->aHeaderParams,
-                'codeSamples'       => $this->aCodeSamples,
-                'responseHeaders'   => $this->aResponseHeaders,
-                'responses'         => $this->aResponses,
-                'tags'              => $this->aTags
-            ];
+            return new OpenApi_Operation($aOperation);
         }
 
         /**
@@ -933,6 +964,6 @@
          * @throws ReflectionException
          */
         public function toJson() {
-            return json_encode($this->toArray());
+            return Writer::writeToJson($this->generateOperation());
         }
     }

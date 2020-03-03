@@ -2,6 +2,9 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
+    use cebe\openapi\SpecObjectInterface;
+    use cebe\openapi\spec\Response as OpenApi_Response;
+
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
@@ -79,5 +82,27 @@
             }
 
             return $oResponse->all();
+        }
+
+        public function getSpecObject(): SpecObjectInterface {
+            if (!count($this->aSchemas)) {
+                // If No schema is given, then simply apply the name and description to the default
+                return self::create($this->sName)->description($this->sDescription)->json(Reference::create(FullSpec::SCHEMA_DEFAULT))->getSpecObject();
+            }
+
+            $oResponse = new Dot([
+                'description' => $this->sDescription,
+                'content'     => []
+            ]);
+
+            if ($this->sSummary) {
+                $oResponse->set('x-summary', $this->sSummary);
+            }
+
+            foreach($this->aSchemas as $mSubSchema) {
+                $oResponse->set('content.application/json.schema', $mSubSchema->getSpecObject());
+            }
+
+            return new OpenApi_Response($oResponse->all());
         }
     }

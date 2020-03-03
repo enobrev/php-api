@@ -1,6 +1,9 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
+    use cebe\openapi\spec\Reference as OpenApi_Reference;
+
+    use cebe\openapi\SpecObjectInterface;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
 
@@ -28,5 +31,9 @@
 
         public function getOpenAPI(): array {
             return ['$ref' => "#/components/{$this->sName}"];
+        }
+
+        public function getSpecObject(): SpecObjectInterface {
+            return new OpenApi_Reference(['$ref' => "#/components/{$this->sName}"]);
         }
     }

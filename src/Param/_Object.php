@@ -1,12 +1,16 @@
 <?php
     namespace Enobrev\API\Param;
 
+    use cebe\openapi\spec\Schema;
+    use Enobrev\API\FullSpec\Component\Reference;
+    use Enobrev\API\OpenApiInterface;
     use stdClass;
 
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
     use Enobrev\API\Spec;
+    use function Enobrev\dbg;
 
     class _Object extends Param {
         use ParamTrait;
@@ -36,6 +40,59 @@
 
         public function additionalProperties(bool $bAdditionalProperties): self {
             return $this->validation(['additionalProperties' => $bAdditionalProperties]);
+        }
+
+        public function getSchema(): Schema {
+            $aSchema         = $this->aValidation;
+            $aSchema['type'] = $this->getType();
+
+            $aRequired = [];
+
+            if ($this->hasItems()) {
+                unset($aSchema['items']);
+
+                $aSchema['additionalProperties'] = $this->allowsAdditionalProperties();
+                $aSchema['properties'] = [];
+                foreach ($this->getItems() as $sParam => $mItem) {
+                    if ($mItem instanceof Param) {
+                        $aSchema['properties'][$sParam] = $mItem->getSchema();
+                        if ($mItem->isRequired()) {
+                            $aRequired[] = $sParam;
+                        }
+                    } else if ($mItem instanceof Schema) {
+                        $aSchema['properties'][$sParam] = $mItem;
+                        if ($mItem->required) {
+                            $aRequired[] = $sParam;
+                        }
+                    } else if ($mItem instanceof Reference) {
+                        $aSchema['properties'][$sParam] = $mItem->getSpecObject();
+                    } else if (is_array($mItem)) {
+                        $aSchema['properties'][$sParam] = Spec::arrayToSchema($mItem);
+                    } else {
+                        dbg('Param\_Object.getSchema.Unknown', $sParam, $mItem);
+                    }
+                }
+            } else {
+                $aSchema['additionalProperties'] = true;
+            }
+
+            if ($this->sDescription) {
+                $aSchema['description'] = $this->sDescription;
+            }
+
+            if (count($aRequired)) {
+                $aSchema['required'] = $aRequired;
+            }
+
+            if ($this->isDeprecated()) {
+                $aSchema['deprecated'] = true;
+            }
+
+            if ($this->isNullable()) {
+                $aSchema['nullable'] = true;
+            }
+
+            return new Schema($aSchema);
         }
 
         public function getJsonSchema($bOpenSchema = false): array {

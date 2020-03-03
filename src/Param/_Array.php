@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Param;
     
+    use cebe\openapi\spec\Schema;
     use Enobrev\API\Exception;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
@@ -34,6 +35,30 @@
             }
 
             return $aValidation;
+        }
+
+        public function getSchema(): Schema {
+            $aSchema = $this->aValidation;
+
+            if ($aSchema['items'] instanceof Param) {
+                $aSchema['items'] = $aSchema['items']->getSchema();
+            }
+
+            if ($this->isDeprecated()) {
+                $aSchema['deprecated'] = true;
+            }
+
+            if ($this->isNullable()) {
+                $aSchema['nullable'] = true;
+            }
+
+            $aSchema['type'] = $this->getType();
+
+            if ($this->sDescription) {
+                $aSchema['description'] = $this->sDescription;
+            }
+
+            return new Schema($aSchema);
         }
 
         /**

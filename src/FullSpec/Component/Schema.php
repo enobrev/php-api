@@ -2,10 +2,14 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
+    use cebe\openapi\SpecObjectInterface;
+    use cebe\openapi\spec\Schema as OpenApi_Schema;
+
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
+    use function Enobrev\dbg;
 
     class Schema implements ComponentInterface, OpenApiInterface {
         private const TYPE_ALLOF = 'allOf';
@@ -46,7 +50,7 @@
             return $this->sName;
         }
 
-        public function getSchema() {
+        public function getBodySchema() {
             return $this->aSchema;
         }
 
@@ -114,5 +118,42 @@
             }
 
             return $oResponse->all();
+        }
+
+        public function getSpecObject(): SpecObjectInterface {
+            if ($this->sType) {
+                $aResponse = [];
+
+                foreach ($this->aSchema as $mSchemaItem) {
+                    if ($mSchemaItem instanceof OpenApiInterface) {
+                        $aResponse[] = $mSchemaItem->getSpecObject();
+                    } else if (is_array($mSchemaItem)) {
+                        $aResponse[] = Spec::arrayToSchema($mSchemaItem);
+                    } else {
+                        dbg('Component.Schema.getSpecObject.NotSureWhatToDo', $mSchemaItem);
+                        //$aResponse[] = $mSchemaItem;
+                    }
+                }
+
+                $oSpecObject = new OpenApi_Schema([
+                    $this->sType => $aResponse
+                ]);
+            } else if ($this->aSchema instanceof OpenApiInterface) {
+                $oSpecObject = $this->aSchema->getSpecObject();
+            } else if ($this->aSchema instanceof JsonSchemaInterface) {
+                dbg('Component.Schema.JsonSchemaInterface.NotSureWhatToDo', $this->aSchema);
+                // $oResponse->merge($this->aSchema->getJsonSchema());
+            } else if (is_array($this->aSchema)) {
+                $oSpecObject = Spec::arrayToSchema($this->aSchema);
+            } else {
+                dbg('Component.Schema.Nothing.NotSureWhatToDo', $this->aSchema);
+                //$oResponse->merge($this->aSchema);
+            }
+
+            if ($this->sTitle && $oSpecObject instanceof OpenApi_Schema) {
+                $oSpecObject->title = $this->sTitle;
+            }
+
+            return $oSpecObject;
         }
     }

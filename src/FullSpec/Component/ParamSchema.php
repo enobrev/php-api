@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
+    use cebe\openapi\SpecObjectInterface;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Param;
@@ -44,5 +45,9 @@
 
         public function getOpenAPI(): array {
             return $this->oParam->getJsonSchemaForOpenAPI();
+        }
+
+        public function getSpecObject(): SpecObjectInterface {
+            return $this->oParam->getSchema();
         }
     }
