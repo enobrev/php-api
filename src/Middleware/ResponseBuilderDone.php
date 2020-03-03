@@ -4,11 +4,12 @@
     namespace Enobrev\API\Middleware;
 
     use Exception;
+
+    use Laminas\Diactoros\Response\JsonResponse;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use Zend\Diactoros\Response\JsonResponse;
 
     use Enobrev\API\HTTP;
     use Enobrev\Log;

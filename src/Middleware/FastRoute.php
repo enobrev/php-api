@@ -4,11 +4,11 @@
     namespace Enobrev\API\Middleware;
 
     use FastRoute as FastRouteLib;
+    use Laminas\Diactoros\Response;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use Zend\Diactoros\Response;
 
     use Enobrev\API\HTTP;
     use Enobrev\API\Exception\EndpointNotFound;

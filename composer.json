@@ -37,11 +37,12 @@
         "enobrev/php-orm": "dev-master",
         "enobrev/php-tools": "dev-master",
         "justinrainbow/json-schema": "^5.2",
+        "laminas/laminas-diactoros": "^2.2",
+        "laminas/laminas-httphandlerrunner": "^1.1",
         "middlewares/error-handler": "^1.2",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
-        "twig/twig": "^2.9",
-        "zendframework/zend-diactoros": "^1.8.6"
+        "twig/twig": "^2.9"
     },
     "require-dev": {
         "ext-pdo": "*",

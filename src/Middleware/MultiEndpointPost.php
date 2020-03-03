@@ -3,17 +3,18 @@
 
     namespace Enobrev\API\Middleware;
 
+    use RuntimeException;
+
     use Adbar\Dot;
     use JmesPath;
+    use Laminas\Diactoros\Response\JsonResponse;
+    use Laminas\Diactoros\ServerRequestFactory;
+    use Laminas\Diactoros\Stream;
+    use Laminas\Diactoros\Uri;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use RuntimeException;
-    use Zend\Diactoros\Response\JsonResponse;
-    use Zend\Diactoros\ServerRequestFactory;
-    use Zend\Diactoros\Stream;
-    use Zend\Diactoros\Uri;
 
     use Enobrev\API\Exception;
     use Enobrev\API\Method;
