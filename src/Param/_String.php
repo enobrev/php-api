@@ -72,4 +72,30 @@
             /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $mValue;
         }
+        
+        /**
+         * @param array $aSchema
+         * @return Param\_String
+         */
+        public static function createFromJsonSchema(array $aSchema) {
+            $oParam = self::create();
+
+            if (isset($aSchema['minLength'])) {
+                $oParam = $oParam->minLength($aSchema['minLength']);
+            }
+
+            if (isset($aSchema['maxLength'])) {
+                $oParam = $oParam->maxLength($aSchema['maxLength']);
+            }
+
+            if (isset($aSchema['pattern'])) {
+                $oParam = $oParam->pattern($aSchema['pattern']);
+            }
+
+            if (isset($aSchema['format'])) {
+                $oParam = $oParam->format($aSchema['format']);
+            }
+
+            return $oParam;
+        }
     }

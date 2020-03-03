@@ -56,7 +56,7 @@
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                $oSpec->pathParamsToJsonSchema(),
+                $oSpec->pathParamsToSchemaArray(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
@@ -79,10 +79,9 @@
             $aParameters = $oRequest->getQueryParams();
             $oParameters = (object) $aParameters;
             $oValidator  = new Validator;
-
             $oValidator->validate(
                 $oParameters,
-                $oSpec->queryParamsToJsonSchema(),
+                $oSpec->queryParamsToSchemaArray(),
                 Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
@@ -155,7 +154,7 @@
                 $oValidator  = new Validator;
                 $oValidator->validate(
                     $oParameters,
-                    $oSpec->postParamsToJsonSchema(),
+                    $oSpec->postParamsToSchemaArray(),
                     Constraint::CHECK_MODE_APPLY_DEFAULTS
                 );
 

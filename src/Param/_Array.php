@@ -107,4 +107,26 @@
 
             return $mValue;
         }
+
+        /**
+         * @param array $aSchema
+         * @return Param\_String
+         */
+        public static function createFromJsonSchema(array $aSchema) {
+            $oParam = self::create();
+
+            if (isset($aSchema['minItems'])) {
+                $oParam = $oParam->minItems($aSchema['minItems']);
+            }
+
+            if (isset($aSchema['maxItems'])) {
+                $oParam = $oParam->maxItems($aSchema['maxItems']);
+            }
+
+            if (isset($aSchema['uniqueItems'])) {
+                $oParam = $oParam->uniqueItems($aSchema['uniqueItems']);
+            }
+
+            return $oParam;
+        }
     }

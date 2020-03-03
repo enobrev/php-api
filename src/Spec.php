@@ -185,39 +185,39 @@
          * @return Param[]
          * @throws ReflectionException
          */
-        public function resolvePostParams(): array {
-            $oComponent = null;
-
-            if ($this->hasAPostBodyRequest()) {
-                $oComponent = $this->oPostBodyRequest;
-            } else if ($this->hasAPostBodyReference()) {
-                // FIXME: This _may_ be a big fat hack
+        public function getPostParamSchema(): ?OpenAPI_Schema {
+            if ($this->hasAPostBodyReference()) {
                 $oFullSpec  = FullSpec::getFromCache();
-                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                $oRequest   = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
+                if ($oRequest) {
+                    return $oRequest->getSpecObject();
+                }
             }
 
-            if ($oComponent) {
-                $aParams = [];
-                if ($oComponent instanceof ParamSchema) {
-                    $oParam = $oComponent->getParam();
-                    $aParams = $oParam->getItems();
-                } else if ($oComponent instanceof OpenApiInterface) {
-                    $aSpec = $oComponent->getOpenAPI();
-                    if (isset($aSpec['properties'])) {
-                        foreach ($aSpec['properties'] as $sParam => $aProperty) {
-                            $aParams[$sParam] = Param::createFromJsonSchema($aProperty);
-                        }
-                    }
-                }
 
-                if (count($this->aPostParams)) {
-                    $aParams = array_merge($aParams, $this->aPostParams);
+            if (!$oSchema) {
+                $oRequestBody = $this->generateOperation()->requestBody;
+                if (isset($oRequestBody->content['multipart/form-data'])) {
+                    return $oRequestBody->content['multipart/form-data']->schema;
                 }
-            } else {
-                $aParams = $this->aPostParams;
+            }
+        }
+
+        /**
+         * @return Param[]
+         * @throws ReflectionException
+         */
+        public function resolvePostParams(): array {
+            $oSchema = $this->getPostParamSchema();
+            $aReturn = [];
+            if ($oSchema) {
+                $aSchema = json_decode(json_encode($oSchema->getSerializableData()), true);
+                foreach ($aSchema['properties'] as $sParam => $aSchema) {
+                    $aReturn[$sParam] = Param::createFromJsonSchema($aSchema);
+                }
             }
 
-            return $aParams;
+            return $aReturn;
         }
 
         /**
@@ -235,12 +235,24 @@
             return $this->bDeprecated;
         }
 
-        public function pathParamsToJsonSchema():array {
-            return Param\_Object::create()->items($this->aPathParams)->getJsonSchema();
+        public function pathParamsToSchemaArray(): array {
+            return json_decode(json_encode($this->pathParamsToSchema()->getSerializableData()), true);
         }
 
-        public function queryParamsToJsonSchema():array {
-            return Param\_Object::create()->items($this->aQueryParams)->getJsonSchema();
+        public function queryParamsToSchemaArray(): array {
+            return json_decode(json_encode($this->queryParamsToSchema()->getSerializableData()), true);
+        }
+
+        public function postParamsToSchemaArray(): array {
+            return json_decode(json_encode($this->getPostParamSchema()->getSerializableData()), true);
+        }
+
+        private function pathParamsToSchema(): OpenAPI_Schema {
+            return Param\_Object::create()->items($this->aPathParams)->getSchema();
+        }
+
+        private function queryParamsToSchema(): OpenAPI_Schema {
+            return Param\_Object::create()->items($this->aQueryParams)->getSchema();
         }
 
         public function hasAPostBodyOneOf(): bool {
@@ -270,43 +282,6 @@
 
         private function hasAPostBodyRequest(): bool {
             return $this->oPostBodyRequest instanceof Request;
-        }
-
-        /**
-         * @return array
-         * @throws ReflectionException
-         */
-        public function postParamsToJsonSchema():array {
-            $oComponent = null;
-
-            if ($this->hasAPostBodyRequest()) {
-                $oComponent = $this->oPostBodyRequest;
-            } else if ($this->hasAPostBodyReference()) {
-                // FIXME: This _may_ be a big fat hack
-                $oFullSpec = FullSpec::getFromCache();
-                $oComponent = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
-            }
-
-            if ($oComponent) {
-                if ($oComponent instanceof ParamSchema) {
-                    return $oComponent->getParam()->getJsonSchema();
-                }
-
-                if ($oComponent instanceof Request) {
-                    $oJSON = $oComponent->getJson();
-                    if ($oJSON instanceof ParamSchema) {
-                        return $oJSON->getParam()->getJsonSchema();
-                    }
-
-                    return $oJSON->getOpenAPI();
-                }
-
-                $aPostParams = $this->resolvePostParams();
-            } else {
-                $aPostParams = $this->aPostParams;
-            }
-
-            return Param\_Object::create()->items($aPostParams)->getJsonSchema();
         }
 
         public function summary(string $sSummary):self {
@@ -790,7 +765,23 @@
             if ($this->oPostBodyReference) {
                 $aOperation['requestBody'] = $this->oPostBodyReference->getSpecObject();
             } else {
-                $aPost      = [];
+                $bRequestBody = false;
+                $oRequestBody = new OpenApi_RequestBody([
+                    'content' => [
+                        'multipart/form-data' => new OpenApi_MediaType([
+                            'schema' => new OpenAPI_Schema([
+                                'type'       => 'object',
+                                'properties' => []
+                            ])
+                        ])
+                    ]
+                ]);
+
+                if ($this->oPostBodyRequest) {
+                    $bRequestBody = true;
+                    $oRequestBody = $this->oPostBodyRequest->getSpecObject();
+                }
+
                 $aRequired  = [];
 
                 foreach ($this->aPostParams as $sParam => $oParam) {
@@ -798,30 +789,20 @@
                         continue;
                     }
 
-                    $aPost[$sParam] = $oParam->getSchema();
+                    $bRequestBody = true;
+                    $oRequestBody->content['multipart/form-data']->schema->properties->$sParam = $oParam->getSchema();
 
                     if ($oParam->isRequired()) {
                         $aRequired[] = $sParam;
                     }
                 }
 
-                if (count($aPost)) {
-                    $aRequestBody = [
-                        'content' => [
-                            'multipart/form-data' => new OpenApi_MediaType([
-                                'schema' => new OpenAPI_Schema([
-                                    'type'       => 'object',
-                                    'properties' => $aPost
-                                ])
-                            ])
-                        ]
-                    ];
-
+                if ($bRequestBody) {
                     if (count($aRequired)) {
-                        $aRequestBody['content']['multipart/form-data']->schema->required = $aRequired;
+                        $oRequestBody->content['multipart/form-data']->schema->required = $aRequired;
                     }
 
-                    $aOperation['requestBody'] = new OpenApi_RequestBody($aRequestBody);
+                    $aOperation['requestBody'] = $oRequestBody;
                 }
             }
 

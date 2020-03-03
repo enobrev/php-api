@@ -84,12 +84,12 @@
         public static function createFromJsonSchema(array $aSchema) {
             $oParam = null;
             switch($aSchema['type']) {
-                case 'array':   $oParam = Param\_Array::create();   break;
-                case 'object':  $oParam = Param\_Object::create();  break;
-                case 'string':  $oParam = Param\_String::create();  break;
-                case 'number':  $oParam = Param\_Number::create();  break;
-                case 'integer': $oParam = Param\_Integer::create(); break;
-                case 'boolean': $oParam = Param\_Boolean::create(); break;
+                case 'array':   $oParam = Param\_Array::createFromJsonSchema($aSchema);   break;
+                case 'object':  $oParam = Param\_Object::createFromJsonSchema($aSchema);  break;
+                case 'string':  $oParam = Param\_String::createFromJsonSchema($aSchema);  break;
+                case 'number':  $oParam = Param\_Number::createFromJsonSchema($aSchema);  break;
+                case 'integer': $oParam = Param\_Integer::createFromJsonSchema($aSchema); break;
+                case 'boolean': $oParam = Param\_Boolean::createFromJsonSchema($aSchema); break;
             }
 
             if (isset($aSchema['nullable'])) {

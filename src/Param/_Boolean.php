@@ -40,4 +40,18 @@
 
             return $mValue;
         }
+        
+        /**
+         * @param array $aSchema
+         * @return Param\_String
+         */
+        public static function createFromJsonSchema(array $aSchema) {
+            $oParam = self::create();
+
+            if (isset($aSchema['default'])) {
+                $oParam = $oParam->default($aSchema['default']);
+            }
+
+            return $oParam;
+        }
     }
