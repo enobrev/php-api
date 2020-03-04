@@ -44,7 +44,10 @@
             $oRequest = self::setAttribute($oRequest, $oSpec);
 
             if (!Log::hasPurpose()) {
-                Log::setPurpose($oSpec->getSummary());
+                $sSummary = $oSpec->getSummary();
+                if ($sSummary) {
+                    Log::setPurpose($sSummary);
+                }
             }
 
             Log::justAddContext([

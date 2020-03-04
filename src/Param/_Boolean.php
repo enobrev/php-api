@@ -26,11 +26,11 @@
                 }
             }
 
-            if ($mValue === 1 || $mValue === 'true') {
+            if ($mValue === 1 || $mValue === '1' || $mValue === 'true') {
                 return true;
             }
 
-            if ($mValue === null || $mValue === 0 || $mValue === 'false') {
+            if ($mValue === null || $mValue === 0 || $mValue === '0' || $mValue === 'false') {
                 return false;
             }
 

@@ -58,6 +58,10 @@
             return $this->sType === self::TYPE_ONEOF;
         }
 
+        public function isAnyOf(): string {
+            return $this->sType === self::TYPE_ANYOF;
+        }
+
         public function schema($mSchema):self {
             $this->aSchema = $mSchema;
             return $this;

@@ -163,4 +163,22 @@
 
             return $mValue;
         }
+
+        /**
+         * @param array $aSchema
+         * @return Param\_Object
+         */
+        public static function createFromJsonSchema(array $aSchema) {
+            $oParam = self::create();
+
+            if (isset($aSchema['items']) && is_array($aSchema['items'])) {
+                $aItemParams = [];
+                foreach($aSchema['items'] as $sParam => $aItem) {
+                    $aItemParams[$sParam] = Param::createFromJsonSchema($aItem);
+                }
+                $oParam = $oParam->items($aItemParams);
+            }
+
+            return $oParam;
+        }
     }

@@ -32,6 +32,7 @@
         "ext-pdo": "*",
         "ext-readline": "*",
         "adbario/php-dot-notation": "^2.2",
+        "benmorel/openapi-schema-to-json-schema": "^0.1.1",
         "bshaffer/oauth2-server-php": "^1.11",
         "cebe/php-openapi": "^1.3",
         "enobrev/php-orm": "dev-master",
@@ -46,6 +47,7 @@
     },
     "require-dev": {
         "ext-pdo": "*",
+        "laminas/laminas-stratigility": "^3.2",
         "nategood/commando": "^0.4.0",
         "phpunit/phpunit": "^8.1",
         "vimeo/psalm": "^3.0"

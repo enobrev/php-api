@@ -5,6 +5,7 @@
     use Enobrev\API\Exception;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
+    use function Enobrev\dbg;
 
     class _Array extends Param {
         use ParamTrait;
@@ -110,7 +111,7 @@
 
         /**
          * @param array $aSchema
-         * @return Param\_String
+         * @return Param\_Array
          */
         public static function createFromJsonSchema(array $aSchema) {
             $oParam = self::create();
@@ -125,6 +126,10 @@
 
             if (isset($aSchema['uniqueItems'])) {
                 $oParam = $oParam->uniqueItems($aSchema['uniqueItems']);
+            }
+
+            if (isset($aSchema['items']) && is_array($aSchema['items'])) {
+                $oParam = $oParam->items(Param::createFromJsonSchema($aSchema['items']));
             }
 
             return $oParam;

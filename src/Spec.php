@@ -1,6 +1,8 @@
 <?php
     namespace Enobrev\API;
 
+    use BenMorel\OpenApiSchemaToJsonSchema\Convert;
+    use cebe\openapi\spec\RequestBody;
     use ReflectionException;
 
     use Adbar\Dot;
@@ -106,7 +108,7 @@
             return str_replace(['.', '[/]'], ['_DOT_', '/'], $this->sPath);
         }
 
-        public function getSummary():string {
+        public function getSummary(): ?string {
             return $this->sSummary;
         }
 
@@ -119,7 +121,11 @@
         }
 
         public function getScopeList(string $sDivider = ' '): string {
-            return implode($sDivider, $this->aScopes);
+            if (is_array($this->aScopes)) {
+                return implode($sDivider, $this->aScopes);
+            }
+
+            return '';
         }
 
         /**
@@ -190,17 +196,19 @@
                 $oFullSpec  = FullSpec::getFromCache();
                 $oRequest   = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
                 if ($oRequest) {
-                    return $oRequest->getSpecObject();
+                    $oSpecObject = $oRequest->getSpecObject();
+                    if ($oSpecObject instanceof OpenAPI_Schema) {
+                        return $oSpecObject;
+                    }
                 }
             }
 
-
-            if (!$oSchema) {
-                $oRequestBody = $this->generateOperation()->requestBody;
-                if (isset($oRequestBody->content['multipart/form-data'])) {
-                    return $oRequestBody->content['multipart/form-data']->schema;
-                }
+            $oRequestBody = $this->generateOperation()->requestBody;
+            if (isset($oRequestBody->content['multipart/form-data'])) {
+                return $oRequestBody->content['multipart/form-data']->schema;
             }
+
+            return null;
         }
 
         /**
@@ -212,8 +220,13 @@
             $aReturn = [];
             if ($oSchema) {
                 $aSchema = json_decode(json_encode($oSchema->getSerializableData()), true);
-                foreach ($aSchema['properties'] as $sParam => $aSchema) {
-                    $aReturn[$sParam] = Param::createFromJsonSchema($aSchema);
+
+                if (isset($aSchema['oneOf'], $aSchema['anyOf'], $aSchema['allOf'])) {
+                    // do nothing for now
+                } else if (isset($aSchema['properties'])) {
+                    foreach ($aSchema['properties'] as $sParam => $aSubSchema) {
+                        $aReturn[$sParam] = Param::createFromJsonSchema($aSubSchema);
+                    }
                 }
             }
 
@@ -235,23 +248,11 @@
             return $this->bDeprecated;
         }
 
-        public function pathParamsToSchemaArray(): array {
-            return json_decode(json_encode($this->pathParamsToSchema()->getSerializableData()), true);
-        }
-
-        public function queryParamsToSchemaArray(): array {
-            return json_decode(json_encode($this->queryParamsToSchema()->getSerializableData()), true);
-        }
-
-        public function postParamsToSchemaArray(): array {
-            return json_decode(json_encode($this->getPostParamSchema()->getSerializableData()), true);
-        }
-
-        private function pathParamsToSchema(): OpenAPI_Schema {
+        public function pathParamsToSchema(): OpenAPI_Schema {
             return Param\_Object::create()->items($this->aPathParams)->getSchema();
         }
 
-        private function queryParamsToSchema(): OpenAPI_Schema {
+        public function queryParamsToSchema(): OpenAPI_Schema {
             return Param\_Object::create()->items($this->aQueryParams)->getSchema();
         }
 
@@ -262,6 +263,52 @@
             }
 
             return false;
+        }
+
+        public function hasAPostBodyOneOfOrAnyOf(): bool {
+            if ($this->oPostBodyRequest instanceof Request) {
+                $oPost = $this->oPostBodyRequest->getPost();
+                return $oPost instanceof Schema && ($oPost->isOneOf() || $oPost->isAnyOf());
+            }
+
+            return false;
+        }
+
+        public function hasAPostBodyDiscriminator(): bool {
+            if ($this->oPostBodyRequest instanceof Request) {
+                return $this->oPostBodyRequest->hasDiscriminator();
+            }
+
+            return false;
+        }
+
+        public function getPostBodyDiscriminator(): ?string {
+            if ($this->oPostBodyRequest instanceof Request) {
+                return $this->oPostBodyRequest->getDiscriminator();
+            }
+
+            return null;
+        }
+
+        public function getSchemaFromPostBodyDiscriminator($oProperties) {
+            if (!$oProperties) {
+                return null;
+            }
+
+            $sDiscriminator = $this->getPostBodyDiscriminator();
+            if ($sDiscriminator === null) {
+                return null;
+            }
+
+            if (!property_exists($oProperties, $sDiscriminator)) {
+                return null;
+            }
+
+            foreach($this->getPostBodySchemas() as $oSchema) {
+                if ($oProperties->$sDiscriminator === str_replace('schemas/', '', $oSchema->getName())) {
+                    return $oSchema;
+                }
+            }
         }
 
         public function getPostBodySchemas() {
@@ -387,21 +434,6 @@
             $oClone = clone $this;
             $oClone->oPostBodyRequest = $oRequest;
             return $oClone;
-        }
-
-        public function postBodySchemaSelector(callable $fSelector): Spec {
-            $oClone = clone $this;
-            $oClone->oPostBodySchemaSelector = $fSelector;
-            return $oClone;
-        }
-
-        public function hasPostBodySchemaSelector(): bool {
-            return is_callable($this->oPostBodySchemaSelector);
-        }
-
-        public function getSchemaFromSelector($oProperties) {
-            $fSelector =  $this->oPostBodySchemaSelector;
-            return $fSelector($this->getPostBodySchemas(), $oProperties);
         }
 
         public function postParams(array $aParams):self {
@@ -766,20 +798,20 @@
                 $aOperation['requestBody'] = $this->oPostBodyReference->getSpecObject();
             } else {
                 $bRequestBody = false;
-                $oRequestBody = new OpenApi_RequestBody([
+                $aRequestBody = [
                     'content' => [
-                        'multipart/form-data' => new OpenApi_MediaType([
-                            'schema' => new OpenAPI_Schema([
+                        'multipart/form-data' => [
+                            'schema' => [
                                 'type'       => 'object',
                                 'properties' => []
-                            ])
-                        ])
+                            ]
+                        ]
                     ]
-                ]);
+                ];
 
                 if ($this->oPostBodyRequest) {
                     $bRequestBody = true;
-                    $oRequestBody = $this->oPostBodyRequest->getSpecObject();
+                    $aRequestBody = json_decode(json_encode($this->oPostBodyRequest->getSpecObject()->getSerializableData()), true);
                 }
 
                 $aRequired  = [];
@@ -790,7 +822,7 @@
                     }
 
                     $bRequestBody = true;
-                    $oRequestBody->content['multipart/form-data']->schema->properties->$sParam = $oParam->getSchema();
+                    $aRequestBody['content']['multipart/form-data']['schema']['properties'][$sParam] = $oParam->getSchema();
 
                     if ($oParam->isRequired()) {
                         $aRequired[] = $sParam;
@@ -799,10 +831,10 @@
 
                 if ($bRequestBody) {
                     if (count($aRequired)) {
-                        $oRequestBody->content['multipart/form-data']->schema->required = $aRequired;
+                        $aRequestBody['content']['multipart/form-data']['schema']['required'] = $aRequired;
                     }
 
-                    $aOperation['requestBody'] = $oRequestBody;
+                    $aOperation['requestBody'] = new RequestBody($aRequestBody);
                 }
             }
 
@@ -896,7 +928,7 @@
                 }
             }
 
-            $bRequiresSecurity = !$this->bPublic && count($this->aScopes) > 0;
+            $bRequiresSecurity = !$this->bPublic && is_array($this->aScopes) && count($this->aScopes) > 0;
 
             if (!$this->bSkipDefaultResponses) {
                 if (!$aOperation['responses']->hasResponse(HTTP\BAD_REQUEST) && count($aParameters)) {

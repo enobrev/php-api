@@ -479,16 +479,35 @@ DESCRIPTION
 
         }
 
+        public function addSpec($sVersion, $sPath, $sHttpMethod, $sFullClass): void {
+            if (!isset($this->aSpecs[$sVersion])) {
+                $this->aSpecs[$sVersion] = [];
+            }
+
+            if (!isset($this->aSpecs[$sVersion][$sPath])) {
+                $this->aSpecs[$sVersion][$sPath] = [];
+            }
+
+            $this->aSpecs[$sVersion][$sPath][$sHttpMethod] = $sFullClass;
+        }
+
+        public function addSpecFromInstance(SpecInterface $oSpecInterface): void {
+            $oSpec = $oSpecInterface->spec();
+            $aPath = explode('/', trim($oSpec->getPath(), '/'));
+            $this->addSpec(
+                $aPath[0],
+                $oSpec->getPath(),
+                $oSpec->getHttpMethod(),
+                get_class($oSpecInterface)
+            );
+        }
+
         /**
          * This method goes through the given paths and runs the spec() and components() methods in the classes to gather the results
          * @throws ReflectionException
          */
         private function specsFromSpecInterfaces(): void {
             foreach (self::$aVersions as $sVersion) {
-                if (!isset($this->aSpecs[$sVersion])) {
-                    $this->aSpecs[$sVersion] = [];
-                }
-
                 $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
                     /** @var SplFileInfo[] $aFiles */
@@ -534,11 +553,7 @@ DESCRIPTION
                                         $sPath       = $oSpec->getPath();
                                         $sHttpMethod = $oSpec->getHttpMethod();
 
-                                        if (!isset($this->aSpecs[$sVersion][$sPath])) {
-                                            $this->aSpecs[$sVersion][$sPath] = [];
-                                        }
-
-                                        $this->aSpecs[$sVersion][$sPath][$sHttpMethod] = $sFullClass;
+                                        $this->addSpec($sVersion, $sPath, $sHttpMethod, $sFullClass);
                                     } else if ($oReflectionClass->implementsInterface(ComponentListInterface::class)) {
                                         /** @var ComponentListInterface $oClass */
                                         $oClass      = new $sFullClass();

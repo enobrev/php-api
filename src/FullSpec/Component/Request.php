@@ -24,6 +24,9 @@
         /** @var OpenApiInterface */
         private $mJson;
 
+        /** @var string */
+        private $sDiscriminator;
+
         public static function create(string $sName) {
             return new self($sName);
         }
@@ -51,6 +54,14 @@
             return $this->mJson;
         }
 
+        public function hasDiscriminator(): bool {
+            return $this->sDiscriminator !== null;
+        }
+
+        public function getDiscriminator(): string {
+            return $this->sDiscriminator;
+        }
+
         public function description(string $sDescription):self {
             $this->sDescription = $sDescription;
             return $this;
@@ -63,6 +74,11 @@
 
         public function json(OpenApiInterface $mJson):self {
             $this->mJson = $mJson;
+            return $this;
+        }
+
+        public function discriminator(string $sDiscriminator):self {
+            $this->sDiscriminator = $sDiscriminator;
             return $this;
         }
 
@@ -90,6 +106,10 @@
 
             if ($this->mJson) {
                 $oResponse->set('content.application/json.schema', $this->mJson->getOpenAPI());
+            }
+
+            if ($this->sDiscriminator) {
+                $oResponse->set('discriminator.propertyName', $this->sDiscriminator);
             }
 
             return $oResponse->all();
@@ -120,6 +140,10 @@
 
             if ($this->mJson) {
                 $oResponse->set('content.application/json.schema', $this->mJson->getSpecObject());
+            }
+
+            if ($this->sDiscriminator) {
+                $oResponse->set('discriminator.propertyName', $this->sDiscriminator);
             }
 
             return new RequestBody($oResponse->all());

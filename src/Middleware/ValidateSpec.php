@@ -2,6 +2,9 @@
     namespace Enobrev\API\Middleware;
 
     use Adbar\Dot;
+    use BenMorel\OpenApiSchemaToJsonSchema\Convert;
+    use cebe\openapi\spec\Schema as OpenApi_Schema;
+    use Enobrev\API\OpenApiInterface;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares;
@@ -17,6 +20,7 @@
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
+    use function Enobrev\dbg;
 
     class ValidateSpec implements MiddlewareInterface {
         /**
@@ -53,10 +57,12 @@
             $oSpec       = AttributeSpec::getSpec($oRequest);
             $aParameters = FastRoute::getPathParams($oRequest);
             $oParameters = (object) $aParameters;
+            $oPathParams = Convert::openapiSchemaToJsonSchema($oSpec->pathParamsToSchema()->getSerializableData());
+
             $oValidator  = new Validator;
             $oValidator->validate(
                 $oParameters,
-                $oSpec->pathParamsToSchemaArray(),
+                $oPathParams,
                 Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
@@ -75,13 +81,14 @@
          * @throws Middlewares\Utils\HttpErrorException
          */
         private function validateQueryParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
-            $oSpec       = AttributeSpec::getSpec($oRequest);
-            $aParameters = $oRequest->getQueryParams();
-            $oParameters = (object) $aParameters;
-            $oValidator  = new Validator;
+            $oSpec        = AttributeSpec::getSpec($oRequest);
+            $aParameters  = $oRequest->getQueryParams();
+            $oParameters  = (object) $aParameters;
+            $oQueryParams = Convert::openapiSchemaToJsonSchema($oSpec->queryParamsToSchema()->getSerializableData());
+            $oValidator   = new Validator;
             $oValidator->validate(
                 $oParameters,
-                $oSpec->queryParamsToSchemaArray(),
+                $oQueryParams,
                 Constraint::CHECK_MODE_APPLY_DEFAULTS
             );
 
@@ -106,16 +113,31 @@
             $aParameters = $oRequest->getParsedBody();
             $oParameters = (object) $aParameters;
 
-            if ($oSpec->hasAPostBodyOneOf()) {
-                if ($oSpec->hasPostBodySchemaSelector()) {
-                    // FIXME: This is such a hackish workaround it's a bit embarassing.  The issue is that while using a OneOf schema for our post body
-                    //  is great for documentation, it's crap for validation.  Our validation lib has no means of intelligently picking which "oneOf" schema
-                    //  to use.  So this is basically an injected callback that does it for us.  I don't recommend using this method elsewhere without
-                    //  significant contemplation, foresight, and proper fiber in your diet
+            if ($oSpec->hasAPostBodyOneOfOrAnyOf()) {
+                if ($oSpec->hasAPostBodyDiscriminator()) {
+                    $oSchema     = $oSpec->getSchemaFromPostBodyDiscriminator($oParameters);
+                    if ($oSchema instanceof OpenApiInterface === false) {
+                        $sDiscriminator = $oSpec->getPostBodyDiscriminator();
+                        $aContext = [
+                            [
+                                'property'   => $sDiscriminator,
+                                'pointer'    => "/$sDiscriminator",
+                                'message'    => 'Discriminator value did not match any available schemas',
+                                'constraint' => 'discriminator',
+                                'value'      => $oParameters->$sDiscriminator ?? null
+                            ]
+                        ];
+
+                        Log::e('Enobrev.Middleware.ValidateSpec.validatePostParameters.InvalidDiscriminator', ['state' => 'PostBodySchemaSelector.Error', 'errors' => $aContext]);
+                        throw ValidationException::create(HTTP\BAD_REQUEST, $aContext);
+                    }
+
+                    $oPostParams = Convert::openapiSchemaToJsonSchema($oSchema->getSpecObject()->getSerializableData());
+
                     $oValidator  = new Validator;
                     $oValidator->validate(
                         $oParameters,
-                        $oSpec->getSchemaFromSelector($oParameters),
+                        $oPostParams,
                         Constraint::CHECK_MODE_APPLY_DEFAULTS
                     );
 
@@ -125,16 +147,19 @@
                     }
                 } else {
                     // FIXME: The post body has a schema that allows one of many different combinations of post parameters - loop through and see if we match at least one
+
                     $aSchemas = $oSpec->getPostBodySchemas();
                     $bValid   = false;
                     $oError   = null;
 
                     /** @var Schema $oSchema */
                     foreach($aSchemas as $oSchema) {
+                        $oPostParams = Convert::openapiSchemaToJsonSchema($oSchema->getSpecObject()->getSerializableData());
+
                         $oValidator  = new Validator;
                         $oValidator->validate(
                             $oParameters,
-                            $oSchema->getOpenAPI(),
+                            $oPostParams,
                             Constraint::CHECK_MODE_APPLY_DEFAULTS
                         );
 
@@ -151,16 +176,21 @@
                     }
                 }
             } else {
-                $oValidator  = new Validator;
-                $oValidator->validate(
-                    $oParameters,
-                    $oSpec->postParamsToSchemaArray(),
-                    Constraint::CHECK_MODE_APPLY_DEFAULTS
-                );
+                $oPostParamSchema = $oSpec->getPostParamSchema();
+                if ($oPostParamSchema instanceof OpenApi_Schema) {
+                    $oPostParams = Convert::openapiSchemaToJsonSchema($oPostParamSchema->getSerializableData());
 
-                if ($oValidator->isValid() === false) {
-                    Log::e('Enobrev.Middleware.ValidateSpec.validatePostParameters', ['state' => 'Other.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
-                    throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                    $oValidator  = new Validator;
+                    $oValidator->validate(
+                        $oParameters,
+                        $oPostParams,
+                        Constraint::CHECK_MODE_APPLY_DEFAULTS
+                    );
+
+                    if ($oValidator->isValid() === false) {
+                        Log::e('Enobrev.Middleware.ValidateSpec.validatePostParameters', ['state' => 'Other.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                        throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
+                    }
                 }
             }
 
@@ -181,7 +211,7 @@
             $aErrorProperties = [];
 
             foreach ($oValidator->getErrors() as $aError) {
-                if (empty($aError['property']) && $aError['constraint']['name'] === 'additionalProp') {
+                if (empty($aError['property']) && is_array($aError['constraint']) && $aError['constraint']['name'] === 'additionalProp') {
                     $aError['property'] = $aError['constraint']['params']['property'];
                     $aError['value']    = $oParameters->get($aError['property']);
                 } else {
