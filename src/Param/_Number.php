@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Param;
     
+    use cebe\openapi\spec\Schema;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
 
@@ -65,22 +66,22 @@
         }
         
         /**
-         * @param array $aSchema
-         * @return Param\_String
+         * @param Schema $oSchema
+         * @return self
          */
-        public static function createFromJsonSchema(array $aSchema) {
+        public static function createFromSchema(Schema $oSchema): self {
             $oParam = self::create();
 
-            if (isset($aSchema['minimum'])) {
-                $oParam = $oParam->minimum($aSchema['minimum']);
+            if ($oSchema->minimum) {
+                $oParam = $oParam->minimum($oSchema->minimum);
             }
 
-            if (isset($aSchema['maximum'])) {
-                $oParam = $oParam->maximum($aSchema['maximum']);
+            if ($oSchema->maximum) {
+                $oParam = $oParam->maximum($oSchema->maximum);
             }
 
-            if (isset($aSchema['format'])) {
-                $oParam = $oParam->format($aSchema['format']);
+            if ($oSchema->format) {
+                $oParam = $oParam->format($oSchema->format);
             }
 
             return $oParam;

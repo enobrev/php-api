@@ -67,6 +67,7 @@
         }
 
         public function testOk(): void {
+            try {
             $oResponse = $this->getResponse([
                 'test' => [
                     'test_string'   => 'abc123',
@@ -96,6 +97,10 @@
             $this->assertEquals('ghijkl',   $aResponse['_request']['params']['post']['test']['test_object']['nested']);
 
             $this->assertEquals(1, $aResponse['TEST_OK']);
+            } catch (ValidationException $e) {
+                $aContext = $e->getContext();
+                dbg($aContext);
+            }
         }
 
         public function testRequired(): void {
@@ -144,90 +149,6 @@
                 throw $e;
             }
         }
-        /*
-
-        public function testTwoStrings(): void {
-            $this->expectException(ValidationException::class);
-
-            try {
-                $this->getResponse(['test' => 'abc,def']);
-            } catch (ValidationException $e) {
-                $aContext = $e->getContext();
-
-                $this->assertIsArray($aContext);
-                $this->assertCount(2, $aContext);
-                $this->assertEquals('test[0]', $aContext[0]['property']);
-                $this->assertEquals('test[1]', $aContext[1]['property']);
-
-                $this->assertEquals('type', $aContext[0]['constraint']);
-                $this->assertEquals('type', $aContext[1]['constraint']);
-
-                $this->assertStringContainsString('integer is required', $aContext[0]['message']);
-                $this->assertStringContainsString('integer is required', $aContext[1]['message']);
-
-                throw $e;
-            }
-        }
-
-        public function testMinItems(): void {
-            $this->expectException(ValidationException::class);
-
-            try {
-                $this->getResponse(['test' => '123']);
-            } catch (ValidationException $e) {
-                $aContext = $e->getContext();
-
-                $this->assertIsArray($aContext);
-                $this->assertCount(1, $aContext);
-                $this->assertEquals('test', $aContext[0]['property']);
-                $this->assertEquals('minItems', $aContext[0]['constraint']);
-                $this->assertEquals(2, $aContext[0]['minItems']);
-
-                $this->assertStringContainsString('must be a minimum of', $aContext[0]['message']);
-
-                throw $e;
-            }
-        }
-
-        public function testMaxItems(): void {
-            $this->expectException(ValidationException::class);
-
-            try {
-                $this->getResponse(['test' => '123,234,345,456,567,678']);
-            } catch (ValidationException $e) {
-                $aContext = $e->getContext();
-
-                $this->assertIsArray($aContext);
-                $this->assertCount(1, $aContext);
-                $this->assertEquals('test', $aContext[0]['property']);
-                $this->assertEquals('maxItems', $aContext[0]['constraint']);
-                $this->assertEquals(5, $aContext[0]['maxItems']);
-
-                $this->assertStringContainsString('must be a maximum of', $aContext[0]['message']);
-
-                throw $e;
-            }
-        }
-
-        public function testUniqueItems(): void {
-            $this->expectException(ValidationException::class);
-
-            try {
-                $this->getResponse(['test' => '123,123']);
-            } catch (ValidationException $e) {
-                $aContext = $e->getContext();
-
-                $this->assertIsArray($aContext);
-                $this->assertCount(1, $aContext);
-                $this->assertEquals('test', $aContext[0]['property']);
-                $this->assertEquals('uniqueItems', $aContext[0]['constraint']);
-
-                $this->assertStringContainsString('no duplicates allowed', $aContext[0]['message']);
-
-                throw $e;
-            }
-        }
-        */
     }
 
     class ObjectTestClass implements SpecInterface, MiddlewareInterface {

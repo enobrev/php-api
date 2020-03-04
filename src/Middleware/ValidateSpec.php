@@ -20,7 +20,6 @@
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
-    use function Enobrev\dbg;
 
     class ValidateSpec implements MiddlewareInterface {
         /**

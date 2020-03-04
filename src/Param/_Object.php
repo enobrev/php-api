@@ -1,15 +1,14 @@
 <?php
     namespace Enobrev\API\Param;
 
+    use stdClass;
+
     use cebe\openapi\spec\Schema;
     use Enobrev\API\FullSpec\Component\Reference;
-    use Enobrev\API\OpenApiInterface;
-    use stdClass;
 
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
     use Enobrev\API\Spec;
-    use function Enobrev\dbg;
 
     class _Object extends Param {
         use ParamTrait;
@@ -125,16 +124,17 @@
         }
 
         /**
-         * @param array $aSchema
-         * @return Param\_Object
+         * @param Schema $oSchema
+         *
+         * @return self
          */
-        public static function createFromJsonSchema(array $aSchema) {
+        public static function createFromSchema(Schema $oSchema): self  {
             $oParam = self::create();
 
-            if (isset($aSchema['items']) && is_array($aSchema['items'])) {
+            if ($oSchema->properties) {
                 $aItemParams = [];
-                foreach($aSchema['items'] as $sParam => $aItem) {
-                    $aItemParams[$sParam] = Param::createFromJsonSchema($aItem);
+                foreach($oSchema->properties as $sParam => $oItemSchema) {
+                    $aItemParams[$sParam] = Param::createFromSchema($oItemSchema);
                 }
                 $oParam = $oParam->items($aItemParams);
             }

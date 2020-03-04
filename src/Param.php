@@ -81,35 +81,35 @@
          * @param array $aSchema
          * @return Param\_Array|Param\_Boolean|Param\_Integer|Param\_Number|Param\_Object|Param\_String
          */
-        public static function createFromJsonSchema(array $aSchema) {
+        public static function createFromSchema(Schema $oSchema) {
             $oParam = null;
-            switch($aSchema['type']) {
-                case 'array':   $oParam = Param\_Array::createFromJsonSchema($aSchema);   break;
-                case 'object':  $oParam = Param\_Object::createFromJsonSchema($aSchema);  break;
-                case 'string':  $oParam = Param\_String::createFromJsonSchema($aSchema);  break;
-                case 'number':  $oParam = Param\_Number::createFromJsonSchema($aSchema);  break;
-                case 'integer': $oParam = Param\_Integer::createFromJsonSchema($aSchema); break;
-                case 'boolean': $oParam = Param\_Boolean::createFromJsonSchema($aSchema); break;
+            switch($oSchema->type) {
+                case 'array':   $oParam = Param\_Array::createFromSchema($oSchema);   break;
+                case 'object':  $oParam = Param\_Object::createFromSchema($oSchema);  break;
+                case 'string':  $oParam = Param\_String::createFromSchema($oSchema);  break;
+                case 'number':  $oParam = Param\_Number::createFromSchema($oSchema);  break;
+                case 'integer': $oParam = Param\_Integer::createFromSchema($oSchema); break;
+                case 'boolean': $oParam = Param\_Boolean::createFromSchema($oSchema); break;
             }
 
-            if (isset($aSchema['nullable'])) {
+            if ($oSchema->nullable) {
                 $oParam = $oParam->nullable();
             }
 
-            if (isset($aSchema['deprecated'])) {
+            if ($oSchema->deprecated) {
                 $oParam = $oParam->deprecated();
             }
 
-            if (isset($aSchema['description'])) {
-                $oParam->sDescription = $aSchema['description'];
+            if ($oSchema->description) {
+                $oParam->sDescription = $oSchema->description;
             }
 
-            if (isset($aSchema['properties'])) {
+            if ($oSchema->properties) {
                 $aParams = [];
-                foreach($aSchema['properties'] as $sParam => $aParam) {
-                    $aParams[$sParam] = self::createFromJsonSchema($aParam);
+                foreach($oSchema->properties as $sParam => $oPropertySchema) {
+                    $aParams[$sParam] = self::createFromSchema($oPropertySchema);
                 }
-                $oParam = $oParam->items($aParams);
+                $oParam->items($aParams);
             }
 
             return $oParam;

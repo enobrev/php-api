@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Param;
     
+    use cebe\openapi\spec\Schema;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
 
@@ -42,14 +43,14 @@
         }
         
         /**
-         * @param array $aSchema
-         * @return Param\_String
+         * @param Schema $oSchema
+         * @return self
          */
-        public static function createFromJsonSchema(array $aSchema) {
+        public static function createFromSchema(Schema $oSchema): self {
             $oParam = self::create();
 
-            if (isset($aSchema['default'])) {
-                $oParam = $oParam->default($aSchema['default']);
+            if ($oSchema->default) {
+                $oParam = $oParam->default($oSchema->default);
             }
 
             return $oParam;

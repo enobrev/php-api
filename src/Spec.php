@@ -1,15 +1,11 @@
 <?php
     namespace Enobrev\API;
 
-    use BenMorel\OpenApiSchemaToJsonSchema\Convert;
     use cebe\openapi\spec\RequestBody;
     use ReflectionException;
 
     use Adbar\Dot;
-    use cebe\openapi\spec\MediaType as OpenApi_MediaType;
     use cebe\openapi\spec\Operation as OpenApi_Operation;
-    use cebe\openapi\spec\RequestBody as OpenApi_RequestBody;
-    use cebe\openapi\spec\Reference as OpenApi_Reference;
     use cebe\openapi\spec\Responses as OpenApi_Responses;
     use cebe\openapi\spec\Response as OpenApi_Response;
     use cebe\openapi\spec\Schema as OpenAPI_Schema;
@@ -18,8 +14,6 @@
     use cebe\openapi\Writer;
     use Middlewares\HttpErrorException;
 
-    use Enobrev\API\FullSpec\ComponentInterface;
-    use Enobrev\API\FullSpec\Component\ParamSchema;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\FullSpec\Component\Request;
@@ -31,7 +25,6 @@
     use Enobrev\ORM\Table;
 
     use function Enobrev\array_not_associative;
-    use function Enobrev\dbg;
 
     class Spec {
         private const SKIP_PRIMARY = 1024;
@@ -219,13 +212,11 @@
             $oSchema = $this->getPostParamSchema();
             $aReturn = [];
             if ($oSchema) {
-                $aSchema = json_decode(json_encode($oSchema->getSerializableData()), true);
-
-                if (isset($aSchema['oneOf'], $aSchema['anyOf'], $aSchema['allOf'])) {
+                if ($oSchema->oneOf || $oSchema->anyOf || $oSchema->allOf) {
                     // do nothing for now
-                } else if (isset($aSchema['properties'])) {
-                    foreach ($aSchema['properties'] as $sParam => $aSubSchema) {
-                        $aReturn[$sParam] = Param::createFromJsonSchema($aSubSchema);
+                } else if ($oSchema->properties) {
+                    foreach ($oSchema->properties as $sParam => $oSubSchema) {
+                        $aReturn[$sParam] = Param::createFromSchema($oSubSchema);
                     }
                 }
             }

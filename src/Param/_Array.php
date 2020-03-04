@@ -87,26 +87,26 @@
         }
 
         /**
-         * @param array $aSchema
-         * @return Param\_Array
+         * @param Schema $oSchema
+         * @return self
          */
-        public static function createFromJsonSchema(array $aSchema) {
+        public static function createFromSchema(Schema $oSchema): self {
             $oParam = self::create();
 
-            if (isset($aSchema['minItems'])) {
-                $oParam = $oParam->minItems($aSchema['minItems']);
+            if ($oSchema->minItems) {
+                $oParam = $oParam->minItems($oSchema->minItems);
             }
 
-            if (isset($aSchema['maxItems'])) {
-                $oParam = $oParam->maxItems($aSchema['maxItems']);
+            if ($oSchema->maxItems) {
+                $oParam = $oParam->maxItems($oSchema->maxItems);
             }
 
-            if (isset($aSchema['uniqueItems'])) {
-                $oParam = $oParam->uniqueItems($aSchema['uniqueItems']);
+            if ($oSchema->uniqueItems) {
+                $oParam = $oParam->uniqueItems($oSchema->uniqueItems);
             }
 
-            if (isset($aSchema['items']) && is_array($aSchema['items'])) {
-                $oParam = $oParam->items(Param::createFromJsonSchema($aSchema['items']));
+            if ($oSchema->items) {
+                $oParam = $oParam->items(Param::createFromSchema($oSchema->items));
             }
 
             return $oParam;
