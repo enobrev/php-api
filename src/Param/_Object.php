@@ -6,7 +6,6 @@
     use Enobrev\API\OpenApiInterface;
     use stdClass;
 
-    use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
     use Enobrev\API\Spec;
@@ -93,45 +92,6 @@
             }
 
             return new Schema($aSchema);
-        }
-
-        public function getJsonSchema($bOpenSchema = false): array {
-            $aSchema = $this->getValidationForSchema();
-            $aSchema['type'] = $this->getType();
-            $aRequired = [];
-
-            if (isset($aSchema['items'])) {
-                $aSchema['additionalProperties'] = $this->allowsAdditionalProperties();
-                $aSchema['properties'] = [];
-                foreach ($aSchema['items'] as $sParam => $mItem) {
-                    if ($bOpenSchema && $mItem instanceof Param) {
-                        $aSchema['properties'][$sParam] = $mItem->getJsonSchemaForOpenAPI();
-                    } else if ($mItem instanceof JsonSchemaInterface) {
-                        $aSchema['properties'][$sParam] = $mItem->getJsonSchema();
-                    } else if (is_array($mItem)) {
-                        $aSchema['properties'][$sParam] = Spec::toJsonSchema($mItem);
-                    } else {
-                        $aSchema['properties'][$sParam] = $mItem;
-                    }
-
-                    if (($mItem instanceof Param) && $mItem->isRequired()) {
-                        $aRequired[] = $sParam;
-                    }
-                }
-                unset($aSchema['items']);
-            } else {
-                $aSchema['additionalProperties'] = true;
-            }
-
-            if ($this->sDescription) {
-                $aSchema['description'] = $this->sDescription;
-            }
-
-            if (count($aRequired)) {
-                $aSchema['required'] = $aRequired;
-            }
-
-            return $aSchema;
         }
 
         /**

@@ -43,10 +43,6 @@
             return $this->oParam;
         }
 
-        public function getOpenAPI(): array {
-            return $this->oParam->getJsonSchemaForOpenAPI();
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             return $this->oParam->getSchema();
         }

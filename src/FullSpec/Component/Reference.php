@@ -29,10 +29,6 @@
             return $this->sName;
         }
 
-        public function getOpenAPI(): array {
-            return ['$ref' => "#/components/{$this->sName}"];
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             return new OpenApi_Reference(['$ref' => "#/components/{$this->sName}"]);
         }

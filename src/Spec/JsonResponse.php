@@ -59,46 +59,6 @@
             return $oResponse;
         }
 
-        public function getOpenAPI(): array {
-            if (!$this->mSchema) {
-                return RefResponse::create(FullSpec::RESPONSE_DEFAULT)->getOpenAPI();
-            }
-
-            if ($this->sType) {
-                $aResponse = [];
-
-                foreach($this->mSchema as $mSchemaItem) {
-                    if ($mSchemaItem instanceof OpenApiInterface) {
-                        $aResponse[] = $mSchemaItem->getOpenAPI();
-                    } else if (is_array($mSchemaItem)) {
-                        $aResponse[] = Spec::toJsonSchema($mSchemaItem);
-                    } else {
-                        $aResponse[] = $mSchemaItem;
-                    }
-                }
-
-                $aReturn = [
-                    $this->sType => $aResponse
-                ];
-
-                if ($this->sTitle) {
-                    $aReturn['title'] = $this->sTitle;
-                }
-
-                return $aReturn;
-            }
-
-            if ($this->mSchema instanceof OpenApiInterface) {
-                return $this->mSchema->getOpenAPI();
-            }
-
-            if (is_array($this->mSchema)) {
-                return Spec::toJsonSchema($this->mSchema);
-            }
-
-            return null;
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             if (!$this->mSchema) {
                 return new Reference(['$ref' => FullSpec::RESPONSE_DEFAULT]);

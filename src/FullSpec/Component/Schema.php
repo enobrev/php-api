@@ -6,7 +6,6 @@
     use cebe\openapi\spec\Schema as OpenApi_Schema;
 
     use Enobrev\API\FullSpec\ComponentInterface;
-    use Enobrev\API\JsonSchemaInterface;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
     use function Enobrev\dbg;
@@ -24,7 +23,7 @@
         /** @var string */
         private $sTitle;
 
-        /** @var OpenApiInterface|JsonSchemaInterface|array */
+        /** @var OpenApiInterface|array */
         private $aSchema;
 
         /** @var string */
@@ -90,40 +89,6 @@
             return $this;
         }
 
-        public function getOpenAPI(): array {
-            $oResponse = new Dot();
-
-            if ($this->sTitle) {
-                $oResponse->set('title', $this->sTitle);
-            }
-
-            if ($this->sType) {
-                $aResponse = [];
-
-                foreach ($this->aSchema as $mSchemaItem) {
-                    if ($mSchemaItem instanceof OpenApiInterface) {
-                        $aResponse[] = $mSchemaItem->getOpenAPI();
-                    } else if (is_array($mSchemaItem)) {
-                        $aResponse[] = Spec::toJsonSchema($mSchemaItem);
-                    } else {
-                        $aResponse[] = $mSchemaItem;
-                    }
-                }
-
-                $oResponse->set($this->sType, $aResponse);
-            } else if ($this->aSchema instanceof OpenApiInterface) {
-                $oResponse->merge($this->aSchema->getOpenAPI());
-            } else if ($this->aSchema instanceof JsonSchemaInterface) {
-                $oResponse->merge($this->aSchema->getJsonSchema());
-            } else if (is_array($this->aSchema)) {
-                $oResponse->merge(Spec::toJsonSchema($this->aSchema));
-            } else {
-                $oResponse->merge($this->aSchema);
-            }
-
-            return $oResponse->all();
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             if ($this->sType) {
                 $aResponse = [];
@@ -144,14 +109,11 @@
                 ]);
             } else if ($this->aSchema instanceof OpenApiInterface) {
                 $oSpecObject = $this->aSchema->getSpecObject();
-            } else if ($this->aSchema instanceof JsonSchemaInterface) {
-                dbg('Component.Schema.JsonSchemaInterface.NotSureWhatToDo', $this->aSchema);
-                // $oResponse->merge($this->aSchema->getJsonSchema());
             } else if (is_array($this->aSchema)) {
                 $oSpecObject = Spec::arrayToSchema($this->aSchema);
             } else {
-                dbg('Component.Schema.Nothing.NotSureWhatToDo', $this->aSchema);
-                //$oResponse->merge($this->aSchema);
+                Log::e('Component.Schema.Unhandled', ['schema' => json_encode($this->aSchema)]);
+                throw new \Exception('Spec.arrayToScheme.Unhandled');
             }
 
             if ($this->sTitle && $oSpecObject instanceof OpenApi_Schema) {

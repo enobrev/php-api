@@ -4,7 +4,7 @@
     use cebe\openapi\spec\Parameter;
     use cebe\openapi\spec\Schema;
 
-    abstract class Param implements JsonSchemaInterface {
+    abstract class Param {
         protected const STRING     = 'string';
         protected const NUMBER     = 'number';
         protected const INTEGER    = 'integer';
@@ -167,93 +167,6 @@
 
             return new Schema($aSchema);
         }
-
-        public function getJsonSchema($bOpenSchema = false): array {
-            $aSchema = $this->getValidationForSchema();
-            $aSchema['type'] = $this->getType();
-
-            if ($this->isNullable()) {
-                // This is required for the justin-rainbow validation library to work
-                return [
-                    'anyOf' => [
-                        $aSchema,
-                        ['type' => 'null']
-                    ]
-                ];
-                // $aSchema['nullable'] = true;
-            }
-
-            if ($this->sDescription) {
-                $aSchema['description'] = $this->sDescription;
-            }
-
-            return $aSchema;
-        }
-
-        public function getJsonSchemaForOpenAPI(): array {
-            $aSchema = $this->getJsonSchema(true);
-
-            if (isset($aSchema['anyOf']) && is_array($aSchema['anyOf'])) {
-                foreach($aSchema['anyOf'] as $iIndex => $aAnySchema) {
-                    if (isset($aAnySchema['type']) && $aAnySchema['type'] === 'null') {
-                        unset($aSchema['anyOf'][$iIndex]);
-                        break;
-                    }
-                }
-
-                if (count($aSchema['anyOf']) === 1) {
-                    $aSchema = array_shift($aSchema['anyOf']);
-                }
-            }
-
-            if ($this->isNullable()) {
-                $aSchema['nullable'] = true;
-            }
-
-            if ($this->sDescription) {
-                $aSchema['description'] = $this->sDescription;
-            }
-
-            return $aSchema;
-        }
-
-        /**
-         * @param string $sName
-         * @param null|string $sIn
-         * @return array
-         */
-        public function OpenAPI(string $sName, ?string $sIn = 'query'): array {
-            $aOutput = [
-                'name'   => $sName,
-                'schema' => $this->getJsonSchema()
-            ];
-
-            if ($sIn) {
-                $aOutput['in'] = $sIn;
-            }
-
-            if ($this->isRequired()) {
-                $aOutput['required'] = true;
-            }
-
-            if ($this->isDeprecated()) {
-                $aOutput['deprecated'] = true;
-            }
-
-            if ($this->sDescription) {
-                $aOutput['description'] = $this->sDescription;
-            }
-
-            if (!empty($this->sExample)) {
-                $aOutput['example'] = $this->sExample;
-            }
-
-            if (!empty($this->aExamples)) {
-                $aOutput['examples'] = $this->aExamples;
-            }
-
-            return $aOutput;
-        }
-
+        
         abstract public function coerce($mValue);
     }

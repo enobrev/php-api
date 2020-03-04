@@ -62,28 +62,6 @@
             return $this;
         }
 
-        public function getOpenAPI(): array {
-            if (!count($this->aSchemas)) {
-                // If No schema is given, then simply apply the name and description to the default
-                return self::create($this->sName)->description($this->sDescription)->json(Reference::create(FullSpec::SCHEMA_DEFAULT))->getOpenAPI();
-            }
-
-            $oResponse = new Dot([
-                'description' => $this->sDescription,
-                'content'     => []
-            ]);
-
-            if ($this->sSummary) {
-                $oResponse->set('x-summary', $this->sSummary);
-            }
-
-            foreach($this->aSchemas as $mSubSchema) {
-                $oResponse->set('content.application/json.schema', $mSubSchema->getOpenAPI());
-            }
-
-            return $oResponse->all();
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             if (!count($this->aSchemas)) {
                 // If No schema is given, then simply apply the name and description to the default

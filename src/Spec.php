@@ -479,19 +479,6 @@
 
         /**
          * @param Table $oTable
-         * @param int   $iOptions
-         * @param array $aExclude
-         *
-         * @return array
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
-         */
-        public static function tableToJsonSchema(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
-            return self::toJsonSchema(self::tableToParams($oTable, $iOptions, $aExclude));
-        }
-
-        /**
-         * @param Table $oTable
          * @param array $aExclude
          * @param int   $iOptions
          * @param bool  $bAdditionalProperties
@@ -509,11 +496,11 @@
          * @param int   $iOptions
          * @param array $aExclude
          *
-         * @return Param[]
+         * @return Param[] 
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
+        private static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
             $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
 
@@ -618,63 +605,7 @@
 
             return $oParam;
         }
-
-        /**
-         * @param array $aArray
-         * @param bool $bAdditionalProperties
-         * @return array
-         */
-        public static function toJsonSchema(array $aArray, $bAdditionalProperties = false): array {
-            if (isset($aArray['type']) && in_array($aArray['type'], ['object', 'array', 'integer', 'number', 'boolean', 'string'])) {
-                // this is likely already a jsonschema
-                return $aArray;
-            }
-
-            $oProperties = new Dot();
-            $aRequired   = [];
-
-            /** @var Param $oParam */
-            foreach ($aArray as $sName => $mValue) {
-                if (strpos($sName, '.') !== false) {
-                    $aName    = explode('.', $sName);
-                    $sSubName = array_shift($aName);
-
-                    $oDot = new Dot();
-                    $oDot->set(implode('.', $aName), $mValue);
-                    $aValue = $oDot->all();
-
-                    $oProperties->set($sSubName, self::toJsonSchema($aValue));
-                } else if ($mValue instanceof JsonSchemaInterface) {
-                    $oProperties->set($sName, $mValue->getJsonSchemaForOpenAPI());
-
-                    if ($mValue instanceof Param && $mValue->isRequired()) {
-                        $aRequired[] = (string) $sName;
-                    }
-                } else if ($mValue instanceof OpenApiInterface) {
-                    $oProperties->set($sName, $mValue->getOpenAPI());
-                } else if ($mValue instanceof Dot) {
-                    $aValue = $mValue->all();
-                    $oProperties->set($sName, self::toJsonSchema($aValue));
-                } else if (is_array($mValue)) {
-                    $oProperties->set($sName, self::toJsonSchema($mValue));
-                } else {
-                    $oProperties->set($sName, $mValue);
-                }
-            }
-
-            $aResponse = [
-                'type'                  => 'object',
-                'additionalProperties'  => $bAdditionalProperties,
-                'properties'            => $oProperties->all()
-            ];
-
-            if (count($aRequired)) {
-                $aResponse['required'] = $aRequired;
-            }
-
-            return $aResponse;
-        }
-
+        
         /**
          * @param array $aArray
          * @param bool $bAdditionalProperties
@@ -717,10 +648,9 @@
                     $oProperties->set($sName, self::arrayToSchema($mValue->all()));
                 } else if (is_array($mValue)) {
                     $oProperties->set($sName, self::arrayToSchema($mValue));
-                } else if ($mValue instanceof JsonSchemaInterface) {
-                    dbg('Spec.arrayToSchema.Unhandled.JsonSchemaInterface.' . $sName, $mValue);
                 } else {
-                    dbg('Spec.arrayToSchema.Unhandled.Else.' . $sName, $mValue);
+                    Log::e('Spec.arrayToSchema.Unhandled', ['name' => $sName, 'value' => $mValue]);
+                    throw new \Exception('Spec.arrayToScheme.Unhandled');
                 }
             }
 

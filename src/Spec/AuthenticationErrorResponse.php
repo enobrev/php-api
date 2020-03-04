@@ -17,20 +17,6 @@
         /** @var string */
         private $sMessage;
 
-        public function getOpenAPI(): array {
-            return JsonResponse::allOf([
-                Reference::create(FullSpec::SCHEMA_DEFAULT),
-                [
-                    '_errors' =>  [
-                        'authentication' => Param\_Object::create()->items([
-                            'code'    => Param\_Integer::create()->minimum(401)->maximum(403)->default($this->iCode)->example($this->iCode),
-                            'message' => Param\_String::create()->default($this->sMessage)->example($this->sMessage)
-                        ])
-                    ]
-                ]
-            ])->getOpenAPI();
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             return JsonResponse::allOf([
                 Reference::create(FullSpec::SCHEMA_DEFAULT),

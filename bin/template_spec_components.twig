@@ -66,7 +66,7 @@
                             [
                                 'counts.{{ table.name }}' => Param\_Integer::create(),
                                 'sorts.{{ table.name }}'  => Param\_Array::create()->items(new Param\_String()),
-                                '{{ table.name }}.{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => Spec::tableToJsonSchema(new {{ table.class }}, Param::REQUIRED)
+                                '{{ table.name }}.{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => Spec::tableToParam(new {{ table.class }}, [], Param::REQUIRED)
                             ]
                         ])
                     )

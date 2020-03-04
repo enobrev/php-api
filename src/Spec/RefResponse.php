@@ -19,10 +19,6 @@
             $this->sName = $sName;
         }
 
-        public function getOpenAPI(): array {
-            return Reference::create($this->sName)->getOpenAPI();
-        }
-
         public function getSpecObject(): SpecObjectInterface {
             throw new \Exception('I did not think this would ever be called.');
         }

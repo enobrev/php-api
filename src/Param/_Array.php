@@ -29,15 +29,6 @@
             return $this->validation(['uniqueItems' => $bUniqueItems]);
         }
 
-        protected function getValidationForSchema():array {
-            $aValidation = parent::getValidationForSchema();
-            if ($aValidation['items'] instanceof Param) {
-                $aValidation['items'] = $aValidation['items']->getJsonSchema();
-            }
-
-            return $aValidation;
-        }
-
         public function getSchema(): Schema {
             $aSchema = $this->aValidation;
 
@@ -60,20 +51,6 @@
             }
 
             return new Schema($aSchema);
-        }
-
-        /**
-         * @param bool $bOpenSchema
-         *
-         * @return array
-         * @throws Exception
-         */
-        public function getJsonSchema($bOpenSchema = false): array {
-            if (!isset($this->aValidation['items'])) {
-                throw new Exception('Array Param requires items definition');
-            }
-
-            return parent::getJsonSchema($bOpenSchema);
         }
 
         /**

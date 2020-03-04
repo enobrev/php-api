@@ -86,39 +86,6 @@
          * @return array
          * @throws Exception
          */
-        public function getOpenAPI(): array {
-            if (!$this->sDescription) {
-                throw new Exception('Full Scope Request Components require a description');
-            }
-
-            if (!$this->mPost && !$this->mJson) {
-                throw new Exception('Full Scope Request Components needs a JSON or form-data schema');
-            }
-
-            $oResponse = new Dot([
-                'description' => $this->sDescription,
-                'content'     => []
-            ]);
-
-            if ($this->mPost) {
-                $oResponse->set('content.multipart/form-data.schema', $this->mPost->getOpenAPI());
-            }
-
-            if ($this->mJson) {
-                $oResponse->set('content.application/json.schema', $this->mJson->getOpenAPI());
-            }
-
-            if ($this->sDiscriminator) {
-                $oResponse->set('discriminator.propertyName', $this->sDiscriminator);
-            }
-
-            return $oResponse->all();
-        }
-
-        /**
-         * @return array
-         * @throws Exception
-         */
 
         public function getSpecObject(): SpecObjectInterface {
             if (!$this->sDescription) {
@@ -135,15 +102,17 @@
             ]);
 
             if ($this->mPost) {
-                $oResponse->set('content.multipart/form-data.schema', $this->mPost->getSpecObject());
+                $oResponse->set('content.multipart/form-data.schema', json_decode(json_encode($this->mPost->getSpecObject()->getSerializableData()), true));
+                if ($this->sDiscriminator) {
+                    $oResponse->set('content.multipart/form-data.schema.discriminator.propertyName', $this->sDiscriminator);
+                }
             }
 
             if ($this->mJson) {
-                $oResponse->set('content.application/json.schema', $this->mJson->getSpecObject());
-            }
-
-            if ($this->sDiscriminator) {
-                $oResponse->set('discriminator.propertyName', $this->sDiscriminator);
+                $oResponse->set('content.application/json.schema', json_decode(json_encode($this->mJson->getSpecObject()->getSerializableData()), true));
+                if ($this->sDiscriminator) {
+                    $oResponse->set('content.application/json.schema.discriminator.propertyName', $this->sDiscriminator);
+                }
             }
 
             return new RequestBody($oResponse->all());
