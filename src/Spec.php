@@ -6,6 +6,7 @@
 
     use Adbar\Dot;
     use cebe\openapi\spec\Operation as OpenApi_Operation;
+    use cebe\openapi\spec\Reference as OpenApi_Reference;
     use cebe\openapi\spec\Responses as OpenApi_Responses;
     use cebe\openapi\spec\Response as OpenApi_Response;
     use cebe\openapi\spec\Schema as OpenAPI_Schema;
@@ -111,6 +112,43 @@
 
         public function getLowerHttpMethod():string {
             return strtolower($this->sHttpMethod);
+        }
+
+        /**
+         * @param int $iStatus
+         *
+         * @return array|mixed|string|null
+         * @throws Exception\InvalidDescription
+         * @throws Exception\InvalidStatus
+         */
+        public function getResponseSchema(int $iStatus): SpecObjectInterface {
+            $mResponse = $this->aResponses[$iStatus] ?? null;
+
+            if (!$mResponse) {
+                throw new Exception\InvalidStatus('Invalid Status');
+            }
+
+            if ($mResponse instanceof Response) {
+                return $mResponse->getSpecObject();
+            }
+
+            if (is_string($mResponse)) {
+                return $mResponse;
+            }
+
+            if (is_array($mResponse)) {
+                $aDescription = [];
+                foreach($mResponse as $mSubResponse) {
+                    if ($mSubResponse instanceof Response) {
+                        $aDescription[] = $mSubResponse->getDescription();
+                    } else if (is_string($mSubResponse)) {
+                        $aDescription[] = $mSubResponse;
+                    }
+                }
+                return $aDescription;
+            }
+
+            throw new Exception\InvalidDescription('Not Sure What the Response Description Is');
         }
 
         public function getScopeList(string $sDivider = ' '): string {
@@ -759,93 +797,11 @@
                 }
             }
 
-            // There's a bit of magic going on here.  The issue at hand is that the OpenAPI spec does not allow
-            // us to define multiple instances for a status, but it _does_ allow us to define multiple schemas
-            // for a status.  This seems to occur more often for multiple error responses (x not found, y not found, etc)
-            // So what this does...
-            // If the status has just one response, fine, well, and good, generate the response and carry on
-            // If the status has multiple responses, collect those responses as `schemas` and then output them as an "anyof" stanza
-            // The swagger UI does not handle this properly, but the Redoc UI does, which is correct as this is allowed in the Spec.
             $aOperation['responses'] = new OpenApi_Responses([]);
-            foreach($this->aResponses as $iStatus => $aResponses) {
-                if (count($aResponses) > 1) {
-                    $aDescription = [];
-                    $aSchemas     = [];
-                    foreach ($aResponses as $oResponse) {
-                        $sDescription = $iStatus . ' Response';
-                        if ($oResponse instanceof ErrorResponseInterface) {
-                            $sDescription = $oResponse->getMessage();
-                        }
-
-                        if ($oResponse instanceof OpenApiInterface) {
-                            $aDescription[] = $sDescription;
-                            $aSchemas[]     = $oResponse->getSpecObject();
-                        } else {
-                            $aSchemas[]     = Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
-                        }
-                    }
-
-                    if (count($aSchemas) > 1) {
-                        $aSchemas = [
-                            'oneOf' => $aSchemas
-                        ];
-                    }
-
-                    if (count($aDescription) === 0) {
-                        $sDescription = $iStatus . ' Response';
-                    } else if (count($aDescription) === 1) {
-                        $sDescription = array_shift($aDescription);
-                    } else {
-                        $sDescription = implode(', ', array_unique($aDescription));
-                    }
-
-                    $aOperation['responses']->addResponse($iStatus, new OpenApi_Response([
-                        'description' => $sDescription,
-                        'content'     => [
-                            'application/json' => [
-                                'schema' => $aSchemas
-                            ]
-                        ]
-                    ]));
-                } else {
-                    $aResponse = [];
-                    $oResponse = $aResponses[0];
-
-                    if ($oResponse instanceof Reference) {
-                        $aOperation['responses']->addResponse($iStatus, $oResponse->getSpecObject());
-                    } else if ($oResponse instanceof OpenApiInterface) {
-                        $sDescription = $iStatus . ' Response';
-                        if ($oResponse instanceof ErrorResponseInterface) {
-                            $sDescription = $oResponse->getMessage();
-                        }
-
-                        $aResponse = [
-                            'description' => $sDescription,
-                            'content'     => [
-                                'application/json' => [
-                                    'schema' => $oResponse->getSpecObject()
-                                ]
-                            ]
-                        ];
-
-                        if ($this->aResponseHeaders) {
-                            $aResponse['headers'] = $this->aResponseHeaders;
-                        }
-
-                        $aOperation['responses']->addResponse($iStatus, new OpenApi_Response($aResponse));
-                    } else if (is_string($oResponse)) {
-                        $aResponse = [
-                            'description' => $oResponse
-                        ];
-
-                        if ($this->aResponseHeaders) {
-                            $aResponse['headers'] = $this->aResponseHeaders;
-                        }
-
-                        $aOperation['responses']->addResponse($iStatus, new OpenApi_Response($aResponse));
-                    } else  {
-                        $aOperation['responses']->addResponse($iStatus, Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject());
-                    }
+            foreach(array_keys($this->aResponses) as $iStatus) {
+                $oResponse = $this->getResponse($iStatus);
+                if ($oResponse instanceof OpenApi_Response || $oResponse instanceof OpenApi_Reference) {
+                    $aOperation['responses']->addResponse($iStatus, $oResponse);
                 }
             }
 
@@ -891,6 +847,116 @@
             }
 
             return new OpenApi_Operation($aOperation);
+        }
+
+        /**
+         * @param int $iStatus
+         *
+         * @return OpenApi_Reference|OpenApi_Response
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         */
+        public function getResponse(int $iStatus, bool $bFollowReferences = false): ?SpecObjectInterface {
+            // There's a bit of magic going on here.  The issue at hand is that the OpenAPI spec does not allow
+            // us to define multiple instances for a status, but it _does_ allow us to define multiple schemas
+            // for a status.  This seems to occur more often for multiple error responses (x not found, y not found, etc)
+            // So what this does...
+            // If the status has just one response, fine, well, and good, generate the response and carry on
+            // If the status has multiple responses, collect those responses as `schemas` and then output them as an "anyof" stanza
+            // The swagger UI does not handle this properly, but the Redoc UI does, which is correct as this is allowed in the Spec.
+
+            $aResponses = $this->aResponses[$iStatus];
+
+            if (count($aResponses) > 1) {
+                $aDescription = [];
+                $aSchemas     = [];
+                foreach ($aResponses as $oResponse) {
+                    $sDescription = $iStatus . ' Response';
+                    if ($oResponse instanceof ErrorResponseInterface) {
+                        $sDescription = $oResponse->getMessage();
+                    }
+
+                    if ($oResponse instanceof OpenApiInterface) {
+                        $aDescription[] = $sDescription;
+                        $aSchemas[]     = $oResponse->getSpecObject();
+                    } else {
+                        $aSchemas[]     = Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
+                    }
+                }
+
+                if (count($aSchemas) > 1) {
+                    $aSchemas = [
+                        'oneOf' => $aSchemas
+                    ];
+                }
+
+                if (count($aDescription) === 0) {
+                    $sDescription = $iStatus . ' Response';
+                } else if (count($aDescription) === 1) {
+                    $sDescription = array_shift($aDescription);
+                } else {
+                    $sDescription = implode(', ', array_unique($aDescription));
+                }
+
+                return new OpenApi_Response([
+                    'description' => $sDescription,
+                    'content'     => [
+                        'application/json' => [
+                            'schema' => $aSchemas
+                        ]
+                    ]
+                ]);
+            } else {
+                $aResponse = [];
+                $oResponse = $aResponses[0];
+
+                if ($oResponse instanceof Reference) {
+                    if ($bFollowReferences) {
+                        $oFullSpec = FullSpec::getFromCache();
+                        return $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference)->getSpecObject();
+                    }
+
+                    return $oResponse->getSpecObject();
+                } else if ($oResponse instanceof OpenApiInterface) {
+                    $sDescription = $iStatus . ' Response';
+                    if ($oResponse instanceof ErrorResponseInterface) {
+                        $sDescription = $oResponse->getMessage();
+                    }
+
+                    $aResponse = [
+                        'description' => $sDescription,
+                        'content'     => [
+                            'application/json' => [
+                                'schema' => $oResponse->getSpecObject()
+                            ]
+                        ]
+                    ];
+
+                    if ($this->aResponseHeaders) {
+                        $aResponse['headers'] = $this->aResponseHeaders;
+                    }
+
+                    return new OpenApi_Response($aResponse);
+                } else if (is_string($oResponse)) {
+                    $aResponse = [
+                        'description' => $oResponse
+                    ];
+
+                    if ($this->aResponseHeaders) {
+                        $aResponse['headers'] = $this->aResponseHeaders;
+                    }
+
+                    return new OpenApi_Response($aResponse);
+                } else  {
+                    if ($bFollowReferences) {
+                        $oFullSpec = FullSpec::getFromCache();
+                        return $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference)->getSpecObject();
+                    }
+
+                    return Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
+                }
+            }
+
+            return null;
         }
 
         /**
