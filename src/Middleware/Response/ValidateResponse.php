@@ -62,19 +62,24 @@
          * @return ServerRequestInterface
          * @throws Exception\HttpErrorException
          * @throws ReflectionException
+         * @throws \BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidInputException
+         * @throws \BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidTypeException
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws \cebe\openapi\exceptions\UnresolvableReferenceException
          */
         private function validateResponse(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec          = AttributeSpec::getSpec($oRequest);
             $oSpecResponses = $oSpec->getResponses();
             if ($oSpecResponses instanceof Responses) {
-                $oOpenApi = FullSpec::getInstance()->getOpenApi();
-                $oSpecResponse = $oSpecResponses->getResponse(200);
+                $oOpenApi       = FullSpec::getInstance()->getOpenApi();
+                $oSpecResponse  = $oSpecResponses->getResponse(200);
+                $oRefContext    = new ReferenceContext($oOpenApi, '/');
 
                 if ($oSpecResponse instanceof Reference) {
-                    $oSpecResponse = $oSpecResponse->resolve(new ReferenceContext($oOpenApi, '/'));
+                    $oSpecResponse = $oSpecResponse->resolve($oRefContext);
                 }
 
-                $oSpecResponse->resolveReferences(new ReferenceContext($oOpenApi, '/'));
+                $oSpecResponse->resolveReferences($oRefContext);
 
                 /** @var OpenApi_Schema $oSchema */
                 $oSchema = $oSpecResponse->content['application/json']->schema;
@@ -116,7 +121,7 @@
                 if (is_object($oSubSchema)) {
                     $bFoundDynamicProperty = false;
                     foreach($oSubSchema as $sSubProperty => $oSubSubSchema) {
-                        if (preg_match('/^\{[^}]+\}$/', $sSubProperty, $aMatches)) {
+                        if (preg_match('/^{[^}]+}$/', $sSubProperty, $aMatches)) {
                             $bFoundDynamicProperty = true;
                             $oSchema->patternProperties = new \stdClass();
                             $oSchema->patternProperties->{'.*'} = $this->findPatternProperties($oSubSubSchema);
