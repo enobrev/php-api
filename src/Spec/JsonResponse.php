@@ -8,6 +8,7 @@
     use Enobrev\API\FullSpec;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
+    use Enobrev\Log;
     use function Enobrev\dbg;
 
     class JsonResponse implements OpenApiInterface {
@@ -59,6 +60,10 @@
             return $oResponse;
         }
 
+        /**
+         * @return SpecObjectInterface
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         */
         public function getSpecObject(): SpecObjectInterface {
             if (!$this->mSchema) {
                 return new Reference(['$ref' => FullSpec::RESPONSE_DEFAULT]);
@@ -68,14 +73,15 @@
                 $aResponse = [];
 
                 foreach($this->mSchema as $mSchemaItem) {
-                    if ($mSchemaItem instanceof OpenApiInterface) {
-                        $aResponse[] = $mSchemaItem->getSpecObject();
-                    } else if ($mSchemaItem instanceof SpecObjectInterface) {
+                    if ($mSchemaItem instanceof SpecObjectInterface) {
                         $aResponse[] = $mSchemaItem;
+                    } else if ($mSchemaItem instanceof OpenApiInterface) {
+                        $aResponse[] = $mSchemaItem->getSpecObject();
                     } else if (is_array($mSchemaItem)) {
                         $aResponse[] = Spec::arrayToSchema($mSchemaItem);
                     } else {
-                        dbg('JsonResponse.getSpecObject.NoIdea', $mSchemaItem);
+                        Log::e('JsonResponse.getSpecObject.Unhandled', ['schema' => json_encode($mSchemaItem)]);
+                        throw new \Exception('JsonResponse.getSpecObject.Unhandled');
                         //$aResponse[] = $mSchemaItem;
                     }
                 }
