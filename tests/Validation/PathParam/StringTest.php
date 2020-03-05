@@ -149,7 +149,7 @@
                 Dispatcher::run($this->aPipeline, new ServerRequest(
                     [],
                     [],
-                    '/testing/path_params/abc9',
+                    '/testing/path_params_email/abc9',
                     Method\GET
                 ));
             } catch (ValidationException $e) {
@@ -191,7 +191,7 @@
         public function spec(): Spec {
             return Spec::create()
                        ->httpMethod      (Method\GET)
-                       ->path            ('/testing/path_params/{email}')
+                       ->path            ('/testing/path_params_email/{email}')
                        ->pathParams      ([
                             'email' => Param\_String::create()->required()
                                                              ->minLength(3)
