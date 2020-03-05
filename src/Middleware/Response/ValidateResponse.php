@@ -3,8 +3,10 @@
 
     use cebe\openapi\ReferenceContext;
     use cebe\openapi\spec\OpenApi;
+    use cebe\openapi\spec\Reference;
     use cebe\openapi\spec\Responses;
     use cebe\openapi\SpecObjectInterface;
+    use Enobrev\API\Exception;
     use Enobrev\API\FullSpec;
     use ReflectionException;
     
@@ -36,7 +38,7 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws Exception\HttpErrorException
          * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -58,18 +60,24 @@
          * @param ServerRequestInterface $oRequest
          *
          * @return ServerRequestInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws Exception\HttpErrorException
          * @throws ReflectionException
          */
         private function validateResponse(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec          = AttributeSpec::getSpec($oRequest);
             $oSpecResponses = $oSpec->getResponses();
             if ($oSpecResponses instanceof Responses) {
-                $oOpenApi   = FullSpec::getInstance()->getOpenApi();
-                $oSpecResponses->resolveReferences(new ReferenceContext($oOpenApi, '/'));
+                $oOpenApi = FullSpec::getInstance()->getOpenApi();
+                $oSpecResponse = $oSpecResponses->getResponse(200);
+
+                if ($oSpecResponse instanceof Reference) {
+                    $oSpecResponse = $oSpecResponse->resolve(new ReferenceContext($oOpenApi, '/'));
+                }
+
+                $oSpecResponse->resolveReferences(new ReferenceContext($oOpenApi, '/'));
 
                 /** @var OpenApi_Schema $oSchema */
-                $oSchema = $oSpecResponses[200]->content['application/json']->schema;
+                $oSchema = $oSpecResponse->content['application/json']->schema;
                 if ($oSchema->allOf) {
                     // Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
                     $oMerged = new Dot;
@@ -79,11 +87,13 @@
                     }
                     $oSchema = new OpenApi_Schema($oMerged->all());
                 }
-                $oSpecSchema = Convert::openapiSchemaToJsonSchema($oSchema->getSerializableData());
+
+                // Convert Properties that look like {property_name} to use jsonSchema "patternProperties" .*
+                $oSpecSchema = Convert::openapiSchemaToJsonSchema($this->findPatternProperties($oSchema->getSerializableData()));
 
                 $aFullResponse  = ResponseBuilder::get($oRequest)->all();
                 $oFullResponse  = json_decode(json_encode($aFullResponse));
-                $oValidator  = new Validator;
+                $oValidator     = new Validator;
                 $oValidator->validate(
                     $oFullResponse,
                     $oSpecSchema,
@@ -93,11 +103,35 @@
                 if ($oValidator->isValid() === false) {
                     $aErrors = $this->getErrorsWithValues($oValidator, $aFullResponse);
                     Log::e('Enobrev.Middleware.Response.ValidateResponse', ['state' => 'Other.Error', 'errors' => $aErrors]);
-                    throw ValidationException::create(HTTP\INTERNAL_SERVER_ERROR, $aErrors);
+                    throw ValidationException::create(HTTP\BAD_RESPONSE, $aErrors);
                 }
             }
 
             return $oRequest;
+        }
+
+        // If we find a property name that looks like {property}, we replace the parent "properties" with patternProperties to treat it as a dynamic property
+        private function findPatternProperties($oSchema) {
+            foreach($oSchema as $sProperty => $oSubSchema) {
+                if (is_object($oSubSchema)) {
+                    $bFoundDynamicProperty = false;
+                    foreach($oSubSchema as $sSubProperty => $oSubSubSchema) {
+                        if (preg_match('/^\{[^}]+\}$/', $sSubProperty, $aMatches)) {
+                            $bFoundDynamicProperty = true;
+                            $oSchema->patternProperties = new \stdClass();
+                            $oSchema->patternProperties->{'.*'} = $this->findPatternProperties($oSubSubSchema);
+                        }
+                    }
+
+                    if($bFoundDynamicProperty) {
+                        unset($oSchema->properties);
+                    } else {
+                        $oSchema->$sProperty = $this->findPatternProperties($oSubSchema);
+                    }
+                }
+            }
+
+            return $oSchema;
         }
 
         private function getErrorsWithValues(Validator $oValidator, ?array $aParameters): ?array {
