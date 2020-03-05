@@ -36,7 +36,7 @@
         "ext-pdo": "*",
         "ext-readline": "*",
         "adbario/php-dot-notation": "^2.2",
-        "benmorel/openapi-schema-to-json-schema": "dev-fix-patternProperties_as_properties as 0.1.2",
+        "benmorel/openapi-schema-to-json-schema": "dev-fix-patternProperties_as_properties",
         "bshaffer/oauth2-server-php": "^1.11",
         "cebe/php-openapi": "^1.3",
         "enobrev/php-orm": "dev-master",

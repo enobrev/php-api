@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6decdcd4f89213267e5b6c27b1f86fdc",
+    "content-hash": "b2be8590953263484394439d5b9f7d9d",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -4111,14 +4111,7 @@
             "time": "2015-12-17T08:42:14+00:00"
         }
     ],
-    "aliases": [
-        {
-            "alias": "0.1.2",
-            "alias_normalized": "0.1.2.0",
-            "version": "dev-fix-patternProperties_as_properties",
-            "package": "benmorel/openapi-schema-to-json-schema"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
         "benmorel/openapi-schema-to-json-schema": 20,
