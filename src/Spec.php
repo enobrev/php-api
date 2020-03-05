@@ -224,7 +224,7 @@
          */
         public function getPostParamSchema(): ?OpenAPI_Schema {
             if ($this->hasAPostBodyReference()) {
-                $oFullSpec  = FullSpec::getFromCache();
+                $oFullSpec  = FullSpec::getInstance();
                 $oRequest   = $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference);
                 if ($oRequest) {
                     $oSpecObject = $oRequest->getSpecObject();
@@ -471,7 +471,7 @@
             return $oClone;
         }
 
-        public function response($iStatus, $mResponse = null):self {
+        public function response($iStatus, ?OpenApiInterface $mResponse = null):self {
             $oClone = clone $this;
             if (!isset($this->aResponses[$iStatus])) {
                 $oClone->aResponses[$iStatus] = [];
@@ -708,6 +708,11 @@
             return $sPath;
         }
 
+        /**
+         * @return OpenApi_Operation
+         * @throws Exception
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         */
         public function generateOperation(): OpenApi_Operation {
             $aOperation = [
                 'tags'          => $this->aTags,
@@ -797,13 +802,7 @@
                 }
             }
 
-            $aOperation['responses'] = new OpenApi_Responses([]);
-            foreach(array_keys($this->aResponses) as $iStatus) {
-                $oResponse = $this->getResponse($iStatus);
-                if ($oResponse instanceof OpenApi_Response || $oResponse instanceof OpenApi_Reference) {
-                    $aOperation['responses']->addResponse($iStatus, $oResponse);
-                }
-            }
+            $aOperation['responses'] = $this->getResponses();
 
             $bRequiresSecurity = !$this->bPublic && is_array($this->aScopes) && count($this->aScopes) > 0;
 
@@ -850,12 +849,28 @@
         }
 
         /**
+         * @return OpenApi_Responses
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         */
+        public function getResponses(): OpenApi_Responses {
+            $oResponses =  new OpenApi_Responses([]);
+            foreach(array_keys($this->aResponses) as $iStatus) {
+                $oResponse = $this->getResponse($iStatus);
+                if ($oResponse instanceof OpenApi_Response || $oResponse instanceof OpenApi_Reference) {
+                    $oResponses->addResponse($iStatus, $oResponse);
+                }
+            }
+
+            return $oResponses;
+        }
+
+        /**
          * @param int $iStatus
          *
          * @return OpenApi_Reference|OpenApi_Response
          * @throws \cebe\openapi\exceptions\TypeErrorException
          */
-        public function getResponse(int $iStatus, bool $bFollowReferences = false): ?SpecObjectInterface {
+        public function getResponse(int $iStatus): ?SpecObjectInterface {
             // There's a bit of magic going on here.  The issue at hand is that the OpenAPI spec does not allow
             // us to define multiple instances for a status, but it _does_ allow us to define multiple schemas
             // for a status.  This seems to occur more often for multiple error responses (x not found, y not found, etc)
@@ -875,11 +890,13 @@
                         $sDescription = $oResponse->getMessage();
                     }
 
-                    if ($oResponse instanceof OpenApiInterface) {
+                    if ($oResponse instanceof Reference) {
+                        $aSchemas[]     = $oResponse->getSpecObject();
+                    } else if ($oResponse instanceof OpenApiInterface) {
                         $aDescription[] = $sDescription;
                         $aSchemas[]     = $oResponse->getSpecObject();
                     } else {
-                        $aSchemas[]     = Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
+                        $aSchemas[] = Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
                     }
                 }
 
@@ -905,58 +922,49 @@
                         ]
                     ]
                 ]);
-            } else {
-                $aResponse = [];
-                $oResponse = $aResponses[0];
-
-                if ($oResponse instanceof Reference) {
-                    if ($bFollowReferences) {
-                        $oFullSpec = FullSpec::getFromCache();
-                        return $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference)->getSpecObject();
-                    }
-
-                    return $oResponse->getSpecObject();
-                } else if ($oResponse instanceof OpenApiInterface) {
-                    $sDescription = $iStatus . ' Response';
-                    if ($oResponse instanceof ErrorResponseInterface) {
-                        $sDescription = $oResponse->getMessage();
-                    }
-
-                    $aResponse = [
-                        'description' => $sDescription,
-                        'content'     => [
-                            'application/json' => [
-                                'schema' => $oResponse->getSpecObject()
-                            ]
-                        ]
-                    ];
-
-                    if ($this->aResponseHeaders) {
-                        $aResponse['headers'] = $this->aResponseHeaders;
-                    }
-
-                    return new OpenApi_Response($aResponse);
-                } else if (is_string($oResponse)) {
-                    $aResponse = [
-                        'description' => $oResponse
-                    ];
-
-                    if ($this->aResponseHeaders) {
-                        $aResponse['headers'] = $this->aResponseHeaders;
-                    }
-
-                    return new OpenApi_Response($aResponse);
-                } else  {
-                    if ($bFollowReferences) {
-                        $oFullSpec = FullSpec::getFromCache();
-                        return $oFullSpec->followTheYellowBrickRoad($this->oPostBodyReference)->getSpecObject();
-                    }
-
-                    return Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
-                }
             }
 
-            return null;
+            $oResponse = $aResponses[0];
+
+            if ($oResponse instanceof Reference) {
+                return $oResponse->getSpecObject();
+            }
+
+            if ($oResponse instanceof OpenApiInterface) {
+                $sDescription = $iStatus . ' Response';
+                if ($oResponse instanceof ErrorResponseInterface) {
+                    $sDescription = $oResponse->getMessage();
+                }
+
+                $aResponse = [
+                    'description' => $sDescription,
+                    'content'     => [
+                        'application/json' => [
+                            'schema' => $oResponse->getSpecObject()
+                        ]
+                    ]
+                ];
+
+                if ($this->aResponseHeaders) {
+                    $aResponse['headers'] = $this->aResponseHeaders;
+                }
+
+                return new OpenApi_Response($aResponse);
+            }
+
+            if (is_string($oResponse)) {
+                $aResponse = [
+                    'description' => $oResponse
+                ];
+
+                if ($this->aResponseHeaders) {
+                    $aResponse['headers'] = $this->aResponseHeaders;
+                }
+
+                return new OpenApi_Response($aResponse);
+            }
+
+            return Reference::create(FullSpec::RESPONSE_DEFAULT)->getSpecObject();
         }
 
         /**
