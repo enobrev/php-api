@@ -511,7 +511,7 @@ DESCRIPTION
                     ->getSpecObject(),
                 self::_MULTI_STATUS => Component\Response::create(self::RESPONSE_MULTI_STATUS)
                     ->json(
-                        JsonResponse::create()->allOf([
+                        JsonResponse::allOf([
                             Component\Reference::create(self::SCHEMA_DEFAULT),
                             [
                                 '_request.multiquery' => Component\Reference::create(self::RESPONSE_DEFAULT)

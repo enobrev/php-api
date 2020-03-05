@@ -84,7 +84,7 @@
                         ->httpMethod      (Method\GET)
                         ->path            ('/testing/response')
                         ->response(HTTP\OK,
-                            Spec\JsonResponse::create()->schema([
+                            Spec\JsonResponse::schema([
                                 'test1.testerton.x' => Param\_Integer::create()->minimum(1)->maximum(1),
                                 'test2.testerosa' => Param\_String::create()->enum(['test']),
                                 'test3' => Param\_Array::create()->items(Param\_String::create())

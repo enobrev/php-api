@@ -74,7 +74,7 @@
                         ->httpMethod      (Method\GET)
                         ->path            ('/testing/response')
                         ->response(HTTP\OK,
-                            Spec\JsonResponse::create()->schema([
+                            Spec\JsonResponse::schema([
                                 'TEST_OK' => Param\_Integer::create()->minimum(1)->maximum(1)
                             ])
                         );
