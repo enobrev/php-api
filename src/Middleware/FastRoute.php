@@ -106,7 +106,11 @@
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
                 if ($oBuilder->has('_request')) {
-                    $oBuilder->mergeRecursiveDistinct('_request.params.path', $aPathParams);
+                    if (count($aPathParams)) {
+                        $oBuilder->mergeRecursiveDistinct('_request.params.path', (object) $aPathParams);
+                    } else {
+                        $oBuilder->set('_request.params.path', new \stdClass());
+                    }
                 }
 
                 $oRequest = ResponseBuilder::update($oRequest, $oBuilder);

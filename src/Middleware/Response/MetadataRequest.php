@@ -23,8 +23,8 @@
                     'method'     => $oRequest->getMethod(),
                     'path'       => $oRequest->getUri()->getPath(),
                     'params'     => [
-                        'query' => $oRequest->getQueryParams(),
-                        'post'  => $oRequest->getParsedBody()
+                        'query' => (object) $oRequest->getQueryParams(),
+                        'post'  => (object) $oRequest->getParsedBody()
                     ],
                     'headers'    => json_encode($oRequest->getHeaders()),
                     'status'     => 200 // assumes any non-200 status will be set by the error handler
