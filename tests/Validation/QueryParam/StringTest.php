@@ -35,7 +35,7 @@
         public function setUp(): void {
             parent::setUp();
 
-            $oFullSpec = new FullSpec();
+            $oFullSpec = FullSpec::getInstance();
             $oFullSpec->addSpecFromInstance(new StringTestClass());
 
             $this->aPipeline = [
@@ -132,7 +132,7 @@
         }
 
         public function testEmail(): void {
-            $oFullSpec = new FullSpec();
+            $oFullSpec = FullSpec::getInstance();
             $oFullSpec->addSpecFromInstance(new StringEmailTestClass());
 
             $this->aPipeline = [

@@ -35,7 +35,7 @@
         public function setUp(): void {
             parent::setUp();
 
-            $oFullSpec = new FullSpec();
+            $oFullSpec = FullSpec::getInstance();
             $oFullSpec->addSpecFromInstance(new BooleanTestClass());
 
             $this->aPipeline = [
