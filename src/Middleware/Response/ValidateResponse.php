@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Middleware\Response;
 
+    use BenMorel\OpenApiSchemaToJsonSchema\Converter\SchemaConverter;
     use cebe\openapi\ReferenceContext;
     use cebe\openapi\spec\OpenApi;
     use cebe\openapi\spec\Reference;
@@ -94,8 +95,7 @@
                 }
 
                 // Convert Properties that look like {property_name} to use jsonSchema "patternProperties" .*
-                $oSpecSchema = Convert::openapiSchemaToJsonSchema($this->findPatternProperties($oSchema->getSerializableData()));
-
+                $oSpecSchema    = Convert::openapiSchemaToJsonSchema($this->findPatternProperties($oSchema->getSerializableData()), ['supportPatternProperties'=> true ]);
                 $aFullResponse  = ResponseBuilder::get($oRequest)->all();
                 $oFullResponse  = json_decode(json_encode($aFullResponse));
                 $oValidator     = new Validator;
@@ -123,8 +123,8 @@
                     foreach($oSubSchema as $sSubProperty => $oSubSubSchema) {
                         if (preg_match('/^{[^}]+}$/', $sSubProperty, $aMatches)) {
                             $bFoundDynamicProperty = true;
-                            $oSchema->patternProperties = new \stdClass();
-                            $oSchema->patternProperties->{'.*'} = $this->findPatternProperties($oSubSubSchema);
+                            $oSchema->{'x-patternProperties'} = new \stdClass();
+                            $oSchema->{'x-patternProperties'}->{'.*'} = $this->findPatternProperties($oSubSubSchema);
                         }
                     }
 
