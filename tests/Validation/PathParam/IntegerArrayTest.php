@@ -19,15 +19,14 @@
     use Enobrev\API\Middleware\Request\AttributeFullSpecRoutes;
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Middleware\Request\CoerceParams;
+    use Enobrev\API\Middleware\Request\ValidateSpec;
     use Enobrev\API\Middleware\RequestHandler;
     use Enobrev\API\Middleware\Response\MetadataRequest;
     use Enobrev\API\Middleware\ResponseBuilderDone;
     use Enobrev\API\Middleware\ResponseBuilder;
-    use Enobrev\API\Middleware\ValidateSpec;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
-    use function Enobrev\dbg;
 
     class IntegerArrayTest extends TestCase {
         /** @var array  */

@@ -1,10 +1,11 @@
 <?php
-    namespace Enobrev\API\Middleware;
+    namespace Enobrev\API\Middleware\Request;
 
+    use ReflectionException;
+    
     use Adbar\Dot;
     use BenMorel\OpenApiSchemaToJsonSchema\Convert;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
-    use Enobrev\API\OpenApiInterface;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares;
@@ -12,12 +13,11 @@
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
-    use ReflectionException;
 
     use Enobrev\API\Exception\ValidationException;
     use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
-    use Enobrev\API\Middleware\Request\AttributeSpec;
+    use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
     use Enobrev\Log;
 
