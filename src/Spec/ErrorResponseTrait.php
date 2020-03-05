@@ -1,7 +1,7 @@
 <?php
     namespace Enobrev\API\Spec;
 
-    use Middlewares\HttpErrorException;
+    use Enobrev\API\Exception\HttpErrorException;
 
     trait ErrorResponseTrait {
 

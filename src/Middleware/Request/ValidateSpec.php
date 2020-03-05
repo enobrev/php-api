@@ -14,9 +14,11 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\Exception\HttpErrorException;
     use Enobrev\API\Exception\ValidationException;
     use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
+    use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
     use Enobrev\Log;
@@ -27,7 +29,7 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws HttpErrorException
          * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -50,7 +52,7 @@
         /**
          * @param ServerRequestInterface $oRequest
          * @return ServerRequestInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws HttpErrorException
          */
         private function validatePathParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);
@@ -77,7 +79,7 @@
         /**
          * @param ServerRequestInterface $oRequest
          * @return ServerRequestInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws HttpErrorException
          */
         private function validateQueryParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec        = AttributeSpec::getSpec($oRequest);
@@ -104,7 +106,7 @@
          * @param ServerRequestInterface $oRequest
          *
          * @return ServerRequestInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws HttpErrorException
          * @throws ReflectionException
          */
         private function validatePostParameters(ServerRequestInterface $oRequest): ServerRequestInterface {

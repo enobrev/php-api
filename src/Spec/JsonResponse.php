@@ -9,7 +9,6 @@
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
     use Enobrev\Log;
-    use function Enobrev\dbg;
 
     class JsonResponse implements OpenApiInterface {
         private const TYPE_ALLOF = 'allOf';

@@ -13,8 +13,8 @@
     use cebe\openapi\spec\SecurityRequirement;
     use cebe\openapi\SpecObjectInterface;
     use cebe\openapi\Writer;
-    use Middlewares\HttpErrorException;
 
+    use Enobrev\API\Exception\HttpErrorException;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\FullSpec\Component\Request;
@@ -471,7 +471,13 @@
             return $oClone;
         }
 
-        public function response($iStatus, ?OpenApiInterface $mResponse = null):self {
+        /**
+         * @param                              $iStatus
+         * @param OpenApiInterface|string|null $mResponse
+         *
+         * @return $this
+         */
+        public function response($iStatus, $mResponse = null):self {
             $oClone = clone $this;
             if (!isset($this->aResponses[$iStatus])) {
                 $oClone->aResponses[$iStatus] = [];

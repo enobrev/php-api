@@ -1,8 +1,6 @@
 <?php
     namespace Enobrev\API\Exception;
 
-    use Middlewares\HttpErrorException;
-
     use Enobrev\API\HTTP;
 
     class MethodNotAllowed extends HttpErrorException {

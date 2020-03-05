@@ -10,6 +10,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\Exception\HttpErrorException;
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\RequestAttribute;
@@ -38,7 +39,7 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Middlewares\Utils\HttpErrorException
+         * @throws HttpErrorException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.OAuthVerifyResourceRequest');
@@ -98,7 +99,7 @@
                     $aContext = [$sDescription];
                 }
 
-                throw Middlewares\HttpErrorException::create($iStatusCode, $aContext);
+                throw HttpErrorException::create($iStatusCode, $aContext);
             }
 
             Log::dt($oTimer);
