@@ -570,11 +570,15 @@
          */
         public static function fieldToParam(Field $oField, int $iOptions = 0, $bIncludeDefault = false): Param {
             switch(true) {
+                case $oField instanceof Field\JSONArray:    $oParam = Param\_Array::create()->items(Param\_String::create()); break;
+                case $oField instanceof Field\JSONText:
+                case $oField instanceof Field\JSONObject:   $oParam = Param\_Object::create()->additionalProperties(true); break;
+
                 default:
-                case $oField instanceof Field\Text:    $oParam = Param\_String::create();  break;
-                case $oField instanceof Field\Boolean: $oParam = Param\_Boolean::create(); break;
-                case $oField instanceof Field\Integer: $oParam = Param\_Integer::create(); break;
-                case $oField instanceof Field\Number:  $oParam = Param\_Number::create();  break;
+                case $oField instanceof Field\Text:         $oParam = Param\_String::create();  break;
+                case $oField instanceof Field\Boolean:      $oParam = Param\_Boolean::create(); break;
+                case $oField instanceof Field\Integer:      $oParam = Param\_Integer::create(); break;
+                case $oField instanceof Field\Number:       $oParam = Param\_Number::create();  break;
             }
 
             switch(true) {
@@ -583,6 +587,7 @@
                     break;
 
                 case $oField instanceof Field\TextNullable:
+                case $oField instanceof Field\JSONText:
                     $oParam = $oParam->nullable();
                     break;
 
