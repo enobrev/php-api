@@ -105,7 +105,10 @@
 
             $oBuilder = ResponseBuilder::get($oRequest);
             if ($oBuilder) {
-                $oBuilder->mergeRecursiveDistinct('_request.params.path', $aPathParams);
+                if ($oBuilder->has('_request')) {
+                    $oBuilder->mergeRecursiveDistinct('_request.params.path', $aPathParams);
+                }
+
                 $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
             }
 
