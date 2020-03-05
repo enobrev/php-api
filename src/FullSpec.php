@@ -3,19 +3,19 @@
 
     use Exception;
     use FilesystemIterator;
-    use RecursiveIteratorIterator;
     use RecursiveDirectoryIterator;
+    use RecursiveIteratorIterator;
     use ReflectionClass;
     use ReflectionException;
     use SplFileInfo;
 
     use Adbar\Dot;
     use cebe\openapi\spec\Components;
+    use cebe\openapi\spec\OpenApi;
     use cebe\openapi\spec\PathItem;
     use cebe\openapi\spec\Paths;
     use cebe\openapi\spec\Reference;
     use cebe\openapi\spec\Schema;
-    use cebe\openapi\Writer;
 
     use Enobrev\API\FullSpec\ComponentListInterface;
     use Enobrev\API\FullSpec\Component;
@@ -27,7 +27,6 @@
     use Enobrev\Log;
 
     class FullSpec {
-
         public const _ANY                          = '_any';
         public const _DEFAULT                      = '_default';
         public const _CREATED                      = 'Created';
@@ -65,7 +64,12 @@
         /** @var Spec[] */
         private $aSpecs;
 
-        public function __construct() {
+        /** @var self */
+        private static $oInstance;
+
+        private final function __clone() {}
+        private final function __wakeup() {}
+        private function __construct() {
             $this->aComponents      = [];
             $this->aSpecs           = [];
         }
@@ -103,18 +107,30 @@
          * @return FullSpec
          * @throws ReflectionException
          */
-        public static function generateAndCache():self {
-            $oFullSpec = new self;
-            $oFullSpec->generateData();
-            file_put_contents(self::$sPathToSpec, serialize($oFullSpec));
-            return $oFullSpec;
+        private static function generateAndCache():self {
+            if (self::$oInstance instanceof self) {
+                return self::$oInstance;
+            }
+
+            self::$oInstance = new self;
+            self::$oInstance->generateData();
+
+            if (self::$sPathToSpec) {
+                file_put_contents(self::$sPathToSpec, serialize(self::$oInstance));
+            }
+
+            return self::$oInstance;
         }
 
         /**
          * @return self
          * @throws ReflectionException
          */
-        public static function getFromCache(): ?self {
+        public static function getInstance(): ?self {
+            if (self::$oInstance instanceof self) {
+                return self::$oInstance;
+            }
+
             if (!file_exists(self::$sPathToSpec)) {
                 return self::generateAndCache();
             }
@@ -122,7 +138,8 @@
             $sFullSpec = file_get_contents(self::$sPathToSpec);
 
             try {
-                return unserialize($sFullSpec);
+                self::$oInstance = unserialize($sFullSpec);
+                return self::$oInstance;
             } catch (Exception $e) {
                 Log::ex('FullSpec.getFromCache.Invalid', $e);
                 return self::generateAndCache();
@@ -135,6 +152,7 @@
          * @throws ReflectionException
          */
         public static function generateLiveForDevelopment(): FullSpec {
+            self::$oInstance = null;
             return self::generateAndCache();
         }
 
@@ -193,17 +211,38 @@
         }
 
         /**
+         * @param string|null $sVersion
+         * @param array|null  $aScopes
+         * @param array       $aOnlyPaths
+         *
+         * @return OpenApi
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         */
+        public function getOpenApi(?string $sVersion = null, ?array $aScopes = [], array $aOnlyPaths = []): OpenApi {
+            return new OpenApi([
+                'openapi'       => '3.0.3',
+                'paths'         => $this->getPaths($sVersion, $aScopes, $aOnlyPaths),
+                'components'    => $this->getComponents()
+            ]);
+        }
+
+        /**
          * Generates paths for openapi spec.
          *
+         * @param string|null $sVersion
+         * @param array|null  $aScopes
+         * @param array       $aOnlyPaths
+         *
          * @return Paths
+         * @throws \cebe\openapi\exceptions\TypeErrorException
          */
-        public function getPaths(string $sVersion, array $aScopes, array $aOnlyPaths = []): Paths {
+        private function getPaths(?string $sVersion = null, ?array $aScopes = [], array $aOnlyPaths = []): Paths {
             $oData = new Dot();
 
             $oPaths = new Paths([]);
             $this->sortPaths();
             foreach($this->aSpecs as $sSpecVersion => $aPaths) {
-                if ($sVersion !== $sSpecVersion) {
+                if ($sVersion && $sVersion !== $sSpecVersion) {
                     continue;
                 }
 
@@ -241,9 +280,10 @@
         /**
          * Generates components for openapi spec.
          *
-         * @return array
+         * @return Components
+         * @throws \cebe\openapi\exceptions\TypeErrorException
          */
-        public function getComponents(): Components {
+        private function getComponents(): Components {
             $oData = new Dot([
                 'responses' => self::getDefaultResponses()
             ]);
@@ -268,6 +308,11 @@
             return new Components($oData->all());
         }
 
+        /**
+         * @param Dot $oData
+         *
+         * @throws \cebe\openapi\exceptions\TypeErrorException
+         */
         private function setDefaultSchemas(Dot &$oData): void {
             $oData->set('schemas._default', new Schema([
                 'type'       => 'object',
@@ -503,10 +548,24 @@ DESCRIPTION
         }
 
         /**
+         * @param ComponentListInterface $oComponentList
+         */
+        public function addComponentList(ComponentListInterface $oComponentList): void {
+            $aComponents = $oComponentList->components();
+            foreach($aComponents as $sComponent => $oComponent) {
+                $this->aComponents[$oComponent->getName()] = $oComponent;
+            }
+        }
+
+        /**
          * This method goes through the given paths and runs the spec() and components() methods in the classes to gather the results
          * @throws ReflectionException
          */
         private function specsFromSpecInterfaces(): void {
+            if (!self::$aVersions) {
+                return;
+            }
+
             foreach (self::$aVersions as $sVersion) {
                 $sVersionPath = self::$sPathToAPIClasses . '/' . $sVersion . '/';
                 if (file_exists($sVersionPath)) {
@@ -555,12 +614,7 @@ DESCRIPTION
 
                                         $this->addSpec($sVersion, $sPath, $sHttpMethod, $sFullClass);
                                     } else if ($oReflectionClass->implementsInterface(ComponentListInterface::class)) {
-                                        /** @var ComponentListInterface $oClass */
-                                        $oClass      = new $sFullClass();
-                                        $aComponents = $oClass->components();
-                                        foreach($aComponents as $sComponent => $oComponent) {
-                                            $this->aComponents[$oComponent->getName()] = $oComponent;
-                                        }
+                                        $this->addComponentList(new $sFullClass());
                                     }
                                 }
                             }
