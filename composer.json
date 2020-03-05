@@ -40,7 +40,7 @@
         "justinrainbow/json-schema": "^5.2",
         "laminas/laminas-diactoros": "^2.2",
         "laminas/laminas-httphandlerrunner": "^1.1",
-        "middlewares/error-handler": "^1.2",
+        "middlewares/utils": "^3.1",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "dev-master",
         "twig/twig": "^2.9"
