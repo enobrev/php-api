@@ -209,7 +209,12 @@
                         break;
 
                     case $oTable->$sTableField instanceof ORM\Field\Date:
-                        $mValue = (string) $oTable->$sTableField;
+                    case $oTable->$sTableField instanceof ORM\Field\DateTime:
+                        if ($oTable->$sTableField->isNull()) {
+                            $mValue = null;
+                        } else {
+                            $mValue = (string) $oTable->$sTableField;
+                        }
                         break;
                 }
 
