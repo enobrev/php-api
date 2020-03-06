@@ -6,6 +6,7 @@
     use Adbar\Dot;
     use BenMorel\OpenApiSchemaToJsonSchema\Convert;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
+    use cebe\openapi\ReferenceContext;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares;
@@ -16,6 +17,8 @@
 
     use Enobrev\API\Exception\HttpErrorException;
     use Enobrev\API\Exception\ValidationException;
+    use Enobrev\API\FullSpec;
+    use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\FastRoute;
@@ -33,7 +36,7 @@
          * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oTimer = Log::startTimer('Enobrev.Middleware.Request.ValidateSpec');
+            $oTimer = Log::startTimer('Enobrev.Middleware.ValidateSpec');
             $oSpec = AttributeSpec::getSpec($oRequest);
 
             if ($oSpec instanceof Spec === false) {
@@ -116,7 +119,7 @@
 
             if ($oSpec->hasAPostBodyOneOfOrAnyOf()) {
                 if ($oSpec->hasAPostBodyDiscriminator()) {
-                    $oSchema     = $oSpec->getSchemaFromPostBodyDiscriminator($oParameters);
+                    $oSchema = $oSpec->getSchemaFromPostBodyDiscriminator($oParameters);
                     if ($oSchema instanceof OpenApiInterface === false) {
                         $sDiscriminator = $oSpec->getPostBodyDiscriminator();
                         $aContext = [
@@ -129,11 +132,20 @@
                             ]
                         ];
 
-                        Log::e('Enobrev.Middleware.Request.ValidateSpec.validatePostParameters.InvalidDiscriminator', ['state' => 'PostBodySchemaSelector.Error', 'errors' => $aContext]);
+                        Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'validatePostParameters.PostBodySchemaSelector.Error.InvalidDiscriminator', 'errors' => $aContext]);
                         throw ValidationException::create(HTTP\BAD_REQUEST, $aContext);
                     }
-
-                    $oPostParams = Convert::openapiSchemaToJsonSchema($oSchema->getSpecObject()->getSerializableData());
+                    
+                    if ($oSchema instanceof Reference) {
+                        $oOpenApi           = FullSpec::getInstance()->getOpenApi();
+                        $oRefContext        = new ReferenceContext($oOpenApi, '/');
+                        $oSchemaReference   = $oSchema->getSpecObject();
+                        $oResolved          = $oSchemaReference->resolve($oRefContext);
+                        // $oResolved->resolveReferences($oRefContext);
+                        $oPostParams = Convert::openapiSchemaToJsonSchema($oResolved->getSerializableData());
+                    } else {
+                        $oPostParams = Convert::openapiSchemaToJsonSchema($oSchema->getSpecObject()->getSerializableData());
+                    }
 
                     $oValidator  = new Validator;
                     $oValidator->validate(
@@ -143,7 +155,7 @@
                     );
 
                     if ($oValidator->isValid() === false) {
-                        Log::e('Enobrev.Middleware.Request.ValidateSpec.validatePostParameters', ['state' => 'PostBodySchemaSelector.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                        Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'validatePostParameters.PostBodySchemaSelector.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
                         throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
                     }
                 } else {
@@ -167,7 +179,7 @@
                         if ($oValidator->isValid()) {
                             $bValid = true;
                         } else {
-                            Log::e('Enobrev.Middleware.Request.ValidateSpec.validatePostParameters', ['state' => 'PostBodyOneOf.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                            Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'validatePostParameters.PostBodyOneOf.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
                             $oError = ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
                         }
                     }
@@ -189,7 +201,7 @@
                     );
 
                     if ($oValidator->isValid() === false) {
-                        Log::e('Enobrev.Middleware.Request.ValidateSpec.validatePostParameters', ['state' => 'Other.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
+                        Log::e('Enobrev.Middleware.ValidateSpec', ['state' => 'validatePostParameters.Error', 'errors' => $this->getErrorsWithValues($oValidator, $aParameters)]);
                         throw ValidationException::create(HTTP\BAD_REQUEST, $this->getErrorsWithValues($oValidator, $aParameters));
                     }
                 }

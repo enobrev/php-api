@@ -2,6 +2,7 @@
     namespace Enobrev\API;
 
     use cebe\openapi\spec\RequestBody;
+    use Enobrev\Log;
     use ReflectionException;
 
     use Adbar\Dot;
@@ -319,6 +320,22 @@
             return null;
         }
 
+        public function hasAPostBodyDiscriminatorMapping(): bool {
+            if ($this->oPostBodyRequest instanceof Request) {
+                return $this->oPostBodyRequest->hasMapping();
+            }
+
+            return false;
+        }
+
+        public function getPostBodyDiscriminatorMapping(): ?array {
+            if ($this->oPostBodyRequest instanceof Request) {
+                return $this->oPostBodyRequest->getMapping();
+            }
+
+            return null;
+        }
+
         public function getSchemaFromPostBodyDiscriminator($oProperties) {
             if (!$oProperties) {
                 return null;
@@ -333,7 +350,15 @@
                 return null;
             }
 
+            if ($this->hasAPostBodyDiscriminatorMapping()) {
+                $aMapping = $this->getPostBodyDiscriminatorMapping();
+                if (isset($aMapping[$oProperties->$sDiscriminator])) {
+                    return $aMapping[$oProperties->$sDiscriminator];
+                }
+            }
+
             foreach($this->getPostBodySchemas() as $oSchema) {
+                Log::d('Spec.getSchemaFromPostBodyDiscriminator', ['state' => 8, 'value' => $oProperties->$sDiscriminator, 'name' => $oSchema->getName()]);
                 if ($oProperties->$sDiscriminator === str_replace('schemas/', '', $oSchema->getName())) {
                     return $oSchema;
                 }

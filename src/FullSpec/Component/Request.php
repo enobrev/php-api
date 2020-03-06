@@ -65,6 +65,14 @@
             return $this->sDiscriminator;
         }
 
+        public function hasMapping(): bool {
+            return $this->aMapping !== null;
+        }
+
+        public function getMapping(): array {
+            return $this->aMapping;
+        }
+
         public function description(string $sDescription):self {
             $this->sDescription = $sDescription;
             return $this;
