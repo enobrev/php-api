@@ -100,7 +100,7 @@
 
                 if ($oValidator->isValid() === false) {
                     $aErrors = $this->getErrorsWithValues($oValidator, $aFullResponse);
-                    Log::e('Enobrev.Middleware.Response.ValidateResponse', ['state' => 'Other.Error', 'errors' => $aErrors]);
+                    Log::e('Enobrev.Middleware.Response.ValidateResponse', ['state' => 'Other.Error', 'errors' => $aErrors, 'schema' => json_encode($oSpecSchema)]);
                     throw ValidationException::create(HTTP\BAD_RESPONSE, $aErrors);
                 }
             }
