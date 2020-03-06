@@ -83,20 +83,12 @@
                 $oSpecResponse->resolveReferences($oRefContext);
 
                 /** @var OpenApi_Schema $oSchema */
-                $oSchema = $oSpecResponse->content['application/json']->schema;
-
-                if ($oSchema->allOf) {
-                    // Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
-                    $oMerged = new Dot;
-                    foreach($oSchema->allOf as $oSubSchema) {
-                        $aSubSchema = json_decode(json_encode($oSubSchema->getSerializableData()), true);
-                        $oMerged->mergeRecursiveDistinct($aSubSchema);
-                    }
-                    $oSchema = new OpenApi_Schema($oMerged->all());
-                }
+                $oSchema                = $oSpecResponse->content['application/json']->schema;
+                $oWithMergedAllOfs      = $this->mergeAllOfs($oSchema);
 
                 // Convert Properties that look like {property_name} to use jsonSchema "patternProperties" .*
-                $oSpecSchema    = Convert::openapiSchemaToJsonSchema($this->findPatternProperties($oSchema->getSerializableData()), ['supportPatternProperties'=> true ]);
+                $oWithPatternProperties = $this->findPatternProperties($oWithMergedAllOfs->getSerializableData());
+                $oSpecSchema    = Convert::openapiSchemaToJsonSchema($oWithPatternProperties, ['supportPatternProperties'=> true ]);
                 $aFullResponse  = ResponseBuilder::get($oRequest)->all();
                 $oFullResponse  = json_decode(json_encode($aFullResponse));
                 $oValidator     = new Validator;
@@ -116,10 +108,30 @@
             return $oRequest;
         }
 
+        // Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
+        private function mergeAllOfs($oSchema)  {
+            if (isset($oSchema->allOf)) {
+                $oMerged = new Dot;
+                foreach($oSchema->allOf as $oSubSchema) {
+                    $aSubSchema = json_decode(json_encode($oSubSchema->getSerializableData()), true);
+                    $oMerged->mergeRecursiveDistinct($aSubSchema);
+                }
+                $oSchema = new OpenApi_Schema($oMerged->all());
+            } else if (isset($oSchema->oneOf)) {
+                $aOptions = [];
+                foreach($oSchema->oneOf as $oSubSchema) {
+                    $aOptions[] = $this->mergeAllOfs($oSubSchema);
+                }
+                $oSchema->oneOf = $aOptions;
+            }
+
+            return $oSchema;
+        }
+
         // If we find a property name that looks like {property}, we replace the parent "properties" with patternProperties to treat it as a dynamic property
         private function findPatternProperties($oSchema) {
             foreach($oSchema as $sProperty => $oSubSchema) {
-                if (is_object($oSubSchema)) {
+                if (is_object($oSubSchema) || is_array($oSubSchema)) {
                     $bFoundDynamicProperty = false;
                     foreach($oSubSchema as $sSubProperty => $oSubSubSchema) {
                         if (preg_match('/^{[^}]+}$/', $sSubProperty, $aMatches)) {
@@ -131,8 +143,10 @@
 
                     if($bFoundDynamicProperty) {
                         unset($oSchema->properties);
-                    } else {
+                    } else if (is_object($oSchema)) {
                         $oSchema->$sProperty = $this->findPatternProperties($oSubSchema);
+                    } else if (is_array($oSchema)) {
+                        $oSchema[$sProperty] = $this->findPatternProperties($oSubSchema);
                     }
                 }
             }
