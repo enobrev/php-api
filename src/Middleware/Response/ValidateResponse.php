@@ -104,18 +104,15 @@
                 );
 
                 if ($oValidator->isValid() === false) {
-                    $aErrors = $this->getErrorsWithValues($oValidator, $aFullResponse);
-                    $iErrors = count($aErrors);
-                    
-                    if ($iErrors > 5) {
-                        $aErrors = array_slice($aErrors, 0, 5);
-                    }
+                    $aErrors    = $this->getErrorsWithValues($oValidator, $aFullResponse);
+                    $iErrors    = count($aErrors);
+                    $aLogErrors = $iErrors > 5 ? array_slice($aErrors, 0, 5) : $aErrors;
                     
                     Log::e('Enobrev.Middleware.Response.ValidateResponse', [
                         'state'         => 'Other.Error',
                         'path'          => $oSpec->getPath(),
                         'error_count'   => $iErrors,
-                        'errors'        => json_encode($aErrors),
+                        'errors'        => json_encode($aLogErrors),
                         'schema'        => json_encode($oSpecSchema)
                     ]);
 
