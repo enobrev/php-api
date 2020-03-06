@@ -134,7 +134,7 @@
                 if (is_object($oSubSchema) || is_array($oSubSchema)) {
                     $bFoundDynamicProperty = false;
                     foreach($oSubSchema as $sSubProperty => $oSubSubSchema) {
-                        if (preg_match('/^{[^}]+}$/', $sSubProperty, $aMatches)) {
+                        if (preg_match('/^{|}$/', $sSubProperty, $aMatches)) {
                             $bFoundDynamicProperty = true;
                             $oSchema->{'x-patternProperties'} = new \stdClass();
                             $oSchema->{'x-patternProperties'}->{'.*'} = $this->findPatternProperties($oSubSubSchema);
