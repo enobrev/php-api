@@ -48,7 +48,7 @@
          * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oTimer = Log::startTimer('Enobrev.Middleware.Response.ValidateResponse');
+            $oTimer = Log::startTimer('Enobrev.Middleware.ValidateResponse');
             $oSpec = AttributeSpec::getSpec($oRequest);
 
             if ($oSpec instanceof Spec === false) {
@@ -85,6 +85,17 @@
                     $oSpecResponse = $oSpecResponse->resolve($oRefContext);
                 }
 
+                if (!$oSpecResponse) {
+                    Log::e('Enobrev.Middleware.ValidateResponse', [
+                        'state'         => 'validateResponse.Error.NoReference',
+                        'path'          => $oSpec->getPath(),
+                        'error_count'   => $iErrors,
+                        'errors'        => json_encode($aLogErrors)
+                    ]);
+
+                    return $oRequest;
+                }
+
                 $oSpecResponse->resolveReferences($oRefContext);
 
                 /** @var OpenApi_Schema $oSchema */
@@ -108,7 +119,8 @@
                     $iErrors    = count($aErrors);
                     $aLogErrors = $iErrors > 5 ? array_slice($aErrors, 0, 5) : $aErrors;
                     
-                    Log::e('Enobrev.Middleware.Response.ValidateResponse', [
+                    Log::e('Enobrev.Middleware.ValidateResponse', [
+                        'state'         => 'validateResponse.Error.Validation',
                         'path'          => $oSpec->getPath(),
                         'error_count'   => $iErrors,
                         'errors'        => json_encode($aLogErrors)
