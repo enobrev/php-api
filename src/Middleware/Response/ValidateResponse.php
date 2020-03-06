@@ -105,10 +105,16 @@
 
                 if ($oValidator->isValid() === false) {
                     $aErrors = $this->getErrorsWithValues($oValidator, $aFullResponse);
+                    $iErrors = count($aErrors);
+                    
+                    if ($iErrors > 5) {
+                        $aErrors = array_slice($aErrors, 0, 5);
+                    }
+                    
                     Log::e('Enobrev.Middleware.Response.ValidateResponse', [
                         'state'         => 'Other.Error',
                         'path'          => $oSpec->getPath(),
-                        'error_count'   => count($aErrors),
+                        'error_count'   => $iErrors,
                         'errors'        => json_encode($aErrors),
                         'schema'        => json_encode($oSpecSchema)
                     ]);
