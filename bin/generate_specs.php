@@ -112,9 +112,10 @@
                 'table' => $sNamespaceTable, // 'TravelGuide\Table',
                 'spec'  => $sNamespaceSpec, // 'TravelGuide\API\v2'
             ],
-            'http_method'   => 'GET',
-            'path_prefix'   => $sPathPrefix, // '/v3'
-            'scopes'        => $sAuthScopes, // "[Table\AuthScopes::CMS]",
+            'http_method'       => 'GET',
+            'path_prefix'       => $sPathPrefix, // '/v3'
+            'component_prefix'  => str_replace('/', '-', trim($sPathPrefix, '/')), // 'cms-v3'
+            'scopes'            => $sAuthScopes, // "[Table\AuthScopes::CMS]",
         ];
 
         $aNonPost = [];

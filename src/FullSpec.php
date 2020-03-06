@@ -144,6 +144,8 @@
                 Log::ex('FullSpec.getFromCache.Invalid', $e);
                 return self::generateAndCache();
             }
+
+            return null;
         }
 
         /**
@@ -296,14 +298,6 @@
                 [$sCategory, $sName] = explode('/', $oComponent->getName());
                 $oData->set("$sCategory.$sName", $oComponent->getSpecObject());
             }
-
-            /*
-            foreach($oData->all() as $sCategory => $aComponents) {
-                foreach($aComponents as $sComponent => $oComponent) {
-                    dbg($sCategory . ' - ' . $sComponent . ' - ' . get_class($oComponent));
-                }
-            }
-            */
 
             return new Components($oData->all());
         }
@@ -552,7 +546,7 @@ DESCRIPTION
          */
         public function addComponentList(ComponentListInterface $oComponentList): void {
             $aComponents = $oComponentList->components();
-            foreach($aComponents as $sComponent => $oComponent) {
+            foreach($aComponents as $oComponent) {
                 $this->aComponents[$oComponent->getName()] = $oComponent;
             }
         }
@@ -613,7 +607,9 @@ DESCRIPTION
                                         $sHttpMethod = $oSpec->getHttpMethod();
 
                                         $this->addSpec($sVersion, $sPath, $sHttpMethod, $sFullClass);
-                                    } else if ($oReflectionClass->implementsInterface(ComponentListInterface::class)) {
+                                    }
+
+                                    if ($oReflectionClass->implementsInterface(ComponentListInterface::class)) {
                                         $this->addComponentList(new $sFullClass());
                                     }
                                 }

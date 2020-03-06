@@ -18,18 +18,18 @@
 
     class {{ table.name }} implements ComponentListInterface {
 {% if spec.show_post %}
-        public const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ table.name }}-post';
+        public const SCHEMA_POST           = ParamSchema::PREFIX . '/generated-{{ spec.component_prefix }}-{{ table.name }}-post';
 {% endif %}
 {% if spec.show_post_in_body %}
-        public const SCHEMA_POST_IN_BODY   = ParamSchema::PREFIX . '/generated-{{ table.name }}-post-body_key';
+        public const SCHEMA_POST_IN_BODY   = ParamSchema::PREFIX . '/generated-{{ spec.component_prefix }}-{{ table.name }}-post-body_key';
 {% endif %}
 {% if spec.show_post %}
-        public const REQUEST_POST          = Request::PREFIX     . '/generated-{{ table.name }}';
+        public const REQUEST_POST          = Request::PREFIX     . '/generated-{{ spec.component_prefix }}-{{ table.name }}';
 {% endif %}
 {% if spec.show_post_in_body %}
-        public const REQUEST_POST_BODY_KEY = Request::PREFIX     . '/generated-{{ table.name }}-body_key';
+        public const REQUEST_POST_BODY_KEY = Request::PREFIX     . '/generated-{{ spec.component_prefix }}-{{ table.name }}-body_key';
 {% endif %}
-        public const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ table.name }}';
+        public const RESPONSE_SUCCESS      = Response::PREFIX    . '/generated-{{ spec.component_prefix }}-{{ table.name }}';
 
         /**
          * @return ComponentListInterface[]
@@ -65,7 +65,11 @@
                             Reference::create(FullSpec::SCHEMA_DEFAULT),
                             [
                                 'counts.{{ table.name }}' => Param\_Integer::create(),
+{% if primary|length > 1 %}
                                 'sorts.{{ table.name }}'  => Param\_Array::create()->items(new Param\_String()),
+{% else %}
+                                'sorts.{{ table.name }}'  => Param\_Array::create()->items(new Param\{{ primary.0.param_class }}()),
+{% endif %}
                                 '{{ table.name }}.{% for field in primary %}{{ '{' }}{{ field.short }}{{ '}' }}{% if not loop.last %}-{% endif %}{% endfor %}' => Spec::tableToParam(new {{ table.class }}, [], Param::REQUIRED)
                             ]
                         ])

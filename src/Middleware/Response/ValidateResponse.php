@@ -84,6 +84,7 @@
 
                 /** @var OpenApi_Schema $oSchema */
                 $oSchema = $oSpecResponse->content['application/json']->schema;
+
                 if ($oSchema->allOf) {
                     // Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
                     $oMerged = new Dot;
