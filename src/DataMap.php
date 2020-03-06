@@ -204,6 +204,11 @@
                 $mValue = $oTable->$sTableField->getValue();
 
                 switch(true) {
+                    case $oTable->$sTableField instanceof ORM\Field\JSONObject:
+                        $mValue = (object) json_decode($oTable->$sTableField->getValue(), false);
+                        break;
+
+                    case $oTable->$sTableField instanceof ORM\Field\JSONArray:
                     case $oTable->$sTableField instanceof ORM\Field\JSONText:
                         $mValue = json_decode($oTable->$sTableField->getValue(), false);
                         break;
