@@ -48,7 +48,7 @@
          * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oTimer = Log::startTimer('Enobrev.Middleware.ValidateResponse');
+            $oTimer = Log::startTimer('Enobrev.Middleware.Response.ValidateResponse');
             $oSpec = AttributeSpec::getSpec($oRequest);
 
             if ($oSpec instanceof Spec === false) {
@@ -109,17 +109,14 @@
                     $aLogErrors = $iErrors > 5 ? array_slice($aErrors, 0, 5) : $aErrors;
                     
                     Log::e('Enobrev.Middleware.Response.ValidateResponse', [
-                        'state'         => 'Other.Error',
                         'path'          => $oSpec->getPath(),
                         'error_count'   => $iErrors,
-                        'errors'        => json_encode($aLogErrors),
-                        'schema'        => json_encode($oSpecSchema)
+                        'errors'        => json_encode($aLogErrors)
                     ]);
 
                     if ($this->bThrowException) {
                         throw ValidationException::create(HTTP\BAD_RESPONSE, $aErrors);
                     }
-
                 }
             }
 
