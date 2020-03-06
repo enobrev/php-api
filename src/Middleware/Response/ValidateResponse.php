@@ -7,8 +7,6 @@
     use cebe\openapi\spec\Reference;
     use cebe\openapi\spec\Responses;
     use cebe\openapi\SpecObjectInterface;
-    use Enobrev\API\Exception;
-    use Enobrev\API\FullSpec;
     use ReflectionException;
     
     use Adbar\Dot;
@@ -23,7 +21,9 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\Exception;
     use Enobrev\API\Exception\ValidationException;
+    use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\ResponseBuilder;
@@ -31,10 +31,14 @@
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
-    use TravelGuide\Config;
-    use function Enobrev\dbg;
 
     class ValidateResponse implements MiddlewareInterface {
+        private $bThrowException = false;
+
+        public function __construct($bThrowException = false) {
+            $this->bThrowException = $bThrowException;
+        }
+
         /**
          * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
@@ -109,9 +113,10 @@
                         'schema'        => json_encode($oSpecSchema)
                     ]);
 
-                    $iStatusCode = Config::onServers() ? HTTP\OK : HTTP\BAD_RESPONSE;
+                    if ($this->bThrowException) {
+                        throw ValidationException::create(HTTP\BAD_RESPONSE, $aErrors);
+                    }
 
-                    throw ValidationException::create($iStatusCode, $aErrors);
                 }
             }
 
