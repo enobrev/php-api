@@ -78,10 +78,14 @@
                         $aResponse[] = $mSchemaItem->getSpecObject();
                     } else if (is_array($mSchemaItem)) {
                         $aResponse[] = Spec::arrayToSchema($mSchemaItem);
-                    } else {
-                        Log::e('JsonResponse.getSpecObject.Unhandled', ['schema' => json_encode($mSchemaItem)]);
-                        throw new \Exception('JsonResponse.getSpecObject.Unhandled');
+                    } else if (is_string($mSchemaItem)) {
+                        Log::e('JsonResponse.getSpecObject.Unhandled.String', ['schema' => json_encode($mSchemaItem)]);
+                        // Not sure how this is ending up as just a string.  I'm missing something somewhere
                         //$aResponse[] = $mSchemaItem;
+                        //throw new \Exception('JsonResponse.getSpecObject.Unhandled.String');
+                    } else {
+                        Log::e('JsonResponse.getSpecObject.Unhandled.Unknown', ['schema' => json_encode($mSchemaItem)]);
+                        //throw new \Exception('JsonResponse.getSpecObject.Unhandled.Unknown');
                     }
                 }
 
