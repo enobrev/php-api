@@ -31,6 +31,7 @@
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
+    use TravelGuide\Config;
     use function Enobrev\dbg;
 
     class ValidateResponse implements MiddlewareInterface {
@@ -107,7 +108,10 @@
                         'errors'        => json_encode($aErrors),
                         'schema'        => json_encode($oSpecSchema)
                     ]);
-                    throw ValidationException::create(HTTP\BAD_RESPONSE, $aErrors);
+
+                    $iStatusCode = Config::onServers() ? HTTP\OK : HTTP\BAD_RESPONSE;
+
+                    throw ValidationException::create($iStatusCode, $aErrors);
                 }
             }
 
