@@ -88,9 +88,6 @@
                 if (!$oSpecResponse) {
                     Log::e('Enobrev.Middleware.ValidateResponse', [
                         'state'         => 'validateResponse.Error.NoReference',
-                        'path'          => $oSpec->getPath(),
-                        'error_count'   => $iErrors,
-                        'errors'        => json_encode($aLogErrors)
                     ]);
 
                     return $oRequest;
