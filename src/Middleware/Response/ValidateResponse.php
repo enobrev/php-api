@@ -123,13 +123,17 @@
                         'errors'        => json_encode($aLogErrors)
                     ]);
 
-                    if ($this->bThrowException) {
+                    if ($this->shouldThrowException($oRequest)) {
                         throw ValidationException::create(HTTP\BAD_RESPONSE, $aErrors);
                     }
                 }
             }
 
             return $oRequest;
+        }
+
+        protected function shouldThrowException(ServerRequestInterface $oRequest): bool {
+            return $this->bThrowException;
         }
 
         // Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
