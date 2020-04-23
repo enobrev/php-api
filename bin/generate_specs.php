@@ -1,7 +1,6 @@
 #!/usr/bin/env php
 <?php
-
-    use Commando\Command;
+    use Garden\Cli\Cli;
 
     $sAutoloadFile = current(
         array_filter([
@@ -20,48 +19,29 @@
     /** @noinspection PhpIncludeInspection */
     require $sAutoloadFile;
 
-    $oOptions = new Command();
 
-    $oOptions->option('j')
-             ->require()
-             ->expectsFile()
-             ->aka('json')
-             ->describedAs('The JSON file output from sql_to_json.php')
-             ->must(static function($sFile) {
-                 return file_exists($sFile);
-             });
+    $oCLI = new Cli();
+    $oCLI->description('Generate Spec Files for everything in SQL.json')
+         ->opt('json:j',        'The JSON file output from sql_to_json.php',        true)
+         ->opt('ns_table:t',    'The Namespace of the local Enobrev\ORM\Table',     true)
+         ->opt('ns_spec:s',     'The Namespace of the local Enobrev\API\Spec',      true)
+         ->opt('path_prefix:p', 'The Prefix to the Spec Paths')
+         ->opt('auth_scopes:a', 'PHP Array of Auth Scopes')
+         ->opt('output:o',      'The output Path for the files to be written to',   true);
 
-    $oOptions->option('t')
-        ->require()
-        ->aka('ns_table')
-        ->describedAs('The Namespace of the local Enobrev\ORM\Table');
+    $oArgs = $oCLI->parse($argv, true);
 
-    $oOptions->option('s')
-        ->require()
-        ->aka('ns_spec')
-        ->describedAs('The Namespace of the local Enobrev\API\Spec');
+    $sPathJsonSQL    = $oArgs->getOpt('json');
+    $sPathOutput     = rtrim($oArgs->getOpt('output'), '/') . '/';
+    $sNamespaceTable = $oArgs->getOpt('ns_table');
+    $sNamespaceSpec  = $oArgs->getOpt('ns_spec');
+    $sPathPrefix     = $oArgs->getOpt('path_prefix', '');
+    $sAuthScopes     = $oArgs->getOpt('auth_scopes', '[]');
 
-    $oOptions->option('p')
-        ->aka('path_prefix')
-        ->default('')
-        ->describedAs('The Prefix to the Spec Paths');
-
-    $oOptions->option('a')
-        ->aka('auth_scopes')
-        ->default('[]')
-        ->describedAs('PHP Array of Auth Scopes');
-
-    $oOptions->option('o')
-        ->require()
-        ->aka('output')
-        ->describedAs('The output Path for the files to be written to');
-
-    $sPathJsonSQL    = $oOptions['json'];
-    $sPathOutput     = rtrim($oOptions['output'], '/') . '/';
-    $sNamespaceTable = $oOptions['ns_table'];
-    $sNamespaceSpec  = $oOptions['ns_spec'];
-    $sPathPrefix     = $oOptions['path_prefix'];
-    $sAuthScopes     = $oOptions['auth_scopes'];
+    if (!file_exists($sPathJsonSQL)) {
+        echo "Could not find json file at $sPathJsonSQL";
+        exit(1);
+    }
 
     $oLoader    = new Twig\Loader\FilesystemLoader(__DIR__);
     $oTwig      = new Twig\Environment($oLoader, array('debug' => true));

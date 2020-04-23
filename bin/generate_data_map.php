@@ -1,6 +1,6 @@
 #!/usr/bin/env php
 <?php
-
+    use Garden\Cli\Cli;
     use Commando\Command;
 
     $sAutoloadFile = current(
@@ -20,24 +20,20 @@
     /** @noinspection PhpIncludeInspection */
     require $sAutoloadFile;
 
-    $oOptions = new Command();
+    $oCLI = new Cli();
+    $oCLI->description('Generate Spec Files for everything in SQL.json')
+         ->opt('json:j',        'The JSON file output from sql_to_json.php',        true)
+         ->opt('output:o',      'The output Path for the files to be written to',   true);
 
-    $oOptions->option('j')
-             ->require()
-             ->expectsFile()
-             ->aka('json')
-             ->describedAs('The JSON file output from sql_to_json.php')
-             ->must(static function($sFile) {
-                 return file_exists($sFile);
-             });
+    $oArgs = $oCLI->parse($argv, true);
 
-    $oOptions->option('o')
-             ->require()
-             ->aka('output')
-             ->describedAs('The output Path for the file to be written to');
+    $sPathJsonSQL = $oArgs->getOpt('json');
+    $sPath        = rtrim($oArgs->getOpt('output'), '/') . '/';
 
-    $sPathJsonSQL = $oOptions['json'];
-    $sPath        = rtrim($oOptions['output'], '/') . '/';
+    if (!file_exists($sPathJsonSQL)) {
+        echo "Could not find json file at $sPathJsonSQL";
+        exit(1);
+    }
 
     $oLoader    = new Twig\Loader\FilesystemLoader(__DIR__);
     $oTwig      = new Twig\Environment($oLoader, array('debug' => true));
