@@ -46,7 +46,7 @@
         "laminas/laminas-httphandlerrunner": "^1.1",
         "middlewares/utils": "^3.1",
         "mtdowling/jmespath.php": "^2.4",
-        "nikic/fast-route": "dev-master",
+        "nikic/fast-route": "2.0.x-dev",
         "twig/twig": "^2.9",
         "vanilla/garden-cli": "^2.2"
     },
