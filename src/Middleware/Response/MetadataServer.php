@@ -13,8 +13,8 @@
     use Enobrev\Log;
 
     class MetadataServer implements MiddlewareInterface {
-        private const SYNC_DATE_FORMAT = 'Y-m-d\TH:i:s'; // ISO8601 - http://us3.php.net/manual/en/class.datetime.php#111532
-                                                         // Supposed to include P at the end, but + is not a good character to be used in URLs
+        public const SYNC_DATE_FORMAT = 'Y-m-d\TH:i:s'; // ISO8601 - http://us3.php.net/manual/en/class.datetime.php#111532
+                                                        // Supposed to include P at the end, but + is not a good character to be used in URLs
 
         /**
          * @param ServerRequestInterface  $oRequest
