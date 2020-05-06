@@ -152,45 +152,20 @@
                 }
 
                 if (strpos($sMatch, 'jmes:') === 0) {
-                    $sExpression = str_replace('jmes:', '', $sMatch);
-
-                    try {
-                        $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
-                    } catch (RuntimeException $e) {
-                        Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath.error', $e, [
-                            'template'   => $sTemplate,
-                            'expression' => $sExpression
-                        ]);
-
-                        $aValues = [];
-                    }
-
-                    if ($aValues) {
-                        if (!is_array($aValues)) {
-                            $aValues = [$aValues];
-                        } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                            Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath', $e, [
-                                'template'   => $sTemplate,
-                                'expression' => $sExpression,
-                                'values'     => json_encode($aValues)
-                            ]);
-
-                            throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
-                        }
-                    }
-
-                    Log::d('MultiEndpointQuery.getTemplateValue.JMESPath', [
-                        'template'   => $sTemplate,
-                        'expression' => $sExpression
-                    ]);
+                    $aValues = $this->useJMES($sMatch, $sTemplate);
                 } else {
                     $aMatch = explode('.', $sMatch);
-                    if (count($aMatch) === 2) {
-                        [$sTable, $sField] = $aMatch;
+                    if (count($aMatch) > 1) {
+                        $sField = array_pop($aMatch);
+                        $sPath  = implode('.', $aMatch);
 
-                        if ($this->oData->has($sTable)) {
+                        // {table.field} => table.{id}.field
+                        // table.{id}.[{field},{field}]
+                        // table.{id}.field[]
+
+                        if ($this->oData->has($sPath)) {
                             $aValues = [];
-                            foreach ($this->oData->get($sTable) as $aTable) {
+                            foreach ($this->oData->get($sPath) as $aTable) {
                                 if (is_array($aTable) && array_key_exists($sField, $aTable)) {
                                     if (is_array($aTable[$sField])) {
                                         /*
@@ -221,13 +196,13 @@
                                     } else {
                                         $aValues[] = $aTable[$sField];
                                     }
-                                } else if ($this->oData->has("$sTable.$sField")) {
+                                } else if ($this->oData->has("$sPath.$sField")) {
                                     // Single-Record response (like /me)
-                                    $aValues[] = $this->oData->get("$sTable.$sField");
+                                    $aValues[] = $this->oData->get("$sPath.$sField");
                                 } else {
                                     Log::d('MultiEndpointQuery.getTemplateValue.SegmentNotFound', [
-                                        'field' => $sField,
-                                        'template' => $sTemplate
+                                        'field'     => $sField,
+                                        'template'  => $sTemplate
                                     ]);
                                 }
                             }
@@ -264,5 +239,51 @@
             }
 
             return $sTemplate;
+        }
+
+        /**
+         * @param string $sMatch
+         * @param string $sTemplate
+         * @deprecated
+         *
+         * @return array|array[]|mixed|null
+         * @throws Exception\InvalidJmesPath
+         */
+        private function useJMES(string $sMatch, string $sTemplate) {
+            $sExpression = str_replace('jmes:', '', $sMatch);
+
+            try {
+                $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
+            } catch (RuntimeException $e) {
+                Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath.error', $e, [
+                    'template'   => $sTemplate,
+                    'expression' => $sExpression
+                ]);
+
+                $aValues = [];
+            }
+
+            if ($aValues) {
+                if (!is_array($aValues)) {
+                    $aValues = [$aValues];
+                } else {
+                    if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
+                        Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath', $e, [
+                            'template'   => $sTemplate,
+                            'expression' => $sExpression,
+                            'values'     => json_encode($aValues)
+                        ]);
+
+                        throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                    }
+                }
+            }
+
+            Log::d('MultiEndpointQuery.getTemplateValue.JMESPath', [
+                'template'   => $sTemplate,
+                'expression' => $sExpression
+            ]);
+
+            return $aValues;
         }
     }
