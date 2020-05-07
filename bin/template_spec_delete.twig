@@ -47,7 +47,9 @@
 
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
+         *
          * @throws DbDuplicateException
          * @throws DbException
          * @throws TableException
@@ -55,9 +57,13 @@
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $aPathParams = FastRoute::getPathParams($oRequest);
+{% for field in primary %}
+            ${{field.var}} = $aPathParams['{{ field.short }}'];
+{% endfor %}
+
             $oResponse   = $oHandler->handle($oRequest);
 
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}${{field.var}}{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 throw new _exceptions\{{ table.title }}NotFound;
             }
@@ -66,3 +72,5 @@
             return $oResponse->withStatus(HTTP\OK);
         }
     }
+
+// generated from template_spec_delete.twig

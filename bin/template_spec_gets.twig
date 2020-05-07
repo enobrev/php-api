@@ -12,7 +12,6 @@
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
-    use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
@@ -67,23 +66,29 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
-                )
-            );
+            $aQueryParams   = $oRequest->getQueryParams();
+            $sSearch        = $aQueryParams['search'];
+            $sSort          = $aQueryParams['sort'];
+            $iPage          = $aQueryParams['page'];
+            $iPer           = $aQueryParams['per'];
+            $sSync          = $aQueryParams['sync'];
+
+            $oResponse      = ResponseBuilder::get($oRequest);
+            $oResponse      = $this->getResponse($oResponse, $iPage, $iPer, $sSearch, $sSort, $sSync);
+            $oRequest       = ResponseBuilder::update($oRequest, $oResponse);
+
+            return $oHandler->handle($oRequest);
         }
 
         /**
-         * @param array|null $aPathParams   Params from Request Path
-         * @param array|null $aQueryParams  Params from Request Query
-         * @param array|null $aPostParams   Params from Request Body
-         * @param Dot $oResponse            Response Object
+         * @param Dot         $oResponse
+         * @param int         $iPage
+         * @param int         $iPer
+         * @param string|null $sSearch
+         * @param string|null $sSort
+         * @param string|null $sSync
+         *
+         * @return Dot
          *
          * @throws Exception
          * @throws DbDuplicateException
@@ -91,22 +96,14 @@
          * @throws TablesException
          * @throws TablesInvalidReferenceException
          * @throws TablesInvalidTableException
-         * @return Dot
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
+        protected function getResponse(Dot $oResponse, int $iPage, int $iPer, ?string $sSearch, ?string $sSort, ?string $sSync = null): Dot {
             $oBaseTable = new {{ table.class }};
-            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']);
-            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort']);
+            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $sSearch);
+            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $sSort);
 
             /** @var {{ table.class_plural }} $o{{ table.plural }} */
-            $o{{ table.plural }} = {{ table.class_plural }}::getForCMS(
-                $aQueryParams['page'],
-                $aQueryParams['per'],
-                $aSearch,
-                $aSort{% if has_date %},
-                $aQueryParams['sync']
-{% endif %}
-            );
+            $o{{ table.plural }} = {{ table.class_plural }}::getForCMS($iPage, $iPer, $aSearch, $aSort{% if has_date %}, $sSync {% endif %});
 
             $oResponse = _components\{{ table.name }}::add{{ table.plural }}ToResponse($oResponse, $o{{ table.plural }});
 
@@ -123,3 +120,5 @@
             return $oResponse;
         }
     }
+
+// generated from template_spec_gets.twig

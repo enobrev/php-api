@@ -68,33 +68,50 @@
          * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
-                )
-            );
+            $aPathParams = FastRoute::getPathParams($oRequest);
+{% if primary|length > 1 %}
+{% for field in primary %}
+            ${{field.var}} = $aPathParams['{{ field.short }}'];
+{% endfor %}
+{% else %}
+{% for field in primary %}
+            ${{field.var_array}} = $aPathParams['{{ field.short }}'];
+{% endfor %}
+{% endif %}
+
+            $oResponse   = ResponseBuilder::get($oRequest);
+{% if primary|length > 1 %}
+            $oResponse   = $this->getResponse($oResponse, {% for field in primary %}${{field.var}}{% if not loop.last %}, {% endif %}{% endfor %});
+{% else %}
+            $oResponse   = $this->getResponse($oResponse, {% for field in primary %}${{field.var_array}}{% if not loop.last %}, {% endif %}{% endfor %});
+{% endif %}
+            $oRequest    = ResponseBuilder::update($oRequest, $oResponse);
+
+            return $oHandler->handle($oRequest);
         }
 
         /**
-         * @param array|null $aPathParams  Params from Request Path
-         * @param array|null $aQueryParams Params from Request Query
-         * @param array|null $aPostParams  Params from Request Body
-         * @param Dot        $oResponse    Response Object
+         * @param Dot $oResponse Response Object
+{% if primary|length > 1 %}
+{% for field in primary %}
+         * @param {{field.php_type}} ${{field.var}}
+{% endfor %}
+{% else %}
+{% for field in primary %}
+         * @param array ${{field.var_array}}
+{% endfor %}
+{% endif %}
          *
          * @return Dot
+         *
          * @throws DbException
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          * @throws _exceptions\{{ table.title }}NotFound
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
 {% if primary|length > 1 %}
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+        protected function getResponse(Dot $oResponse, {% for field in primary %}{{field.php_type}} ${{field.var}}{% if not loop.last %}, {% endif %}{% endfor %}): Dot {
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}${{field.var}}{% if not loop.last %}, {% endif %}{% endfor %});
 
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 throw new _exceptions\{{ table.title }}NotFound;
@@ -102,7 +119,8 @@
 
             $oResponse = _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
 {% else %}
-            $o{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+        protected function getResponse(Dot $oResponse, {% for field in primary %}array ${{field.var_array}}{% if not loop.last %}, {% endif %}{% endfor %}): Dot {
+            $o{{ table.plural }} = {{ table.class_plural }}::getBy{{ primary.0.plural }}({% for field in primary %}${{field.var_array}}{% if not loop.last %}, {% endif %}{% endfor %});
 
             if (!count($o{{ table.plural }})) {
                 throw new _exceptions\{{ table.title }}NotFound;
@@ -114,3 +132,5 @@
             return $oResponse;
         }
     }
+
+// generated from template_spec_get.twig

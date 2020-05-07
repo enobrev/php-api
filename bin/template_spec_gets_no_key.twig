@@ -66,43 +66,49 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
-                )
-            );
+            $aQueryParams   = $oRequest->getQueryParams();
+            $iPage          = $aQueryParams['page'];
+            $iPer           = $aQueryParams['per'];
+            $sSearch        = $aQueryParams['search'];
+            $sSort          = $aQueryParams['sort'];
+            $sSync          = $aQueryParams['sync'];
+
+            $oResponse      = ResponseBuilder::get($oRequest);
+            $oResponse      = $this->getResponse($oResponse, $iPage, $iPer, $sSearch, $sSort, $sSync);
+            $oRequest       = ResponseBuilder::update($oRequest, $oResponse);
+
+            return $oHandler->handle($oRequest);
         }
 
         /**
-         * @param array|null $aPathParams   Params from Request Path
-         * @param array|null $aQueryParams  Params from Request Query
-         * @param array|null $aPostParams   Params from Request Body
-         * @param Dot $oResponse            Response Object
+         * @param Dot         $oResponse
+         * @param int         $iPage
+         * @param int         $iPer
+         * @param string|null $sSearch
+         * @param string|null $sSort
+         * @param string|null $sSync
+         *
+         * @return Dot
+         *
          * @throws Exception
          * @throws DbDuplicateException
          * @throws DbException
          * @throws TablesException
          * @throws TablesInvalidReferenceException
          * @throws TablesInvalidTableException
-         * @return Dot
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
+        protected function getResponse(Dot $oResponse, int $iPage = 1, int $iPer = 100, ?string $sSearch, ?string $sSort, ?string $sSync = null): Dot {
             $oBaseTable = new {{ table.class }};
-            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $aQueryParams['search']);
-            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $aQueryParams['sort']);
+            $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $sSearch);
+            $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $sSort);
 
             /** @var {{ table.class_plural }} $o{{ table.plural }} */
             $o{{ table.plural }} = {{ table.class_plural }}::getForCMS(
-                $aQueryParams['page'],
-                $aQueryParams['per'],
+                $iPage,
+                $iPer,
                 $aSearch,
                 $aSort{% if has_date %},
-                $aQueryParams['sync']
+                $sSync
 {% endif %}
             );
 
@@ -112,3 +118,5 @@
             return $oResponse;
         }
     }
+
+// generated from template_spec_gets_no_key.twig

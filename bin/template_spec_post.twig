@@ -58,45 +58,47 @@
          * @return ResponseInterface
          * @throws DbDuplicateException
          * @throws DbException
-         * @throws TableException
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
+         * @throws TableException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            return $oHandler->handle(
-                ResponseBuilder::update($oRequest,
-                    $this->getResponse(
-                        FastRoute::getPathParams($oRequest),
-                        $oRequest->getQueryParams(),
-                        $oRequest->getParsedBody(),
-                        ResponseBuilder::get($oRequest)
-                    )
-                )
-            );
+            $aPostParams = $oRequest->getParsedBody();
+            $aPathParams = FastRoute::getPathParams($oRequest);
+{% for field in primary %}
+            ${{field.var}} = $aPathParams['{{ field.short }}'];
+{% endfor %}
+
+            $oResponse   = ResponseBuilder::get($oRequest);
+            $oResponse   = $this->getResponse($oResponse, {% for field in primary %}${{field.var}}, {% endfor %}$aPostParams);
+            $oRequest    = ResponseBuilder::update($oRequest, $oResponse);
+
+            return $oHandler->handle($oRequest);
         }
 
         /**
-         * @param array|null $aPathParams  Params from Request Path
-         * @param array|null $aQueryParams Params from Request Query
-         * @param array|null $aPostParams  Params from Request Body
-         * @param Dot        $oResponse    Response Object
+         * @param Dot $oResponse Response Object
+{% for field in primary %}
+         * @param {{field.php_type}} ${{field.var}}
+{% endfor %}
+         * @param array|null $aPostParams Params from Request Body
          *
          * @return Dot
+         *
          * @throws DbDuplicateException
          * @throws DbException
-         * @throws TableException
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
+         * @throws TableException
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
-            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPathParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
+        protected function getResponse(Dot $oResponse, {% for field in primary %}{{field.php_type}} ${{field.var}}, {% endfor %}?array $aPostParams): Dot {
+            $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}${{field.var}}{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 /** @var {{ table.class }} $o{{ table.title }} */
                 $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
 {% for field in primary %}
-                $o{{ table.title }}->{{ field.name }}->setValue($aPathParams['{{ field.short }}']);
+                $o{{ table.title }}->{{ field.name }}->setValue(${{field.var}});
 {% endfor %}
-
                 $o{{ table.title }}->insert();
             } else {
                 $o{{ table.title }} = DataMap::applyPostParamsToTable($o{{ table.title }}, $aPostParams);
@@ -107,3 +109,5 @@
             return $oResponse;
         }
     }
+
+// generated from template_spec_post.twig

@@ -12,7 +12,6 @@
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
-    use Enobrev\API\Middleware\FastRoute;
     use Enobrev\API\Middleware\ResponseBuilder;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
@@ -61,25 +60,22 @@
          * @throws TableException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $aPostParams = $oRequest->getParsedBody();
-            $oRequest  = ResponseBuilder::update($oRequest,
-                $this->getResponse(
-                    FastRoute::getPathParams($oRequest),
-                    $oRequest->getQueryParams(),
-                    $aPostParams,
-                    ResponseBuilder::get($oRequest)
-                )
-            );
+            $aPostParams    = $oRequest->getParsedBody();
+            $oResponse      = ResponseBuilder::get($oRequest);
+            $oResponse      = $this->getResponse($oResponse, $aPostParams);
+            $oRequest       = ResponseBuilder::update($oRequest, $oResponse);
 
 {% if primary|length == 1 %}
+            ${{primary.0.var}} = $aPathParams['{{ primary.0.short }}'] ?? null;
+
             if (!$this->mInsertKey) {
                 // Updated Record, carry on as usual
                 return $oHandler->handle($oRequest);
             }
 
-            if (!isset($aPostParams['{{ primary.0.short }}'])) {
+            if (!${{primary.0.var}}) {
                 // Created Record and no Key was set by client
-                $oRequest  = $oRequest->withHeader('Location', '{{ spec.path_prefix}}/{{ table.name }}/' . $this->mInsertKey);
+                return $oHandler->handle($oRequest)->withStatus(HTTP\CREATED)->withHeader('Location', '{{ spec.path_prefix}}/{{ table.name }}/' . $this->mInsertKey);
             }
 
             // Created record and key was provided by client
@@ -90,23 +86,23 @@
         }
 
         /**
-         * @param array|null $aPathParams  Params from Request Path
-         * @param array|null $aQueryParams Params from Request Query
-         * @param array|null $aPostParams  Params from Request Body
          * @param Dot        $oResponse    Response Object
+         * @param array|null $aPostParams  Params from Request Body
          *
          * @return Dot
+         *
          * @throws DbDuplicateException
          * @throws DbException
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          * @throws TableException
          */
-        protected function getResponse(?array $aPathParams, ?array $aQueryParams, ?array $aPostParams, Dot $oResponse): Dot {
+        protected function getResponse(Dot $oResponse, ?array $aPostParams): Dot {
             $o{{ table.title }} = null;
             if (isset({% for field in primary %}$aPostParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %})) {
                 $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}$aPostParams['{{ field.short }}']{% if not loop.last %}, {% endif %}{% endfor %});
             }
+
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
                 /** @var {{ table.class }} $o{{ table.title }} */
                 $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
@@ -120,7 +116,8 @@
                 $o{{ table.title }}->update();
             }
 
-            $oResponse = _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
-            return $oResponse;
+            return _components\{{ table.name }}::add{{ table.title }}ToResponse($oResponse, $o{{ table.title }});
         }
     }
+
+// generated from template_spec_post_body_key.twig
