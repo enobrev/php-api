@@ -4,6 +4,7 @@
     namespace Enobrev\API\Middleware;
 
     use Countable;
+    use Laminas\Diactoros\Exception\InvalidArgumentException;
     use RuntimeException;
 
     use Adbar\Dot;
@@ -65,9 +66,24 @@
                         $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
                     }
 
-                    $oUri         = new Uri($sEndpoint);
                     $aQueryParams = [];
-                    parse_str($oUri->getQuery(), $aQueryParams);
+                    try {
+                        $oUri = new Uri($sEndpoint);
+                        parse_str($oUri->getQuery(), $aQueryParams);
+                    } catch (InvalidArgumentException $e) {
+                        // parse_url does not like colons in urls
+                        // https://github.com/guzzle/guzzle/issues/1550
+                        // https://bugs.php.net/bug.php?id=71646
+                        if (strpos($sEndpoint, '?') === false) {
+                            $sEndpoint .= '?';
+                        } else {
+                            $sEndpoint = 'http://localhost/' . ltrim($sEndpoint, '/');
+                        }
+
+                        $oUri = new Uri($sEndpoint);
+                        parse_str($oUri->getQuery(), $aQueryParams);
+                    }
+
                     $oSubRequest  = ServerRequestFactory::fromGlobals()->withMethod(Method\GET)
                                                                        ->withUri($oUri)
                                                                        ->withQueryParams($aQueryParams)
