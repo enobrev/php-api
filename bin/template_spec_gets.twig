@@ -71,10 +71,12 @@
             $sSort          = $aQueryParams['sort'];
             $iPage          = $aQueryParams['page'];
             $iPer           = $aQueryParams['per'];
+{% if has_date %}
             $sSync          = $aQueryParams['sync'];
+{% endif %}
 
             $oResponse      = ResponseBuilder::get($oRequest);
-            $oResponse      = $this->getResponse($oResponse, $iPage, $iPer, $sSearch, $sSort, $sSync);
+            $oResponse      = $this->getResponse($oResponse, $iPage, $iPer, $sSearch, $sSort{% if has_date %}, $sSync{% endif %});
             $oRequest       = ResponseBuilder::update($oRequest, $oResponse);
 
             return $oHandler->handle($oRequest);
