@@ -497,12 +497,12 @@
         }
 
         /**
-         * @param                              $iStatus
+         * @param int  $iStatus
          * @param OpenApiInterface|string|null $mResponse
          *
          * @return $this
          */
-        public function response($iStatus, $mResponse = null):self {
+        public function response(int $iStatus, $mResponse = null):self {
             $oClone = clone $this;
             if (!isset($this->aResponses[$iStatus])) {
                 $oClone->aResponses[$iStatus] = [];
