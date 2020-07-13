@@ -313,6 +313,7 @@
          */
         private function useJSONPath(string $sMatch, string $sTemplate) {
             $sExpression = str_replace('jsonpath:', '', $sMatch);
+            $aValues = [];
 
             try {
                 $oValues = (new JSONPath($this->oData->all()))->find($sExpression);
@@ -325,8 +326,16 @@
                     'template'   => $sTemplate,
                     'expression' => $sExpression
                 ]);
+            }
 
-                $aValues = [];
+            if ($aValues && count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
+                Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath', $e, [
+                    'template'   => $sTemplate,
+                    'expression' => $sExpression,
+                    'values'     => json_encode($aValues)
+                ]);
+
+                throw new Exception\InvalidJmesPath('JSONPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
             }
 
             Log::d('MultiEndpointQuery.getTemplateValue.JSONPath', [
