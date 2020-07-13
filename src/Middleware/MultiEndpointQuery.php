@@ -4,6 +4,7 @@
     namespace Enobrev\API\Middleware;
 
     use Countable;
+    use Flow\JSONPath\JSONPath;
     use Laminas\Diactoros\Exception\InvalidArgumentException;
     use RuntimeException;
 
@@ -21,6 +22,7 @@
     use Enobrev\API\Exception;
     use Enobrev\API\Method;
     use Enobrev\Log;
+    use function Enobrev\dbg;
 
     /**
      * @package Enobrev\API\Middleware
@@ -165,6 +167,8 @@
 
                 if (strpos($sMatch, 'jmes:') === 0) {
                     $aValues = $this->useJMES($sMatch, $sTemplate);
+                } else if (strpos($sMatch, 'jsonpath:') === 0) {
+                    $aValues = $this->useJSONPath($sMatch, $sTemplate);
                 } else {
                     $aMatch = explode('.', $sMatch);
                     if (count($aMatch) > 1) {
@@ -292,6 +296,40 @@
             }
 
             Log::d('MultiEndpointQuery.getTemplateValue.JMESPath', [
+                'template'   => $sTemplate,
+                'expression' => $sExpression
+            ]);
+
+            return $aValues;
+        }
+
+        /**
+         * @param string $sMatch
+         * @param string $sTemplate
+         * @deprecated
+         *
+         * @return array|array[]|mixed|null
+         * @throws Exception\InvalidJmesPath
+         */
+        private function useJSONPath(string $sMatch, string $sTemplate) {
+            $sExpression = str_replace('jsonpath:', '', $sMatch);
+
+            try {
+                $oValues = (new JSONPath($this->oData->all()))->find($sExpression);
+
+                if ($oValues) {
+                    $aValues = $oValues->data();
+                }
+            } catch (RuntimeException $e) {
+                Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath.error', $e, [
+                    'template'   => $sTemplate,
+                    'expression' => $sExpression
+                ]);
+
+                $aValues = [];
+            }
+
+            Log::d('MultiEndpointQuery.getTemplateValue.JSONPath', [
                 'template'   => $sTemplate,
                 'expression' => $sExpression
             ]);
