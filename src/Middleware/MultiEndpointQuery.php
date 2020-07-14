@@ -48,6 +48,7 @@
          *
          * @return ResponseInterface
          * @throws Exception\InvalidJmesPath
+         * @throws Exception\InvalidJsonPath
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointQuery');
@@ -121,6 +122,47 @@
             return $oHandler->handle($oResponse);
         }
 
+        /**
+         * This is a stripped down version of the process method.  This class is not easy to test without mocking
+         * up everything.  I just need to test that the templating works, not that the API it wraps works
+         *
+         * @param Dot   $oData
+         * @param array $aEndpoints
+         *
+         * @return array
+         * @throws Exception\InvalidJmesPath
+         * @throws Exception\InvalidJsonPath
+         * @throws Exception\NoTemplateValues
+         */
+        public function testTemplates(Dot $oData, array $aEndpoints) {
+            $this->oData = $oData;
+            $aRequests = [];
+            while (count($aEndpoints) > 0) {
+                /** @var string $sEndpoint */
+                $sEndpoint = array_shift($aEndpoints);
+                $sEndpoint = $this->fillEndpointTemplateFromData($sEndpoint);
+
+                try {
+                    $oUri = new Uri($sEndpoint);
+                } catch (InvalidArgumentException $e) {
+                    // parse_url does not like colons in urls
+                    // https://github.com/guzzle/guzzle/issues/1550
+                    // https://bugs.php.net/bug.php?id=71646
+                    $sEndpoint = 'http://localhost/' . ltrim($sEndpoint, '/');
+                    $oUri = new Uri($sEndpoint);
+                }
+
+                $aQueryParams = [];
+                parse_str($oUri->getQuery(), $aQueryParams);
+
+                $aRequests[] = [
+                    'uri'          => $oUri,
+                    'query_params' => $aQueryParams
+                ];
+            }
+            return $aRequests;
+        }
+
         private const NO_VALUE = '~~NO_VALUE~~';
 
         /**
@@ -130,6 +172,7 @@
          *
          * @return string
          * @throws Exception\InvalidJmesPath
+         * @throws Exception\InvalidJsonPath
          * @throws Exception\NoTemplateValues
          */
         private function fillEndpointTemplateFromData(string $sEndpoint): string {
@@ -153,6 +196,7 @@
          *
          * @return string
          * @throws Exception\InvalidJmesPath
+         * @throws Exception\InvalidJsonPath
          * @throws Exception\NoTemplateValues
          */
         private function getTemplateValue(string $sTemplate): string {
@@ -216,14 +260,16 @@
                                     // Single-Record response (like /me)
                                     $aValues[] = $this->oData->get("$sPath.$sField");
                                 } else {
-                                    Log::d('MultiEndpointQuery.getTemplateValue.SegmentNotFound', [
+                                    Log::d('MultiEndpointQuery.getTemplateValue', [
+                                        'state'     => 'SegmentNotFound',
                                         'field'     => $sField,
                                         'template'  => $sTemplate
                                     ]);
                                 }
                             }
 
-                            Log::d('MultiEndpointQuery.getTemplateValue.TableField', [
+                            Log::d('MultiEndpointQuery.getTemplateValue', [
+                                'state'    => 'TableField',
                                 'template' => $sTemplate
                             ]);
                         }
@@ -238,6 +284,7 @@
                 }
 
                 Log::d('MultiEndpointQuery.getTemplateValue', [
+                    'state'  => 'Data',
                     'prefix' => $sPrefix,
                     'values' => json_encode($aValues)
                 ]);
@@ -271,7 +318,8 @@
             try {
                 $aValues = JmesPath\Env::search($sExpression, $this->oData->all());
             } catch (RuntimeException $e) {
-                Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath.error', $e, [
+                Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath', $e, [
+                    'state'      => 'JMESPath.Error',
                     'template'   => $sTemplate,
                     'expression' => $sExpression
                 ]);
@@ -284,7 +332,8 @@
                     $aValues = [$aValues];
                 } else {
                     if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                        Log::ex('MultiEndpointQuery.getTemplateValue.JMESPath', $e, [
+                        Log::e('MultiEndpointQuery.getTemplateValue', [
+                            'state'      => 'JMESPath.MultiArray',
                             'template'   => $sTemplate,
                             'expression' => $sExpression,
                             'values'     => json_encode($aValues)
@@ -296,6 +345,7 @@
             }
 
             Log::d('MultiEndpointQuery.getTemplateValue.JMESPath', [
+                'state'      => 'Complete',
                 'template'   => $sTemplate,
                 'expression' => $sExpression
             ]);
@@ -306,10 +356,9 @@
         /**
          * @param string $sMatch
          * @param string $sTemplate
-         * @deprecated
          *
-         * @return array|array[]|mixed|null
-         * @throws Exception\InvalidJmesPath
+         * @return array|mixed
+         * @throws Exception\InvalidJsonPath
          */
         private function useJSONPath(string $sMatch, string $sTemplate) {
             $sExpression = str_replace('jsonpath:', '', $sMatch);
@@ -321,24 +370,27 @@
                 if ($oValues) {
                     $aValues = $oValues->data();
                 }
-            } catch (RuntimeException $e) {
-                Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath.error', $e, [
+            } catch (Exception $e) {
+                Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath', $e, [
+                    'state'      => 'JSONPath.Error',
                     'template'   => $sTemplate,
                     'expression' => $sExpression
                 ]);
             }
 
             if ($aValues && count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath', $e, [
+                Log::e('MultiEndpointQuery.getTemplateValue.JSONPath', [
+                    'state'      => 'JSONPath.MultiArray',
                     'template'   => $sTemplate,
                     'expression' => $sExpression,
                     'values'     => json_encode($aValues)
                 ]);
 
-                throw new Exception\InvalidJmesPath('JSONPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                throw new Exception\InvalidJsonPath('JSONPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
             }
 
             Log::d('MultiEndpointQuery.getTemplateValue.JSONPath', [
+                'state'      => 'Complete',
                 'template'   => $sTemplate,
                 'expression' => $sExpression
             ]);
