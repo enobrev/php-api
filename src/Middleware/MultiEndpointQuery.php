@@ -129,7 +129,7 @@
          * @param Dot   $oData
          * @param array $aEndpoints
          *
-         * @return array
+         * @return Uri[]
          * @throws Exception\InvalidJmesPath
          * @throws Exception\InvalidJsonPath
          * @throws Exception\NoTemplateValues
@@ -152,13 +152,7 @@
                     $oUri = new Uri($sEndpoint);
                 }
 
-                $aQueryParams = [];
-                parse_str($oUri->getQuery(), $aQueryParams);
-
-                $aRequests[] = [
-                    'uri'          => $oUri,
-                    'query_params' => $aQueryParams
-                ];
+                $aRequests[] = $oUri;
             }
             return $aRequests;
         }

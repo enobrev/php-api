@@ -21,7 +21,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueNoTemplateMultiple(): void {
@@ -35,8 +35,8 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(2, count($aRequests));
-            self::assertEquals('/some/endpoint', $aRequests[0]['uri']->getPath());
-            self::assertEquals('/some/other/endpoint', $aRequests[1]['uri']->getPath());
+            self::assertEquals('/some/endpoint', $aRequests[0]->getPath());
+            self::assertEquals('/some/other/endpoint', $aRequests[1]->getPath());
         }
 
         public function testTemplateValueBasic(): void {
@@ -55,7 +55,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueMultiTableColumn(): void {
@@ -80,7 +80,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueTableColumnArray(): void {
@@ -101,7 +101,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueTableColumnMultiArray(): void {
@@ -125,7 +125,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2,3,4', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2,3,4', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueJSONPathWildcard(): void {
@@ -149,7 +149,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueJSONPathDoubleDot(): void {
@@ -173,7 +173,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueJSONPathDoubleDotDeep(): void {
@@ -202,7 +202,7 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2,3', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2,3', $aRequests[0]->getPath());
         }
 
         public function testTemplateValueJSONPathFirstX(): void {
@@ -238,6 +238,6 @@
 
             self::assertIsArray($aRequests);
             self::assertEquals(1, count($aRequests));
-            self::assertEquals('/some/endpoint/1,2,3', $aRequests[0]['uri']->getPath());
+            self::assertEquals('/some/endpoint/1,2,3', $aRequests[0]->getPath());
         }
     }
