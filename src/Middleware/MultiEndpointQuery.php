@@ -269,8 +269,13 @@
                         }
                     }
                 }
-
                 if ($sPrefix) {
+                    Log::d('MultiEndpointQuery.getTemplateValue', [
+                        'state'  => 'Prefix',
+                        'prefix' => $sPrefix,
+                        'values' => json_encode($aValues)
+                    ]);
+
                     foreach($aValues as &$sValue) {
                         $sValue = $sPrefix . $sValue;
                     }
