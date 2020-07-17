@@ -16,6 +16,7 @@
     use cebe\openapi\Writer;
 
     use Enobrev\API\Exception\HttpErrorException;
+    use Enobrev\API\Exception\InvalidScope;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\FullSpec\Component\Response;
     use Enobrev\API\FullSpec\Component\Request;
@@ -437,6 +438,10 @@
                 throw new InvalidScope('Please define Scopes as a non-Associative Array');
             }
 
+            if (is_array($aScopes[0])) {
+                throw new InvalidScope('Please define Scopes as a non-Associative, Single-Dimensional Array');
+            }
+
             $oClone = clone $this;
             $oClone->aScopes = $aScopes;
             return $oClone;
@@ -556,7 +561,7 @@
          * @param int   $iOptions
          * @param array $aExclude
          *
-         * @return Param[] 
+         * @return Param[]
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
@@ -670,7 +675,7 @@
 
             return $oParam;
         }
-        
+
         /**
          * @param array $aArray
          * @param bool $bAdditionalProperties
