@@ -220,12 +220,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "82d8bb97015120b5732f2c88848f0fe82855f34d"
+                "reference": "dd0eed240a96d7ce93e38351ad4c9dcccff96b30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/82d8bb97015120b5732f2c88848f0fe82855f34d",
-                "reference": "82d8bb97015120b5732f2c88848f0fe82855f34d",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/dd0eed240a96d7ce93e38351ad4c9dcccff96b30",
+                "reference": "dd0eed240a96d7ce93e38351ad4c9dcccff96b30",
                 "shasum": ""
             },
             "require": {
@@ -274,7 +274,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2020-07-14T17:09:37+00:00"
+            "time": "2020-07-17T03:25:59+00:00"
         },
         {
             "name": "enobrev/php-tools",
