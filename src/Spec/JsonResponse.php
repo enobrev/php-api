@@ -105,7 +105,13 @@
             }
 
             if (is_array($this->mSchema)) {
-                return Spec::arrayToSchema($this->mSchema);
+                $oSchema = Spec::arrayToSchema($this->mSchema);
+
+                if ($this->sTitle) {
+                    $oSchema->title = $this->sTitle;
+                }
+
+                return $oSchema;
             }
 
             throw new \Exception('No Schema to Return');
