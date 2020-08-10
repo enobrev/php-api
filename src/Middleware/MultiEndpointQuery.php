@@ -269,6 +269,13 @@
                         }
                     }
                 }
+
+                foreach($aValues as $sValue) {
+                    if (is_array($sValue)) {
+                        throw new Exception\InvalidTemplateResponse('Path Tempalates MUST refernce values that can be flattened.  This template references a value that cannot be easily flattened');
+                    }
+                }
+
                 if ($sPrefix) {
                     Log::d('MultiEndpointQuery.getTemplateValue', [
                         'state'  => 'Prefix',
