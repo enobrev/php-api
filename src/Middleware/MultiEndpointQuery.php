@@ -112,6 +112,12 @@
                         $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
                     }
                     $oBuilder->set("_request.multiquery.$sEscaped", 'Template Unresolved');
+                } catch (Exception\InvalidTemplateResponse $e) {
+                    $sEscaped  = $sEndpoint;
+                    if (strpos($sEndpoint, '.') !== false) {
+                        $sEscaped = '(escaped): ' . str_replace('.', '+', $sEndpoint);
+                    }
+                    $oBuilder->set("_request.multiquery.$sEscaped", 'Template References Data That Cannot Be Flattened');
                 }
             }
 
