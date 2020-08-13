@@ -22,16 +22,16 @@
          */
         public function coerce($mValue) {
             if ($this->isNullable()) {
-                if ($mValue === null || $mValue === 'null' || $mValue === '') {
+                if ($mValue === null || strtolower($mValue) === 'null' || $mValue === '') {
                     return null;
                 }
             }
 
-            if ($mValue === 1 || $mValue === '1' || $mValue === 'true') {
+            if ($mValue === 1 || $mValue === '1' || strtolower($mValue) === 'true') {
                 return true;
             }
 
-            if ($mValue === null || $mValue === 0 || $mValue === '0' || $mValue === 'false') {
+            if ($mValue === null || $mValue === 0 || $mValue === '0' || strtolower($mValue) === 'false') {
                 return false;
             }
 
