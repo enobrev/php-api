@@ -220,12 +220,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "457640cb50a3de98baf41178514d28feafeccd32"
+                "reference": "df437d250e38a8ca43b9308b2870ed4d718455f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/457640cb50a3de98baf41178514d28feafeccd32",
-                "reference": "457640cb50a3de98baf41178514d28feafeccd32",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/df437d250e38a8ca43b9308b2870ed4d718455f4",
+                "reference": "df437d250e38a8ca43b9308b2870ed4d718455f4",
                 "shasum": ""
             },
             "require": {
@@ -274,7 +274,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2020-08-13T06:14:14+00:00"
+            "time": "2020-08-25T04:06:30+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -282,17 +282,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "426ebcc3bfee483b7aa63bf5bce99083a679c5a8"
+                "reference": "0bb28018fdf5fb27806c60aa095b468050a0f61e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/426ebcc3bfee483b7aa63bf5bce99083a679c5a8",
-                "reference": "426ebcc3bfee483b7aa63bf5bce99083a679c5a8",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/0bb28018fdf5fb27806c60aa095b468050a0f61e",
+                "reference": "0bb28018fdf5fb27806c60aa095b468050a0f61e",
                 "shasum": ""
             },
             "require": {
                 "adbario/php-dot-notation": "~2.2",
                 "ext-json": "*",
+                "icanboogie/inflector": "^2.0",
                 "laminas/laminas-diactoros": "^2.2",
                 "laminas/laminas-httphandlerrunner": "^1.1",
                 "monolog/monolog": "^2.0",
@@ -330,7 +331,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2020-07-14T17:07:29+00:00"
+            "time": "2020-08-25T04:05:49+00:00"
         },
         {
             "name": "flow/jsonpath",
@@ -372,6 +373,58 @@
             ],
             "description": "JSONPath implementation for parsing, searching and flattening arrays",
             "time": "2019-07-15T17:23:22+00:00"
+        },
+        {
+            "name": "icanboogie/inflector",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ICanBoogie/Inflector.git",
+                "reference": "9fa7e8fcf7a6ac06257ae77e9aa2ec90925b4327"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ICanBoogie/Inflector/zipball/9fa7e8fcf7a6ac06257ae77e9aa2ec90925b4327",
+                "reference": "9fa7e8fcf7a6ac06257ae77e9aa2ec90925b4327",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=7.1"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "lib/"
+                ],
+                "files": [
+                    "lib/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Olivier Laviale",
+                    "email": "olivier.laviale@gmail.com",
+                    "homepage": "http://www.weirdog.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Multilingual inflector that transforms words from singular to plural, underscore to camel case, and more.",
+            "homepage": "http://icanboogie.org/",
+            "keywords": [
+                "camelize",
+                "hyphenate",
+                "inflect",
+                "multilingual",
+                "pluralize",
+                "singularize",
+                "underscore"
+            ],
+            "time": "2019-10-04T09:43:33+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -2946,6 +2999,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2019-09-17T06:23:10+00:00"
         },
         {
