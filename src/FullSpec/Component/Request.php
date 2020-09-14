@@ -123,7 +123,13 @@
                     $oResponse->set('content.multipart/form-data.schema.discriminator.propertyName', $this->sDiscriminator);
                     if ($this->aMapping) {
                         foreach($this->aMapping as $sFrom => $oTo) {
-                            $oResponse->set("content.multipart/form-data.schema.discriminator.mapping.$sFrom", $oTo->getSpecObject()->getSerializableData());
+                            if ($oTo instanceof Reference) {
+                                $oResponse->set("content.multipart/form-data.schema.discriminator.mapping.$sFrom", $oTo->getPath());
+                            } else if ($oTo instanceof OpenApiInterface) {
+                                $oResponse->set("content.multipart/form-data.schema.discriminator.mapping.$sFrom", $oTo->getSpecObject()->getSerializableData());
+                            } else if (is_string($oTo)) {
+                                $oResponse->set("content.multipart/form-data.schema.discriminator.mapping.$sFrom", $oTo);
+                            }
                         }
                     }
                 }
@@ -135,7 +141,13 @@
                     $oResponse->set('content.application/json.schema.discriminator.propertyName', $this->sDiscriminator);
                     if ($this->aMapping) {
                         foreach($this->aMapping as $sFrom => $oTo) {
-                            $oResponse->set("content.application/json.schema.discriminator.mapping.$sFrom", $oTo->getSpecObject()->getSerializableData());
+                            if ($oTo instanceof Reference) {
+                                $oResponse->set("content.application/json.schema.discriminator.mapping.$sFrom", $oTo->getPath());
+                            } else if ($oTo instanceof OpenApiInterface) {
+                                $oResponse->set("content.application/json.schema.discriminator.mapping.$sFrom", $oTo->getSpecObject()->getSerializableData());
+                            } else if (is_string($oTo)) {
+                                $oResponse->set("content.application/json.schema.discriminator.mapping.$sFrom", $oTo);
+                            }
                         }
                     }
                 }

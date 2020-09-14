@@ -29,7 +29,11 @@
             return $this->sName;
         }
 
+        public function getPath() {
+            return "#/components/{$this->sName}";
+        }
+
         public function getSpecObject(): SpecObjectInterface {
-            return new OpenApi_Reference(['$ref' => "#/components/{$this->sName}"]);
+            return new OpenApi_Reference(['$ref' => $this->getPath()]);
         }
     }
