@@ -92,6 +92,9 @@
         /** @var array */
         private $aResponses = [];
 
+        /** @var bool  */
+        private $bValidateResponse = true;
+
         public static function create(): Spec {
             return new self();
         }
@@ -390,6 +393,16 @@
             $oClone = clone $this;
             $oClone->sSummary = $sSummary;
             return $oClone;
+        }
+
+        public function validateResponse(bool $bValidateResponse):self {
+            $oClone = clone $this;
+            $oClone->bValidateResponse = $bValidateResponse;
+            return $oClone;
+        }
+
+        public function shouldValidateResponse(): bool {
+            return $this->bValidateResponse;
         }
 
         public function description(string $sDescription):self {

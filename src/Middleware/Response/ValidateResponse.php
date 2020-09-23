@@ -8,7 +8,7 @@
     use cebe\openapi\spec\Responses;
     use cebe\openapi\SpecObjectInterface;
     use ReflectionException;
-    
+
     use Adbar\Dot;
     use BenMorel\OpenApiSchemaToJsonSchema\Convert;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
@@ -74,7 +74,12 @@
          * @throws \cebe\openapi\exceptions\UnresolvableReferenceException
          */
         private function validateResponse(ServerRequestInterface $oRequest): ServerRequestInterface {
-            $oSpec          = AttributeSpec::getSpec($oRequest);
+            $oSpec = AttributeSpec::getSpec($oRequest);
+
+            if (!$oSpec->shouldValidateResponse()) {
+                return $oRequest;
+            }
+
             $oSpecResponses = $oSpec->getResponses();
             if ($oSpecResponses instanceof Responses) {
                 $oOpenApi       = FullSpec::getInstance()->getOpenApi();
@@ -115,7 +120,7 @@
                     $aErrors    = $this->getErrorsWithValues($oValidator, $aFullResponse);
                     $iErrors    = count($aErrors);
                     $aLogErrors = $iErrors > 5 ? array_slice($aErrors, 0, 5) : $aErrors;
-                    
+
                     Log::e('Enobrev.Middleware.ValidateResponse', [
                         'state'         => 'validateResponse.Error.Validation',
                         'path'          => $oSpec->getPath(),
