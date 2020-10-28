@@ -297,12 +297,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "49a9daef243a96baf99a4652670a3a18d3291fac"
+                "reference": "c9cf613d932f84aebaa8f6dbee2f8e8ec8a28e3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/49a9daef243a96baf99a4652670a3a18d3291fac",
-                "reference": "49a9daef243a96baf99a4652670a3a18d3291fac",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/c9cf613d932f84aebaa8f6dbee2f8e8ec8a28e3f",
+                "reference": "c9cf613d932f84aebaa8f6dbee2f8e8ec8a28e3f",
                 "shasum": ""
             },
             "require": {
@@ -351,7 +351,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2020-09-28T16:58:23+00:00"
+            "time": "2020-10-28T05:41:36+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -359,12 +359,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "3d34286de0d23d4652c6625d4b881b7566d17f55"
+                "reference": "b4f5b6c8b6a2797d6aef0c96f469d889f3956f5b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/3d34286de0d23d4652c6625d4b881b7566d17f55",
-                "reference": "3d34286de0d23d4652c6625d4b881b7566d17f55",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/b4f5b6c8b6a2797d6aef0c96f469d889f3956f5b",
+                "reference": "b4f5b6c8b6a2797d6aef0c96f469d889f3956f5b",
                 "shasum": ""
             },
             "require": {
@@ -408,7 +408,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2020-08-27T05:16:05+00:00"
+            "time": "2020-10-28T05:41:09+00:00"
         },
         {
             "name": "flow/jsonpath",
@@ -449,6 +449,7 @@
                 }
             ],
             "description": "JSONPath implementation for parsing, searching and flattening arrays",
+            "abandoned": "softcreatr/jsonpath",
             "time": "2019-07-15T17:23:22+00:00"
         },
         {
