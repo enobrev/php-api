@@ -370,6 +370,21 @@ helps with finding out why you might not have received the data you were expecti
 This will only show up in cases of multiquery requests.
 DESCRIPTION
                     ]),
+                    'multipost'      => new Schema([
+                        'type' => 'object',
+                        'additionalProperties' => true,
+                        'properties' => [
+                            '_server'  => new Reference(['$ref' => '#/components/schemas/_server']),
+                            '_request' => new Reference(['$ref' => '#/components/schemas/_request'])
+                        ],
+                        'description'          => <<<DESCRIPTION
+The `_request.multipost` object holds a collection of all the `_request` and `_server` objects from every sub-request that was preformed
+helps with finding out why you might not have received the data you were expecting. 
+
+This will only show up in cases of multipost requests.
+DESCRIPTION
+
+                    ]),
                 ],
                 'description'          => <<<DESCRIPTION
 The `_request` object can help the client developer find out if maybe what was sent was misinterpreted by the server for some reason.
