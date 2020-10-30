@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\Middleware\Request;
 
-    use ReflectionException;
     use stdClass;
 
     use Psr\Http\Message\ResponseInterface;
@@ -21,7 +20,6 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws ReflectionException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.CoerceParams');

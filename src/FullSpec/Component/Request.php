@@ -2,7 +2,6 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\RequestBody;
     use cebe\openapi\SpecObjectInterface;
 
@@ -13,23 +12,17 @@
     class Request implements ComponentInterface, OpenApiInterface {
         public const PREFIX = 'requestBodies';
 
-        /** @var string */
-        private $sName;
+        private string $sName;
 
-        /** @var string */
-        private $sDescription;
+        private string $sDescription;
 
-        /** @var OpenApiInterface */
-        private $mPost;
+        private ?OpenApiInterface $mPost = null;
 
-        /** @var OpenApiInterface */
-        private $mJson;
+        private ?OpenApiInterface $mJson = null;
 
-        /** @var string */
-        private $sDiscriminator;
+        private string $sDiscriminator;
 
-        /** @var array */
-        private $aMapping;
+        private ?array $aMapping = null;
 
         public static function create(string $sName) {
             return new self($sName);
@@ -101,18 +94,11 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws Exception
-         * @throws TypeErrorException
          */
 
         public function getSpecObject(): SpecObjectInterface {
-            if (!$this->sDescription) {
-                throw new Exception('Full Scope Request Components require a description');
-            }
-
-            if (!$this->mPost && !$this->mJson) {
-                throw new Exception('Full Scope Request Components needs a JSON or form-data schema');
-            }
+            assert($this->sDescription,                  new Exception('Full Scope Request Components require a description'));
+            assert($this->mPost || $this->mJson, new Exception('Full Scope Request Components needs a JSON or form-data schema'));
 
             $oResponse = new Dot([
                 'description' => $this->sDescription,

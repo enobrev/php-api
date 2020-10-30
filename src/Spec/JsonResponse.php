@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\Spec;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\Schema;
     use cebe\openapi\spec\Reference;
     use cebe\openapi\SpecObjectInterface;
@@ -20,11 +19,9 @@
         /** @var OpenApiInterface|OpenApiInterface[] */
         private $mSchema;
 
-        /** @var string */
-        private $sType;
+        private ?string $sType = null;
 
-        /** @var string */
-        private $sTitle;
+        private ?string $sTitle = null;
 
         public function __construct(?string $sTitle = null) {
             $this->sTitle = $sTitle;
@@ -63,7 +60,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             if (!$this->mSchema) {

@@ -1,14 +1,8 @@
 <?php
     namespace Enobrev\API\Middleware\Response;
 
-    use ReflectionException;
-
     use Adbar\Dot;
     use BenMorel\OpenApiSchemaToJsonSchema\Convert;
-    use BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidInputException;
-    use BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidTypeException;
-    use cebe\openapi\exceptions\TypeErrorException;
-    use cebe\openapi\exceptions\UnresolvableReferenceException;
     use cebe\openapi\ReferenceContext;
     use cebe\openapi\spec\Reference;
     use cebe\openapi\spec\Responses;
@@ -21,7 +15,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
-    use Enobrev\API\Exception;
+    use Enobrev\API\Exception\HttpErrorException;
     use Enobrev\API\Exception\ValidationException;
     use Enobrev\API\FullSpec;
     use Enobrev\API\HTTP;
@@ -43,12 +37,7 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Exception\HttpErrorException
-         * @throws InvalidInputException
-         * @throws InvalidTypeException
-         * @throws ReflectionException
-         * @throws TypeErrorException
-         * @throws UnresolvableReferenceException
+         * @throws HttpErrorException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.ValidateResponse');
@@ -69,12 +58,7 @@
          * @param ServerRequestInterface $oRequest
          *
          * @return ServerRequestInterface
-         * @throws Exception\HttpErrorException
-         * @throws ReflectionException
-         * @throws InvalidInputException
-         * @throws InvalidTypeException
-         * @throws TypeErrorException
-         * @throws UnresolvableReferenceException
+         * @throws HttpErrorException
          */
         private function validateResponse(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec = AttributeSpec::getSpec($oRequest);
@@ -149,7 +133,6 @@
          * @param $oSchema
          *
          * @return OpenApi_Schema|mixed
-         * @throws TypeErrorException
          */
         private function mergeAllOfs($oSchema)  {
             if (isset($oSchema->allOf)) {

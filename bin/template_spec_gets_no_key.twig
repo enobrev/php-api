@@ -17,11 +17,7 @@
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
-    use Enobrev\ORM\DbDuplicateException;
-    use Enobrev\ORM\DbException;
-    use Enobrev\ORM\TablesException;
-    use Enobrev\ORM\TablesInvalidReferenceException;
-    use Enobrev\ORM\TablesInvalidTableException;
+    use Enobrev\ORM\Exceptions\DbException;
 
     use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
@@ -57,12 +53,7 @@
          *
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
-         * @throws Exception
-         * @throws DbDuplicateException
          * @throws DbException
-         * @throws TablesException
-         * @throws TablesInvalidReferenceException
-         * @throws TablesInvalidTableException
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -92,12 +83,7 @@
          *
          * @return Dot
          *
-         * @throws Exception
-         * @throws DbDuplicateException
          * @throws DbException
-         * @throws TablesException
-         * @throws TablesInvalidReferenceException
-         * @throws TablesInvalidTableException
          */
         protected function getResponse(Dot $oResponse, int $iPage = 1, int $iPer = 100, ?string $sSearch, ?string $sSort, ?string $sSync = null): Dot {
             $oBaseTable = new {{ table.class }};

@@ -8,8 +8,7 @@
     class _Boolean extends Param {
         use ParamTrait;
 
-        /** @var string */
-        protected $sType = Param::BOOLEAN;
+        protected string $sType = Param::BOOLEAN;
 
         public function default($mDefault):self {
             return $this->validation(['default' => (bool) $mDefault]);

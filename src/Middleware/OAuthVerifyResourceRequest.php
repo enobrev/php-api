@@ -21,8 +21,7 @@
     class OAuthVerifyResourceRequest implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
-        /** @var OAuth_Server */
-        private $oAuthServer;
+        private OAuth_Server $oAuthServer;
 
         public function __construct(OAuth_Server $oAuthServer) {
             $this->oAuthServer = $oAuthServer;

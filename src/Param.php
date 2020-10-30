@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\Parameter;
     use cebe\openapi\spec\Schema;
 
@@ -17,23 +16,17 @@
         public const DEPRECATED = 2;
         public const NULLABLE   = 4;
 
-        /** @var array */
-        protected $aValidation;
+        protected array $aValidation;
 
-        /** @var string */
-        protected $sType;
+        protected string $sType;
 
-        /** @var string */
-        protected $sDescription;
+        protected string $sDescription = '';
 
-        /** @var int */
-        protected $iOptions;
+        protected int $iOptions = 0;
 
-        /** @var string */
-        protected $sExample;
+        protected ?string $sExample = null;
 
-        /** @var array */
-        protected $aExamples;
+        protected array $aExamples = [];
 
         public function __construct() {
             $this->aValidation  = [];
@@ -122,7 +115,6 @@
          * @param string|null $sIn
          *
          * @return Parameter
-         * @throws TypeErrorException
          */
         public function getParameter(string $sName, ?string $sIn = 'query'): Parameter {
             $aOptions = [
@@ -159,8 +151,6 @@
 
         /**
          * @return Schema
-         * @throws TypeErrorException
-         *
          */
         public function getSchema(): Schema {
             $aSchema = $this->aValidation;

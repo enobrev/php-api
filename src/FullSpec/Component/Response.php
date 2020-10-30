@@ -2,7 +2,6 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
     use cebe\openapi\spec\Response as OpenApi_Response;
 
@@ -13,17 +12,14 @@
     class Response implements ComponentInterface, OpenApiInterface {
         public const PREFIX = 'responses';
 
-        /** @var string */
-        private $sName;
+        private string $sName;
 
-        /** @var string */
-        private $sSummary;
+        private ?string $sSummary = null;
 
-        /** @var string */
-        private $sDescription = '';
+        private string $sDescription = '';
 
         /** @var OpenApiInterface[] */
-        private $aSchemas;
+        private array $aSchemas;
 
         public static function create(string $sName) {
             return new self($sName);
@@ -65,7 +61,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             if (!count($this->aSchemas)) {

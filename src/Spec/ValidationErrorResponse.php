@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\Spec;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
 
     use Enobrev\API\FullSpec;
@@ -19,7 +18,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             return JsonResponse::allOf([
@@ -31,7 +29,7 @@
                                 'property'   => Param\_String::create()->example('id'),
                                 'pointer'    => Param\_String::create()->example('/id/'),
                                 'message'    => Param\_String::create()->example('String value found, but an integer is required'),
-                                'constraint' => Param\_String::create()->example([
+                                'constraint' => Param\_String::create()->addExample('constraint', [
                                     'name'   => 'type',
                                     'params' => [
                                         'found'    => 'string',

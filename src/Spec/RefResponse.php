@@ -8,8 +8,7 @@
     /** @deprecated ?? */
     class RefResponse implements OpenApiInterface {
 
-        /** @var string */
-        private $sName;
+        private string $sName;
 
         public static function create(string $sName):self {
             return new self($sName);

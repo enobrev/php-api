@@ -14,8 +14,7 @@
     class _Object extends Param {
         use ParamTrait;
 
-        /** @var string */
-        protected $sType = Param::OBJECT;
+        protected string $sType = Param::OBJECT;
 
         /**
          * @param Param[] $aItems

@@ -1,13 +1,11 @@
 <?php
     namespace Enobrev\API;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use Exception;
     use FilesystemIterator;
     use RecursiveDirectoryIterator;
     use RecursiveIteratorIterator;
     use ReflectionClass;
-    use ReflectionException;
     use SplFileInfo;
 
     use Adbar\Dot;
@@ -50,22 +48,19 @@
         public const RESPONSE_SERVER_ERROR         = 'responses/' . self::_SERVER_ERROR;
         public const RESPONSE_MULTI_STATUS         = 'responses/' . self::_MULTI_STATUS;
 
-        /** @var string */
-        private static $sPathToSpec;
+        private static ?string $sPathToSpec = null;
 
-        /** @var string */
-        private static $sPathToAPIClasses;
+        private static ?string $sPathToAPIClasses = null;
 
-        /** @var array */
-        private static $aVersions;
+        private static ?array $aVersions = [];
 
         /** @var OpenApiInterface[] */
-        private $aComponents;
+        private array $aComponents;
 
         /** @var Spec[] */
-        private $aSpecs;
+        private array $aSpecs;
 
-        /** @var self */
+        /** @var static */
         private static $oInstance;
 
         private final function __clone() {}
@@ -106,7 +101,6 @@
 
         /**
          * @return FullSpec
-         * @throws ReflectionException
          */
         private static function generateAndCache():self {
             if (self::$oInstance instanceof self) {
@@ -125,7 +119,6 @@
 
         /**
          * @return self
-         * @throws ReflectionException
          */
         public static function getInstance(): ?self {
             if (self::$oInstance instanceof self) {
@@ -150,7 +143,6 @@
         /**
          * ReGenerates the Full Spec every time!!!  This is _SLOW_
          * @return FullSpec
-         * @throws ReflectionException
          */
         public static function generateLiveForDevelopment(): FullSpec {
             self::$oInstance = null;
@@ -183,9 +175,6 @@
             return $aRoutes;
         }
 
-        /**
-         * @throws ReflectionException
-         */
         protected function generateData(): void {
             $this->specsFromSpecInterfaces();
         }
@@ -198,6 +187,11 @@
             return $this->aComponents[$oReference->getName()];
         }
 
+        /**
+         * @param Component\Reference $oReference
+         *
+         * @return Component\Request|Component\Response|OpenApiInterface|mixed
+         */
         public function followTheYellowBrickRoad(Component\Reference $oReference) {
             $oComponent = $this->getComponent($oReference);
             if ($oComponent instanceof Component\Request) {
@@ -216,7 +210,6 @@
          * @param array       $aOnlyPaths
          *
          * @return OpenApi
-         * @throws TypeErrorException
          */
         public function getOpenApi(?string $sVersion = null, ?array $aScopes = [], array $aOnlyPaths = []): OpenApi {
             return new OpenApi([
@@ -233,8 +226,6 @@
          * @param array       $aOnlyPaths
          *
          * @return Paths
-         * @throws TypeErrorException
-         * @throws \Enobrev\API\Exception
          */
         private function getPaths(?string $sVersion = null, ?array $aScopes = [], array $aOnlyPaths = []): Paths {
             $oData = new Dot();
@@ -281,7 +272,6 @@
          * Generates components for openapi spec.
          *
          * @return Components
-         * @throws TypeErrorException
          */
         private function getComponents(): Components {
             $oData = new Dot([
@@ -302,8 +292,6 @@
 
         /**
          * @param Dot $oData
-         *
-         * @throws TypeErrorException
          */
         private function setDefaultSchemas(Dot $oData): void {
             $oData->set('schemas._default', new Schema([
@@ -396,7 +384,6 @@ DESCRIPTION
         /**
          * Generates responses for openapi spec.
          * @return array
-         * @throws TypeErrorException
          */
         private function getDefaultResponses(): array {
             return [
@@ -566,7 +553,6 @@ DESCRIPTION
 
         /**
          * This method goes through the given paths and runs the spec() and components() methods in the classes to gather the results
-         * @throws ReflectionException
          */
         private function specsFromSpecInterfaces(): void {
             if (!self::$aVersions) {

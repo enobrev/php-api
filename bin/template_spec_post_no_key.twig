@@ -17,8 +17,8 @@
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
-    use Enobrev\ORM\DbDuplicateException;
-    use Enobrev\ORM\DbException;
+    use Enobrev\ORM\Exceptions\DbDuplicateException;
+    use Enobrev\ORM\Exceptions\DbException;
 
     use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
@@ -51,8 +51,6 @@
          * @return ResponseInterface
          * @throws DbDuplicateException
          * @throws DbException
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $aPostParams    = $oRequest->getParsedBody();
@@ -69,8 +67,6 @@
          *
          * @throws DbDuplicateException
          * @throws DbException
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         protected function getResponse(Dot $oResponse, ?array $aPostParams): Dot {
             /** @var {{ table.class }} $o{{ table.title }} */

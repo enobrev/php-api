@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\Spec;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\Component\Reference;
@@ -18,7 +17,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             return JsonResponse::allOf([

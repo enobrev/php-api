@@ -8,8 +8,7 @@
     class _String extends Param {
         use ParamTrait;
 
-        /** @var string */
-        protected $sType = Param::STRING;
+        protected string $sType = Param::STRING;
 
         /**
          *

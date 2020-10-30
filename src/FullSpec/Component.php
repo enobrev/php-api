@@ -29,15 +29,12 @@
             self::TYPE_SECURITY, self::TYPE_LINK,     self::TYPE_CALLBACK,
             self::TYPE_REFERENCE
         ];
-        
-        /** @var string */
-        private $sName;
-        
-        /** @var string */
-        private $sType;
 
-        /** @var string */
-        private $sDescription;
+        private string $sName;
+
+        private string $sType;
+
+        private string $sDescription = '';
 
         /** @var mixed */
         private $mSchema;

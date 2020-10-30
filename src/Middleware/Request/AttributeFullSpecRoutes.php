@@ -14,8 +14,7 @@
     class AttributeFullSpecRoutes implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
-        /** @var FullSpec */
-        private $oFullSpec;
+        private FullSpec $oFullSpec;
 
         public function __construct(FullSpec $oFullSpec) {
             $this->oFullSpec = $oFullSpec;

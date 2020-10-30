@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\Reference as OpenApi_Reference;
     use cebe\openapi\SpecObjectInterface;
 
@@ -10,8 +9,7 @@
 
     class Reference implements ComponentInterface, OpenApiInterface {
 
-        /** @var string */
-        private $sName;
+        private string $sName;
 
         public static function create(string $sName) {
             return new self($sName);
@@ -36,7 +34,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             return new OpenApi_Reference(['$ref' => $this->getPath()]);

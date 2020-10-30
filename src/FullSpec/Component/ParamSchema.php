@@ -1,7 +1,6 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
 
     use Enobrev\API\FullSpec\ComponentInterface;
@@ -11,11 +10,9 @@
     class ParamSchema implements ComponentInterface, OpenApiInterface {
         public const PREFIX = 'schemas';
 
-        /** @var string */
-        private $sName;
+        private string $sName;
 
-        /** @var Param\_Object */
-        private $oParam;
+        private Param\_Object $oParam;
 
         public static function create(string $sName) {
             return new self($sName);
@@ -47,7 +44,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             return $this->oParam->getSchema();

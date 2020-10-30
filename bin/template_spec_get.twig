@@ -16,7 +16,7 @@
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
-    use Enobrev\ORM\DbException;
+    use Enobrev\ORM\Exceptions\DbException;
 
     use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.spec }}\_exceptions;
@@ -63,8 +63,6 @@
          *
          * @return ResponseInterface
          * @throws DbException
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -105,8 +103,6 @@
          * @return Dot
          *
          * @throws DbException
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          * @throws _exceptions\{{ table.title }}NotFound
          */
 {% if primary|length > 1 %}

@@ -17,7 +17,7 @@ use Enobrev\API\HTTP;
  */
 class HttpErrorException extends Exception {
 
-    private $aContext = [];
+    private array $aContext = [];
 
     /**
      * Create and returns a new instance

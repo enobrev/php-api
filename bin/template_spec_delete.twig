@@ -12,9 +12,7 @@
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
-    use Enobrev\ORM\DbDuplicateException;
-    use Enobrev\ORM\DbException;
-    use Enobrev\ORM\TableException;
+    use Enobrev\ORM\Exceptions\DbException;
 
     use {{ spec.namespace.spec }}\_exceptions;
     use {{ spec.namespace.table }};
@@ -50,9 +48,7 @@
          *
          * @return ResponseInterface
          *
-         * @throws DbDuplicateException
          * @throws DbException
-         * @throws TableException
          * @throws _exceptions\{{ table.title }}NotFound
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {

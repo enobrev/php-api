@@ -8,8 +8,7 @@
     class _Array extends Param {
         use ParamTrait;
 
-        /** @var string */
-        protected $sType = Param::ARRAY;
+        protected string $sType = Param::ARRAY;
 
         public function items(Param $oItems): self {
             return $this->validation(['items' => $oItems]);

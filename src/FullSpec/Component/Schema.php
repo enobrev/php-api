@@ -3,7 +3,6 @@
 
     use Exception;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
 
@@ -19,17 +18,14 @@
 
         public const PREFIX = 'schemas';
 
-        /** @var string */
-        private $sName;
+        private string $sName;
 
-        /** @var string */
-        private $sTitle;
+        private string $sTitle;
 
         /** @var OpenApiInterface|array */
         private $aSchema;
 
-        /** @var string */
-        private $sType;
+        private ?string $sType = null;
 
         public static function create(string $sName) {
             return new self($sName);
@@ -93,7 +89,6 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             if ($this->sType) {

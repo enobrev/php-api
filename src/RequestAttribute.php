@@ -4,7 +4,7 @@
     use Psr\Http\Message\ServerRequestInterface;
 
     trait RequestAttribute {
-        protected static $ATTRIBUTE_NAME = self::class;
+        protected static string $ATTRIBUTE_NAME = self::class;
 
         /**
          * Call this method from a public method to expose this attribute with the correct type

@@ -5,7 +5,6 @@
 
     use Countable;
     use Flow\JSONPath\JSONPath;
-    use Flow\JSONPath\JSONPathException;
     use Laminas\Diactoros\Exception\InvalidArgumentException;
     use RuntimeException;
 
@@ -28,14 +27,12 @@
      * @package Enobrev\API\Middleware
      */
     class MultiEndpointQuery implements MiddlewareInterface {
-        /** @var RequestHandlerInterface  */
-        private $oHandler;
+        private RequestHandlerInterface $oHandler;
 
-        /** @var Dot */
-        private $oData;
+        private Dot $oData;
 
         /** @var string[] */
-        private $aEndpoints;
+        private array $aEndpoints;
 
         public function __construct(RequestHandlerInterface $oHandler, array $aEndpoints) {
             $this->oHandler = $oHandler;
@@ -47,8 +44,6 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidJsonPath
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointQuery');
@@ -136,9 +131,6 @@
          * @param array $aEndpoints
          *
          * @return Uri[]
-         * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidJsonPath
-         * @throws Exception\NoTemplateValues
          */
         public function testTemplates(Dot $oData, array $aEndpoints) {
             $this->oData = $oData;
@@ -171,9 +163,6 @@
          * @param string $sEndpoint
          *
          * @return string
-         * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidJsonPath
-         * @throws Exception\NoTemplateValues
          */
         private function fillEndpointTemplateFromData(string $sEndpoint): string {
             //dbg($sEndpoint);
@@ -195,11 +184,6 @@
          * @param string $sTemplate
          *
          * @return string
-         * @throws Exception\InvalidJmesPath
-         * @throws Exception\InvalidJsonPath
-         * @throws Exception\InvalidTemplateResponse
-         * @throws Exception\NoTemplateValues
-         * @throws JSONPathException
          */
         private function getTemplateValue(string $sTemplate): string {
             if (strpos($sTemplate, '{') === 0) {
@@ -279,9 +263,7 @@
                 }
 
                 foreach($aValues as $sValue) {
-                    if (is_array($sValue)) {
-                        throw new Exception\InvalidTemplateResponse('Path Templates MUST reference values that can be flattened.  This template references a value that cannot be easily flattened');
-                    }
+                    assert(!is_array($sValue), new Exception\InvalidTemplateResponse('Path Templates MUST reference values that can be flattened.  This template references a value that cannot be easily flattened'));
                 }
 
                 if ($sPrefix) {
@@ -306,13 +288,13 @@
                 if ((is_array($aValues) || $aValues instanceof Countable) && count($aValues)) { // is_countable is 7.3+
                     $aUniqueValues = array_unique(array_filter($aValues));
                     if (count($aValues) > 0 && count($aUniqueValues) === 0) {
-                        throw new Exception\NoTemplateValues();
+                        assert(false, new Exception\NoTemplateValues());
                     }
 
                     return implode(',', $aUniqueValues);
                 }
 
-                throw new Exception\NoTemplateValues();
+                assert(false, new Exception\NoTemplateValues());
             }
 
             return $sTemplate;
@@ -324,7 +306,6 @@
          * @deprecated
          *
          * @return array|array[]|mixed|null
-         * @throws Exception\InvalidJmesPath
          */
         private function useJMES(string $sMatch, string $sTemplate) {
             $sExpression = str_replace('jmes:', '', $sMatch);
@@ -346,14 +327,14 @@
                     $aValues = [$aValues];
                 } else {
                     if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                        Log::e('MultiEndpointQuery.getTemplateValue', [
+                        $oException = new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                        Log::ex('MultiEndpointQuery.getTemplateValue', $oException, [
                             'state'      => 'JMESPath.MultiArray',
                             'template'   => $sTemplate,
                             'expression' => $sExpression,
                             'values'     => json_encode($aValues)
                         ]);
-
-                        throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                        assert(false, $oException);
                     }
                 }
             }
@@ -372,8 +353,6 @@
          * @param string $sTemplate
          *
          * @return array|mixed
-         * @throws Exception\InvalidJsonPath
-         * @throws JSONPathException
          */
         private function useJSONPath(string $sMatch, string $sTemplate) {
             $sExpression = str_replace('jsonpath:', '', $sMatch);
@@ -394,14 +373,16 @@
             }
 
             if ($aValues && count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                Log::e('MultiEndpointQuery.getTemplateValue.JSONPath', [
+                $oException = new Exception\InvalidJsonPath('JSONPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+
+                Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath', $oException, [
                     'state'      => 'JSONPath.MultiArray',
                     'template'   => $sTemplate,
                     'expression' => $sExpression,
                     'values'     => json_encode($aValues)
                 ]);
 
-                throw new Exception\InvalidJsonPath('JSONPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                assert(false, $oException);
             }
 
             Log::d('MultiEndpointQuery.getTemplateValue.JSONPath', [

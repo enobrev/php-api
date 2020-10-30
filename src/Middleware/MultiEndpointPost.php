@@ -25,14 +25,12 @@
      * @package Enobrev\API\Middleware
      */
     class MultiEndpointPost implements MiddlewareInterface {
-        /** @var RequestHandlerInterface  */
-        private $oHandler;
+        private RequestHandlerInterface $oHandler;
 
-        /** @var Dot */
-        private $oData;
+        private Dot $oData;
 
         /** @var string[] */
-        private $aEndpoints;
+        private array $aEndpoints;
 
         public function __construct(RequestHandlerInterface $oHandler, array $aEndpoints) {
             $this->oHandler   = $oHandler;
@@ -44,8 +42,6 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Exception\InvalidJmesPath
-         * @throws \Exception
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer   = Log::startTimer('Enobrev.Middleware.MultiEndpointPost');
@@ -121,10 +117,9 @@
 
         /**
          * Turns something like {city_id: {cities.id}} into {city_id: 1} using results of previously called API endpoints
-         *
          * @param array $aPost
+         *
          * @return array
-         * @throws \Exception
          */
         private function fillPostTemplateFromData(array $aPost): array {
             if (count($aPost)) {
@@ -145,12 +140,9 @@
 
         /**
          * Turns something like /city_fonts/{cities.id} into /city_fonts/1,2,3 using results of previously called API endpoints
-         *
          * @param string $sEndpoint
          *
-         * @return mixed
-         * @throws Exception\InvalidJmesPath
-         * @throws Exception\NoTemplateValues
+         * @return string|string[]
          */
         private function fillEndpointTemplateFromData(string $sEndpoint) {
             //dbg($sEndpoint);
@@ -173,8 +165,6 @@
          * @param string $sTemplate
          *
          * @return mixed
-         * @throws Exception\InvalidJmesPath
-         * @throws Exception\NoTemplateValues
          */
         private function getTemplateValue(string $sTemplate) {
             if (!is_string($sTemplate)) {
@@ -208,13 +198,12 @@
                         if (!is_array($aValues)) {
                             $aValues = [$aValues];
                         } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
-                            $e = new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
-                            Log::ex('MultiEndpointPost.getTemplateValue.JMESPath', $e, [
+                            $oException = new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                            Log::ex('MultiEndpointPost.getTemplateValue.JMESPath', $oException, [
                                 'template'   => $sTemplate,
                                 'expression' => $sExpression
                             ]);
-
-                            throw $e;
+                            assert(false, $oException);
                         }
                     }
 
@@ -298,13 +287,13 @@
                 if (count($aValues)) {
                     $aUniqueValues = array_unique(array_filter($aValues));
                     if (count($aValues) > 0 && count($aUniqueValues) === 0) {
-                        throw new Exception\NoTemplateValues();
+                        assert(false, new Exception\NoTemplateValues());
                     }
 
                     return implode(',', $aUniqueValues);
                 }
 
-                throw new Exception\NoTemplateValues();
+                assert(false, new Exception\NoTemplateValues());
             }
 
             return $sTemplate;

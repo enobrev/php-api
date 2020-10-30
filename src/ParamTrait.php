@@ -103,7 +103,7 @@
          *
          * @return static
          */
-        public function example($mExample) {
+        public function example(string $mExample) {
             $oClone = clone $this;
             $oClone->sExample = $mExample;
             return $oClone;

@@ -9,24 +9,15 @@
     use Enobrev\ORM;
 
     class DataMap {
-        /**
-         * @var array
-         */
-        private static $DATA;
+        private static ?array $DATA = null;
 
-        /**
-         * @var string
-         */
-        private static $sDataFile;
+        private static string $sDataFile;
 
         /**
          * @return array|mixed
-         * @throws Exception\MissingDataMapDefinition
          */
         private static function getData() {
-            if (self::$sDataFile === null) {
-                throw new Exception\MissingDataMapDefinition();
-            }
+            assert(self::$sDataFile !== null, new Exception\MissingDataMapDefinition());
 
             if (self::$DATA === null) {
                 $sContents = file_get_contents(self::$sDataFile);
@@ -42,25 +33,19 @@
          * @param string $sPath
          *
          * @return mixed
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
-         * @throws Exception\MissingDataMapDefinition
          */
         private static function getMap(string $sPath) {
             $aData = self::getData();
-            if (isset($aData[$sPath])) {
-                return $aData[$sPath];
-            }
 
-            throw new Exception\InvalidDataMapPath($sPath);
+            assert(isset($aData[$sPath]), new Exception\InvalidDataMapPath($sPath));
+
+            return $aData[$sPath];
         }
 
         /**
          * @param string $sPath
          *
          * @return bool
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function hasClassPath(string $sPath): bool {
             $aMap = self::getMap('_CLASSES_');
@@ -71,8 +56,6 @@
          * @param string $sPath
          *
          * @return string
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getClassName(string $sPath): ?string {
             $aMap = self::getMap('_CLASSES_');
@@ -83,8 +66,6 @@
          * @param $oClass
          *
          * @return string
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getClassPath($oClass): ?string {
             $aMap     = self::getMap('_CLASSES_');
@@ -110,8 +91,6 @@
          * @param string|null $sKeyField
          *
          * @return array|ORM\Field[][]
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getIndexedResponseMaps(string $sPath, $oData, ?string $sKeyField = null): array {
             $aResponse = [];
@@ -129,8 +108,6 @@
          * @param string|null $sKeyField
          *
          * @return ORM\Field[][]
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum, ?string $sKeyField = null): array {
             if (!$sKeyField) {
@@ -147,8 +124,6 @@
          * @param ORM\Table $oDatum
          *
          * @return ORM\Field[]
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getResponseMap(string $sPath, ORM\Table $oDatum): array {
             $aMap         = self::getMap($sPath);
@@ -166,8 +141,6 @@
          * @param array     $aPostParams
          *
          * @return ORM\Table
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function applyPostParamsToTable(ORM\Table $oTable, array $aPostParams): ORM\Table {
             $aMap   = self::getResponseMap($oTable->getTitle(), $oTable);
@@ -180,8 +153,6 @@
          * @param array|null $aExcludedFields
          *
          * @return array
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function convertTableToResponseArray(ORM\Table $oTable, ?array $aExcludedFields = null): array {
             $aMap         = self::getMap($oTable->getTitle());
@@ -244,8 +215,6 @@
          * @param string    $sPublicField
          *
          * @return mixed
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getField(ORM\Table $oDatum, string $sPublicField) {
             $aMap          = self::getMap($oDatum->getTitle());
@@ -264,8 +233,6 @@
          * @param string    $sPrivateField
          *
          * @return null|string
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function getPublicName(ORM\Table $oDatum, string $sPrivateField): ?string {
             if ($oDatum->$sPrivateField instanceof ORM\Field) {

@@ -27,8 +27,6 @@
 
         /**
          * @return ComponentListInterface[]
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public function components(): array {
             return [
@@ -59,8 +57,6 @@
          * @param {{ table.class }} $o{{ table.title }}
          *
          * @return Dot
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function add{{ table.title }}ToResponse(Dot $oResponse, {{ table.class }} $o{{ table.title }}): Dot {
             $oResponse->push('{{ table.name }}', DataMap::convertTableToResponseArray($o{{ table.title }}));
@@ -72,8 +68,6 @@
          * @param {{ table.class_plural }} $o{{ table.plural }}
          *
          * @return Dot
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function add{{ table.plural }}ToResponse(Dot $oResponse, {{ table.class_plural }} $o{{ table.plural }}): Dot {
             foreach($o{{ table.plural }} as $o{{ table.title }}) {

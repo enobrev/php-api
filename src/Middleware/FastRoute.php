@@ -44,8 +44,9 @@
         }
 
         /**
-         * @param ServerRequestInterface $oRequest
+         * @param ServerRequestInterface  $oRequest
          * @param RequestHandlerInterface $oHandler
+         *
          * @return ResponseInterface
          * @throws EndpointNotFound
          * @throws MethodNotAllowed

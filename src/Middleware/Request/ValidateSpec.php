@@ -1,13 +1,6 @@
 <?php
     namespace Enobrev\API\Middleware\Request;
 
-    use BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidInputException;
-    use BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidTypeException;
-    use cebe\openapi\exceptions\TypeErrorException;
-    use cebe\openapi\exceptions\UnresolvableReferenceException;
-    use Enobrev\API\Exception;
-    use ReflectionException;
-    
     use Adbar\Dot;
     use BenMorel\OpenApiSchemaToJsonSchema\Convert;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
@@ -37,14 +30,7 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws Exception
          * @throws HttpErrorException
-         * @throws InvalidInputException
-         * @throws InvalidTypeException
-         * @throws ReflectionException
-         * @throws TypeErrorException
-         * @throws UnresolvableReferenceException
-         * @throws ValidationException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.ValidateSpec');
@@ -68,9 +54,6 @@
          *
          * @return ServerRequestInterface
          * @throws HttpErrorException
-         * @throws ValidationException
-         * @throws InvalidInputException
-         * @throws InvalidTypeException
          */
         private function validatePathParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);
@@ -99,9 +82,6 @@
          *
          * @return ServerRequestInterface
          * @throws HttpErrorException
-         * @throws ValidationException
-         * @throws InvalidInputException
-         * @throws InvalidTypeException
          */
         private function validateQueryParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec        = AttributeSpec::getSpec($oRequest);
@@ -129,13 +109,6 @@
          *
          * @return ServerRequestInterface
          * @throws HttpErrorException
-         * @throws ReflectionException
-         * @throws ValidationException
-         * @throws InvalidInputException
-         * @throws InvalidTypeException
-         * @throws Exception
-         * @throws TypeErrorException
-         * @throws UnresolvableReferenceException
          */
         private function validatePostParameters(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec       = AttributeSpec::getSpec($oRequest);

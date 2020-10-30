@@ -33,7 +33,7 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
     /**
      * @var bool Whether or not catch exceptions
      */
-    private $catchExceptions = false;
+    private bool $catchExceptions = false;
 
     /**
      * @param ServerRequestInterface $oRequest

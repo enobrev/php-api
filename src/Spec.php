@@ -1,10 +1,8 @@
 <?php
     namespace Enobrev\API;
 
-    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\RequestBody;
     use Enobrev\Log;
-    use ReflectionException;
 
     use Adbar\Dot;
     use cebe\openapi\spec\Operation as OpenApi_Operation;
@@ -33,68 +31,60 @@
     class Spec {
         private const SKIP_PRIMARY = 1024;
 
-        /** @var string */
-        private $sSummary;
+        private string $sSummary = '';
 
-        /** @var string */
-        private $sDescription;
+        private string $sDescription;
 
-        /** @var boolean */
-        private $bSkipDefaultResponses = false;
+        private bool $bSkipDefaultResponses = false;
 
-        /** @var boolean */
-        private $bDeprecated = false;
+        private bool $bDeprecated = false;
 
-        /** @var string */
-        private $sPath;
+        private string $sPath;
 
-        /** @var boolean */
-        private $bPublic = false;
+        private bool $bPublic = false;
 
-        /** @var string */
-        private $sHttpMethod;
+        private string $sHttpMethod;
 
-        /** @var string */
-        private $sMethod;
+        private string $sMethod;
 
         /** @var string[] */
-        private $aScopes;
+        private array $aScopes = [];
 
         /** @var Param[] */
-        private $aPathParams = [];
+        private array $aPathParams = [];
 
         /** @var Param[] */
-        private $aQueryParams = [];
+        private array $aQueryParams = [];
 
         /** @var Param[] */
-        private $aPostParams = [];
+        private array $aPostParams = [];
 
         /** @var Param[] */
-        private $aHeaderParams = [];
+        private array $aHeaderParams = [];
 
         /** @var Reference */
-        private $oPostBodyReference;
+        private ?Reference $oPostBodyReference = null;
 
         /** @var Request */
-        private $oPostBodyRequest;
+        private ?Request $oPostBodyRequest = null;
 
         /** @var callable */
         private $oPostBodySchemaSelector;
 
         /** @var array */
-        private $aResponseHeaders = [];
+        private array $aResponseHeaders = [];
 
         /** @var array */
-        private $aCodeSamples = [];
+        private array $aCodeSamples = [];
 
         /** @var string[] */
-        private $aTags = [];
+        private array $aTags = [];
 
         /** @var array */
-        private $aResponses = [];
+        private array $aResponses = [];
 
         /** @var bool  */
-        private $bValidateResponse = true;
+        private bool $bValidateResponse = true;
 
         public static function create(): Spec {
             return new self();
@@ -108,7 +98,7 @@
             return str_replace(['.', '[/]'], ['_DOT_', '/'], $this->sPath);
         }
 
-        public function getSummary(): ?string {
+        public function getSummary(): string {
             return $this->sSummary;
         }
 
@@ -124,16 +114,11 @@
          * @param int $iStatus
          *
          * @return array|mixed|string|null|SpecObjectInterface
-         * @throws Exception\InvalidDescription
-         * @throws Exception\InvalidStatus
-         * @throws TypeErrorException
          */
         public function getResponseSchema(int $iStatus): SpecObjectInterface {
             $mResponse = $this->aResponses[$iStatus] ?? null;
 
-            if (!$mResponse) {
-                throw new Exception\InvalidStatus('Invalid Status');
-            }
+            assert($mResponse, new Exception\InvalidStatus('Invalid Status'));
 
             if ($mResponse instanceof Response) {
                 return $mResponse->getSpecObject();
@@ -152,10 +137,11 @@
                         $aDescription[] = $mSubResponse;
                     }
                 }
+
                 return $aDescription;
             }
 
-            throw new Exception\InvalidDescription('Not Sure What the Response Description Is');
+            assert(false, new Exception\InvalidDescription('Not Sure What the Response Description Is'));
         }
 
         public function getScopeList(string $sDivider = ' '): string {
@@ -170,15 +156,11 @@
          * @param int $iStatus
          *
          * @return array|mixed|string|null
-         * @throws Exception\InvalidDescription
-         * @throws Exception\InvalidStatus
          */
         public function getResponseDescription(int $iStatus) {
             $mResponse = $this->aResponses[$iStatus] ?? null;
 
-            if (!$mResponse) {
-                throw new Exception\InvalidStatus('Invalid Status');
-            }
+            assert($mResponse, new Exception\InvalidStatus('Invalid Status'));
 
             if ($mResponse instanceof Response) {
                 return $mResponse->getDescription();
@@ -200,7 +182,7 @@
                 return $aDescription;
             }
 
-            throw new Exception\InvalidDescription('Not Sure What the Response Description Is');
+            assert(false, new Exception\InvalidDescription('Not Sure What the Response Description Is'));
         }
 
         public function hasAnyOfTheseScopes(array $aScopes): bool {
@@ -227,9 +209,6 @@
 
         /**
          * @return OpenAPI_Schema|null
-         * @throws Exception
-         * @throws ReflectionException
-         * @throws TypeErrorException
          */
         public function getPostParamSchema(): ?OpenAPI_Schema {
             if ($this->hasAPostBodyReference()) {
@@ -252,10 +231,7 @@
         }
 
         /**
-         * @return Param[]
-         * @throws Exception
-         * @throws ReflectionException
-         * @throws TypeErrorException
+         * @return array
          */
         public function resolvePostParams(): array {
             $oSchema = $this->getPostParamSchema();
@@ -419,13 +395,13 @@
             return $oClone;
         }
 
-        public function deprecated(?bool $bDeprecated = true):self {
+        public function deprecated(bool $bDeprecated = true):self {
             $oClone = clone $this;
             $oClone->bDeprecated = $bDeprecated;
             return $oClone;
         }
 
-        public function skipDefaultResponses(?bool $bSkipDefaultResponses = true):self {
+        public function skipDefaultResponses(bool $bSkipDefaultResponses = true):self {
             $oClone = clone $this;
             $oClone->bSkipDefaultResponses = $bSkipDefaultResponses;
             return $oClone;
@@ -452,16 +428,10 @@
         /**
          * @param array $aScopes
          * @return Spec
-         * @throws InvalidScope
          */
         public function scopes(array $aScopes):self {
-            if (!array_not_associative($aScopes)) {
-                throw new InvalidScope('Please define Scopes as a non-Associative Array');
-            }
-
-            if (is_array($aScopes[0])) {
-                throw new InvalidScope('Please define Scopes as a non-Associative, Single-Dimensional Array');
-            }
+            assert(array_not_associative($aScopes), new InvalidScope('Please define Scopes as a non-Associative Array'));
+            assert(!is_array($aScopes[0]),          new InvalidScope('Please define Scopes as a non-Associative, Single-Dimensional Array'));
 
             $oClone = clone $this;
             $oClone->aScopes = $aScopes;
@@ -570,8 +540,6 @@
          * @param bool  $bAdditionalProperties
          *
          * @return Param\_Object
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         public static function tableToParam(Table $oTable, array $aExclude = [], int $iOptions = 0, $bAdditionalProperties = false): Param\_Object {
             return Param\_Object::create()->items(self::tableToParams($oTable, $iOptions, $aExclude))->additionalProperties($bAdditionalProperties);
@@ -583,8 +551,6 @@
          * @param array $aExclude
          *
          * @return Param[]
-         * @throws Exception\InvalidDataMapPath
-         * @throws Exception\MissingDataMapDefinition
          */
         private static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
             $aDefinitions = [];
@@ -702,7 +668,6 @@
          * @param bool  $bAdditionalProperties
          *
          * @return OpenAPI_Schema
-         * @throws TypeErrorException
          */
         public static function arrayToSchema(array $aArray, bool $bAdditionalProperties = false): OpenAPI_Schema {
             if (isset($aArray['type']) && in_array($aArray['type'], ['object', 'array', 'integer', 'number', 'boolean', 'string'])) {
@@ -774,8 +739,6 @@
 
         /**
          * @return OpenApi_Operation
-         * @throws Exception
-         * @throws TypeErrorException
          */
         public function generateOperation(): OpenApi_Operation {
             $aOperation = [
@@ -914,7 +877,6 @@
 
         /**
          * @return OpenApi_Responses
-         * @throws TypeErrorException
          */
         public function getResponses(): OpenApi_Responses {
             $oResponses =  new OpenApi_Responses([]);
@@ -932,7 +894,6 @@
          * @param int $iStatus
          *
          * @return OpenApi_Reference|OpenApi_Response
-         * @throws TypeErrorException
          */
         public function getResponse(int $iStatus): ?SpecObjectInterface {
             // There's a bit of magic going on here.  The issue at hand is that the OpenAPI spec does not allow
@@ -1033,8 +994,6 @@
 
         /**
          * @return string
-         * @throws Exception
-         * @throws TypeErrorException
          */
         public function toJson() {
             return Writer::writeToJson($this->generateOperation());

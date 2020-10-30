@@ -8,8 +8,7 @@
     class _Number extends Param {
         use ParamTrait;
 
-        /** @var string */
-        protected $sType = Param::NUMBER;
+        protected string $sType = Param::NUMBER;
 
         /**
          *

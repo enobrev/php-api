@@ -8,8 +8,7 @@
     class _Integer extends Param {
         use ParamTrait;
 
-        /** @var string */
-        protected $sType = Param::INTEGER;
+        protected string $sType = Param::INTEGER;
 
         /**
          *
