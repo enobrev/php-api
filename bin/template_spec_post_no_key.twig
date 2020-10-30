@@ -39,7 +39,6 @@
          * @param RequestHandlerInterface $oHandler
          *
          * @return ResponseInterface
-         * @throws DbDuplicateException
          * @throws DbException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
@@ -57,7 +56,6 @@
          *
          * @return Dot
          *
-         * @throws DbDuplicateException
          * @throws DbException
          */
         protected function getResponse(Dot $oResponse, ?array $aPostParams): Dot {
