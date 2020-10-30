@@ -57,6 +57,8 @@
             $oResponse      = ResponseBuilder::get($oRequest);
             $oResponse      = $this->getResponse($oResponse, $aPostParams);
             $oRequest       = ResponseBuilder::update($oRequest, $oResponse);
+
+            return $oHandler->handle($oRequest);
         }
 
         /**
