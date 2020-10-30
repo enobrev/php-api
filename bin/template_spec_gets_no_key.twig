@@ -8,7 +8,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\DataMap;
-    use Enobrev\API\Exception;
+    use Enobrev\ORM\Exceptions\DbException;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
     use Enobrev\API\Method;
@@ -17,7 +17,6 @@
     use Enobrev\API\Param;
     use Enobrev\API\Spec;
     use Enobrev\API\SpecInterface;
-    use Enobrev\ORM\Exceptions\DbException;
 
     use {{ spec.namespace.spec }}\_components;
     use {{ spec.namespace.table }};
@@ -45,16 +44,11 @@
         }
 
         /**
-         * Middleware
-         * Use the ServerRequestInterface to figure out what is needed
-         * Either return a ResponseInterface (and stop processing other Middleware)
-         *     or return a call to Handler::handle (and allow other Middleware to continue processing)
-         * The ResponseBuilder data should match the Schema defined in spec();
-         *
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
-         * @throws DbException
+         *
          * @return ResponseInterface
+         * @throws DbException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $aQueryParams   = $oRequest->getQueryParams();
@@ -82,7 +76,6 @@
          * @param string|null $sSync
          *
          * @return Dot
-         *
          * @throws DbException
          */
         protected function getResponse(Dot $oResponse, int $iPage = 1, int $iPer = 100, ?string $sSearch, ?string $sSort, ?string $sSync = null): Dot {
