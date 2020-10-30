@@ -380,7 +380,7 @@
                 $oValues = (new JSONPath($this->oData->all()))->find($sExpression);
 
                 if ($oValues) {
-                    $aValues = $oValues->data();
+                    $aValues = $oValues->getData();
                 }
             } catch (Exception $e) {
                 Log::ex('MultiEndpointQuery.getTemplateValue.JSONPath', $e, [

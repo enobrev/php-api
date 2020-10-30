@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-HOST=192.168.1.2
+HOST=10.0.0.2
 
 # generate sql.json
-../../vendor/bin/sql_to_json.php -h ${HOST} -u dev -p -n dev_orm_mock
+../../vendor/bin/sql_to_json.php -h ${HOST} -u dev -p -d dev_orm_mock
 
 # generate mysql.sql
-mysqldump -h ${HOST} -u dev -p --no-data --databases dev_orm_mock > mysql.sql
+mysqldump -h ${HOST} -u dev -p --no-data --column-statistics=0 --databases dev_orm_mock > mysql.sql
 
 # download script for converting mysql database to sqlite
 if [ ! -f ./mysql2sqlite.sh ]; then
