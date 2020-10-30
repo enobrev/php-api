@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Enobrev\API\Middleware;
 
+use Middlewares\Utils;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -40,6 +41,11 @@ class ErrorHandlerDefault implements RequestHandlerInterface
         ],
     ];
 
+    /**
+     * ErrorHandlerDefault constructor.
+     *
+     * @param ResponseFactoryInterface|null $responseFactory
+     */
     public function __construct(ResponseFactoryInterface $responseFactory = null)
     {
         $this->responseFactory = $responseFactory;
@@ -47,6 +53,9 @@ class ErrorHandlerDefault implements RequestHandlerInterface
 
     /**
      * Execute the error handler.
+     * @param ServerRequestInterface $request
+     *
+     * @return ResponseInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -72,6 +81,9 @@ class ErrorHandlerDefault implements RequestHandlerInterface
 
     /**
      * Return the error as plain text.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function plain(HttpErrorException $error): string
     {
@@ -94,6 +106,9 @@ EOT;
 
     /**
      * Return the error as html.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function html(HttpErrorException $error): string
     {
@@ -116,6 +131,9 @@ EOT;
 
     /**
      * Return the error as json.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function json(HttpErrorException $error): string
     {
@@ -129,6 +147,9 @@ EOT;
 
     /**
      * Return the error as xml.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function xml(HttpErrorException $error): string
     {
@@ -143,6 +164,9 @@ EOT;
 
     /**
      * Return the error as jpeg.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function jpeg(HttpErrorException $error): string
     {
@@ -151,6 +175,9 @@ EOT;
 
     /**
      * Return the error as gif.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function gif(HttpErrorException $error): string
     {
@@ -159,6 +186,9 @@ EOT;
 
     /**
      * Return the error as png.
+     * @param HttpErrorException $error
+     *
+     * @return string
      */
     public static function png(HttpErrorException $error): string
     {
@@ -167,6 +197,10 @@ EOT;
 
     /**
      * Create and return a image as string.
+     * @param HttpErrorException $error
+     * @param callable           $function
+     *
+     * @return string
      */
     private static function getImage(HttpErrorException $error, callable $function): string
     {

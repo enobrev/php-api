@@ -1,7 +1,6 @@
 #!/usr/bin/env php
 <?php
     use Garden\Cli\Cli;
-    use Commando\Command;
 
     $sAutoloadFile = current(
         array_filter([

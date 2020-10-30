@@ -1,7 +1,9 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
+
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Param;
@@ -43,6 +45,10 @@
             return $this->oParam;
         }
 
+        /**
+         * @return SpecObjectInterface
+         * @throws TypeErrorException
+         */
         public function getSpecObject(): SpecObjectInterface {
             return $this->oParam->getSchema();
         }

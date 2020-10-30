@@ -70,7 +70,6 @@
                 return $this->coerce(reset($mValue));
             }
 
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $mValue;
         }
         

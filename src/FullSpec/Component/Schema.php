@@ -1,14 +1,16 @@
 <?php
     namespace Enobrev\API\FullSpec\Component;
 
-    use Adbar\Dot;
+    use Exception;
+
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
 
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
-    use function Enobrev\dbg;
+    use Enobrev\Log;
 
     class Schema implements ComponentInterface, OpenApiInterface {
         private const TYPE_ALLOF = 'allOf';
@@ -89,6 +91,10 @@
             return $this;
         }
 
+        /**
+         * @return SpecObjectInterface
+         * @throws TypeErrorException
+         */
         public function getSpecObject(): SpecObjectInterface {
             if ($this->sType) {
                 $aResponse = [];
@@ -99,7 +105,7 @@
                     } else if (is_array($mSchemaItem)) {
                         $aResponse[] = Spec::arrayToSchema($mSchemaItem);
                     } else {
-                        dbg('Component.Schema.getSpecObject.NotSureWhatToDo', $mSchemaItem);
+                        Log::d('Component.Schema.getSpecObject.NotSureWhatToDo', $mSchemaItem);
                         //$aResponse[] = $mSchemaItem;
                     }
                 }
@@ -113,7 +119,7 @@
                 $oSpecObject = Spec::arrayToSchema($this->aSchema);
             } else {
                 Log::e('Component.Schema.Unhandled', ['schema' => json_encode($this->aSchema)]);
-                throw new \Exception('Spec.arrayToScheme.Unhandled');
+                throw new Exception('Spec.arrayToScheme.Unhandled');
             }
 
             if ($this->sTitle && $oSpecObject instanceof OpenApi_Schema) {

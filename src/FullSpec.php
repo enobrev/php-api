@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use Exception;
     use FilesystemIterator;
     use RecursiveDirectoryIterator;
@@ -144,8 +145,6 @@
                 Log::ex('FullSpec.getFromCache.Invalid', $e);
                 return self::generateAndCache();
             }
-
-            return null;
         }
 
         /**
@@ -160,7 +159,6 @@
 
         /**
          * ensures named sub-paths come before {var} subpaths
-         * @return array
          */
         protected function sortPaths(): void {
             foreach($this->aSpecs as $sVersion => &$aSpec) {
@@ -218,7 +216,7 @@
          * @param array       $aOnlyPaths
          *
          * @return OpenApi
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
         public function getOpenApi(?string $sVersion = null, ?array $aScopes = [], array $aOnlyPaths = []): OpenApi {
             return new OpenApi([
@@ -230,13 +228,13 @@
 
         /**
          * Generates paths for openapi spec.
-         *
          * @param string|null $sVersion
          * @param array|null  $aScopes
          * @param array       $aOnlyPaths
          *
          * @return Paths
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
+         * @throws \Enobrev\API\Exception
          */
         private function getPaths(?string $sVersion = null, ?array $aScopes = [], array $aOnlyPaths = []): Paths {
             $oData = new Dot();
@@ -283,7 +281,7 @@
          * Generates components for openapi spec.
          *
          * @return Components
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
         private function getComponents(): Components {
             $oData = new Dot([
@@ -305,9 +303,9 @@
         /**
          * @param Dot $oData
          *
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
-        private function setDefaultSchemas(Dot &$oData): void {
+        private function setDefaultSchemas(Dot $oData): void {
             $oData->set('schemas._default', new Schema([
                 'type'       => 'object',
                 'properties' => [
@@ -397,8 +395,8 @@ DESCRIPTION
 
         /**
          * Generates responses for openapi spec.
-         *
          * @return array
+         * @throws TypeErrorException
          */
         private function getDefaultResponses(): array {
             return [

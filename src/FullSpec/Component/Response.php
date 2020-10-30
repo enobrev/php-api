@@ -2,6 +2,7 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
     use cebe\openapi\spec\Response as OpenApi_Response;
 
@@ -62,6 +63,10 @@
             return $this;
         }
 
+        /**
+         * @return SpecObjectInterface
+         * @throws TypeErrorException
+         */
         public function getSpecObject(): SpecObjectInterface {
             if (!count($this->aSchemas)) {
                 // If No schema is given, then simply apply the name and description to the default

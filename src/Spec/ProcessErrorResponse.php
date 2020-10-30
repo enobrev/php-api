@@ -12,11 +12,9 @@
     class ProcessErrorResponse implements OpenApiInterface, ErrorResponseInterface {
         use ErrorResponseTrait;
 
-        /** @var number */
-        private $iCode = HTTP\UNPROCESSABLE_ENTITY;
-        
-        /** @var string */
-        private $sMessage;
+        private int $iCode = HTTP\UNPROCESSABLE_ENTITY;
+
+        private string $sMessage;
 
         public function getSpecObject(): SpecObjectInterface {
             return JsonResponse::allOf([

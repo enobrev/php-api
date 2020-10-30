@@ -2,8 +2,8 @@
     namespace Enobrev\API\Spec;
 
     use cebe\openapi\SpecObjectInterface;
-    use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\OpenApiInterface;
+    use Exception;
 
     /** @deprecated ?? */
     class RefResponse implements OpenApiInterface {
@@ -19,7 +19,11 @@
             $this->sName = $sName;
         }
 
+        /**
+         * @return SpecObjectInterface
+         * @throws Exception
+         */
         public function getSpecObject(): SpecObjectInterface {
-            throw new \Exception('I did not think this would ever be called.');
+            throw new Exception('I did not think this would ever be called.');
         }
     }

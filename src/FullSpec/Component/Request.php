@@ -2,9 +2,10 @@
     namespace Enobrev\API\FullSpec\Component;
 
     use Adbar\Dot;
-    use cebe\openapi\spec\Reference as OpenApi_Reference;
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\RequestBody;
     use cebe\openapi\SpecObjectInterface;
+
     use Enobrev\API\Exception;
     use Enobrev\API\FullSpec\ComponentInterface;
     use Enobrev\API\OpenApiInterface;
@@ -99,8 +100,9 @@
         }
 
         /**
-         * @return array
+         * @return SpecObjectInterface
          * @throws Exception
+         * @throws TypeErrorException
          */
 
         public function getSpecObject(): SpecObjectInterface {

@@ -18,6 +18,7 @@
     use Enobrev\API\RequestAttribute;
     use Enobrev\API\RequestAttributeInterface;
     use Enobrev\Log;
+    use stdClass;
 
     /**
      * Heavily Inspired By https://github.com/middlewares/fast-route/
@@ -109,7 +110,7 @@
                     if (count($aPathParams)) {
                         $oBuilder->mergeRecursiveDistinct('_request.params.path', (object) $aPathParams);
                     } else {
-                        $oBuilder->set('_request.params.path', new \stdClass());
+                        $oBuilder->set('_request.params.path', new stdClass());
                     }
                 }
 

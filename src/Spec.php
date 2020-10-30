@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\RequestBody;
     use Enobrev\Log;
     use ReflectionException;
@@ -122,9 +123,10 @@
         /**
          * @param int $iStatus
          *
-         * @return array|mixed|string|null
+         * @return array|mixed|string|null|SpecObjectInterface
          * @throws Exception\InvalidDescription
          * @throws Exception\InvalidStatus
+         * @throws TypeErrorException
          */
         public function getResponseSchema(int $iStatus): SpecObjectInterface {
             $mResponse = $this->aResponses[$iStatus] ?? null;
@@ -224,8 +226,10 @@
         }
 
         /**
-         * @return Param[]
+         * @return OpenAPI_Schema|null
+         * @throws Exception
          * @throws ReflectionException
+         * @throws TypeErrorException
          */
         public function getPostParamSchema(): ?OpenAPI_Schema {
             if ($this->hasAPostBodyReference()) {
@@ -249,7 +253,9 @@
 
         /**
          * @return Param[]
+         * @throws Exception
          * @throws ReflectionException
+         * @throws TypeErrorException
          */
         public function resolvePostParams(): array {
             $oSchema = $this->getPostParamSchema();
@@ -367,6 +373,8 @@
                     return $oSchema;
                 }
             }
+
+            return null;
         }
 
         public function getPostBodySchemas() {
@@ -691,10 +699,12 @@
 
         /**
          * @param array $aArray
-         * @param bool $bAdditionalProperties
+         * @param bool  $bAdditionalProperties
+         *
          * @return OpenAPI_Schema
+         * @throws TypeErrorException
          */
-        public static function arrayToSchema(array $aArray, $bAdditionalProperties = false): OpenAPI_Schema {
+        public static function arrayToSchema(array $aArray, bool $bAdditionalProperties = false): OpenAPI_Schema {
             if (isset($aArray['type']) && in_array($aArray['type'], ['object', 'array', 'integer', 'number', 'boolean', 'string'])) {
                 // this is likely already a jsonschema
                 return new OpenAPI_Schema($aArray);
@@ -765,7 +775,7 @@
         /**
          * @return OpenApi_Operation
          * @throws Exception
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
         public function generateOperation(): OpenApi_Operation {
             $aOperation = [
@@ -797,7 +807,7 @@
                     continue;
                 }
 
-                $aParameters[] = $oParam->getParameter($sParam, 'query');
+                $aParameters[] = $oParam->getParameter($sParam);
             }
 
             foreach($this->aHeaderParams as $sParam => $oParam) {
@@ -904,7 +914,7 @@
 
         /**
          * @return OpenApi_Responses
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
         public function getResponses(): OpenApi_Responses {
             $oResponses =  new OpenApi_Responses([]);
@@ -922,7 +932,7 @@
          * @param int $iStatus
          *
          * @return OpenApi_Reference|OpenApi_Response
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
         public function getResponse(int $iStatus): ?SpecObjectInterface {
             // There's a bit of magic going on here.  The issue at hand is that the OpenAPI spec does not allow
@@ -1022,8 +1032,9 @@
         }
 
         /**
-         * @return false|string
-         * @throws ReflectionException
+         * @return string
+         * @throws Exception
+         * @throws TypeErrorException
          */
         public function toJson() {
             return Writer::writeToJson($this->generateOperation());

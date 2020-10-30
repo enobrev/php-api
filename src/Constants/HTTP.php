@@ -123,7 +123,6 @@
         FAILED_DEPENDENCY                  => 'Failed Dependency',
         UNORDERED_COLLECTION               => 'Unordered Collection',
         UPGRADE_REQUIRED                   => 'Upgrade Required',
-        PRECONDITION_FAILED                => 'Precondition Required',
         TOO_MANY_REQUESTS                  => 'Too Many Requests',
         REQUEST_HEADER_FIELDS_TOO_LARGE    => 'Request Header Fields Too Large',
         CONNECTION_CLOSED_WITHOUT_RESPONSE => 'Connection Closed Without Response',

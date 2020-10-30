@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\Parameter;
     use cebe\openapi\spec\Schema;
 
@@ -78,8 +79,9 @@
         }
 
         /**
-         * @param array $aSchema
-         * @return Param\_Array|Param\_Boolean|Param\_Integer|Param\_Number|Param\_Object|Param\_String
+         * @param Schema $oSchema
+         *
+         * @return Param\_Array|Param\_Boolean|Param\_Number|Param\_Object|Param\_String|ParamTrait|null
          */
         public static function createFromSchema(Schema $oSchema) {
             $oParam = null;
@@ -115,6 +117,13 @@
             return $oParam;
         }
 
+        /**
+         * @param string      $sName
+         * @param string|null $sIn
+         *
+         * @return Parameter
+         * @throws TypeErrorException
+         */
         public function getParameter(string $sName, ?string $sIn = 'query'): Parameter {
             $aOptions = [
                 'name'   => $sName,
@@ -148,6 +157,11 @@
             return new Parameter($aOptions);
         }
 
+        /**
+         * @return Schema
+         * @throws TypeErrorException
+         *
+         */
         public function getSchema(): Schema {
             $aSchema = $this->aValidation;
 

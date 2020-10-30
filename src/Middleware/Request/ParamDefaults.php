@@ -98,7 +98,7 @@
         /**
          * @param string         $sParam
          * @param Param\_Object  $oParam
-         * @param array|stdClass $aRequestParams
+         * @param array|stdClass $mRequestParams
          *
          * @return array|stdClass
          */

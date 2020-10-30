@@ -35,14 +35,30 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
      */
     private $catchExceptions = false;
 
+    /**
+     * @param ServerRequestInterface $oRequest
+     *
+     * @return HttpErrorException
+     */
     public static function get(ServerRequestInterface $oRequest): HttpErrorException {
         return self::getAttribute($oRequest);
     }
 
+    /**
+     * @param ServerRequestInterface $oRequest
+     * @param HttpErrorException     $oError
+     *
+     * @return ServerRequestInterface
+     */
     public static function update(ServerRequestInterface $oRequest, HttpErrorException $oError):ServerRequestInterface {
         return self::setAttribute($oRequest, $oError);
     }
 
+    /**
+     * ErrorHandler constructor.
+     *
+     * @param RequestHandlerInterface|null $handler
+     */
     public function __construct(RequestHandlerInterface $handler = null)
     {
         $this->handler = $handler;
@@ -50,6 +66,9 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
 
     /**
      * Configure the catchExceptions.
+     * @param bool $catch
+     *
+     * @return $this
      */
     public function catchExceptions(bool $catch = true): self
     {
@@ -60,6 +79,9 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
 
     /**
      * Configure the status code validator.
+     * @param callable $statusCodeValidator
+     *
+     * @return $this
      */
     public function statusCode(callable $statusCodeValidator): self
     {
@@ -70,6 +92,11 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
 
     /**
      * Process a server request and return a response.
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     *
+     * @return ResponseInterface
+     * @throws Throwable
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -85,8 +112,6 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
             }
 
             return $response;
-        } catch (HttpErrorException $exception) {
-            return $this->handleError($request, $exception);
         } catch (Throwable $exception) {
             if (!$this->catchExceptions) {
                 throw $exception;
@@ -102,6 +127,10 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
 
     /**
      * Execute the error handler.
+     * @param ServerRequestInterface $request
+     * @param HttpErrorException     $exception
+     *
+     * @return ResponseInterface
      */
     private function handleError(ServerRequestInterface $request, HttpErrorException $exception): ResponseInterface
     {
@@ -113,6 +142,9 @@ class ErrorHandler implements MiddlewareInterface, RequestAttributeInterface {
 
     /**
      * Check whether the status code represents an error or not.
+     * @param int $statusCode
+     *
+     * @return bool
      */
     private function isError(int $statusCode): bool
     {

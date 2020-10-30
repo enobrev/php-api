@@ -5,6 +5,7 @@
 
     use Countable;
     use Flow\JSONPath\JSONPath;
+    use Flow\JSONPath\JSONPathException;
     use Laminas\Diactoros\Exception\InvalidArgumentException;
     use RuntimeException;
 
@@ -22,7 +23,6 @@
     use Enobrev\API\Exception;
     use Enobrev\API\Method;
     use Enobrev\Log;
-    use function Enobrev\dbg;
 
     /**
      * @package Enobrev\API\Middleware
@@ -197,7 +197,9 @@
          * @return string
          * @throws Exception\InvalidJmesPath
          * @throws Exception\InvalidJsonPath
+         * @throws Exception\InvalidTemplateResponse
          * @throws Exception\NoTemplateValues
+         * @throws JSONPathException
          */
         private function getTemplateValue(string $sTemplate): string {
             if (strpos($sTemplate, '{') === 0) {
@@ -278,7 +280,7 @@
 
                 foreach($aValues as $sValue) {
                     if (is_array($sValue)) {
-                        throw new Exception\InvalidTemplateResponse('Path Tempalates MUST refernce values that can be flattened.  This template references a value that cannot be easily flattened');
+                        throw new Exception\InvalidTemplateResponse('Path Templates MUST reference values that can be flattened.  This template references a value that cannot be easily flattened');
                     }
                 }
 
@@ -371,6 +373,7 @@
          *
          * @return array|mixed
          * @throws Exception\InvalidJsonPath
+         * @throws JSONPathException
          */
         private function useJSONPath(string $sMatch, string $sTemplate) {
             $sExpression = str_replace('jsonpath:', '', $sMatch);

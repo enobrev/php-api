@@ -1,7 +1,9 @@
 <?php
     namespace Enobrev\API\Spec;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
+
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\Component\Reference;
     use Enobrev\API\HTTP;
@@ -11,12 +13,14 @@
     class ServerErrorResponse implements OpenApiInterface, ErrorResponseInterface {
         use ErrorResponseTrait;
 
-        /** @var number */
-        private $iCode = HTTP\INTERNAL_SERVER_ERROR;
-        
-        /** @var string */
-        private $sMessage;
+        private int $iCode = HTTP\INTERNAL_SERVER_ERROR;
 
+        private string $sMessage;
+
+        /**
+         * @return SpecObjectInterface
+         * @throws TypeErrorException
+         */
         public function getSpecObject(): SpecObjectInterface {
             return JsonResponse::allOf([
                 Reference::create(FullSpec::SCHEMA_DEFAULT),

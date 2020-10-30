@@ -1,15 +1,20 @@
 <?php
     namespace Enobrev\API;
 
-
-    use cebe\openapi\spec\Schema;
-
     trait ParamTrait {
-        public static function create(): self {
+        /**
+         * @return static
+         */
+        public static function create() {
             return new self();
         }
 
-        public function required(bool $bRequired = true):self {
+        /**
+         * @param bool $bRequired
+         *
+         * @return static
+         */
+        public function required(bool $bRequired = true) {
             $oClone = clone $this;
             if ($bRequired) {
                 $oClone->iOptions |= self::REQUIRED;
@@ -19,7 +24,12 @@
             return $oClone;
         }
 
-        public function deprecated(bool $bDeprecated = true):self {
+        /**
+         * @param bool $bDeprecated
+         *
+         * @return static
+         */
+        public function deprecated(bool $bDeprecated = true) {
             $oClone = clone $this;
             if ($bDeprecated) {
                 $oClone->iOptions |= self::DEPRECATED;
@@ -29,7 +39,12 @@
             return $oClone;
         }
 
-        public function nullable(bool $bNullable = true):self {
+        /**
+         * @param bool $bNullable
+         *
+         * @return static
+         */
+        public function nullable(bool $bNullable = true) {
             $oClone = clone $this;
             if ($bNullable) {
                 $oClone->iOptions |= self::NULLABLE;
@@ -39,23 +54,43 @@
             return $oClone;
         }
 
-        public function type(string $sType):self {
+        /**
+         * @param string $sType
+         *
+         * @return static
+         */
+        public function type(string $sType) {
             $oClone = clone $this;
             $oClone->sType = $sType;
             return $oClone;
         }
 
-        public function validation(array $aValidation):self {
+        /**
+         * @param array $aValidation
+         *
+         * @return static
+         */
+        public function validation(array $aValidation) {
             $oClone = clone $this;
             $oClone->aValidation = array_merge($oClone->aValidation, $aValidation);
             return $oClone;
         }
 
-        public function enum(array $aEnum): self {
+        /**
+         * @param array $aEnum
+         *
+         * @return static
+         */
+        public function enum(array $aEnum) {
             return $this->validation(['enum' => $aEnum]);
         }
 
-        public function default($mDefault): self {
+        /**
+         * @param $mDefault
+         *
+         * @return static
+         */
+        public function default($mDefault) {
             if ($mDefault === null) {
                 return $this->nullable()->validation(['default' => $mDefault]);
             }
@@ -63,13 +98,26 @@
             return $this->validation(['default' => $mDefault]);
         }
 
-        public function example($mExample): self {
+        /**
+         * @param $mExample
+         *
+         * @return static
+         */
+        public function example($mExample) {
             $oClone = clone $this;
             $oClone->sExample = $mExample;
             return $oClone;
         }
 
-        public function addExample(string $sName, $mValue, ?string $sSummary = null, ?string $sDescription = null): self {
+        /**
+         * @param string      $sName
+         * @param mixed       $mValue
+         * @param string|null $sSummary
+         * @param string|null $sDescription
+         *
+         * @return static
+         */
+        public function addExample(string $sName, $mValue, ?string $sSummary = null, ?string $sDescription = null) {
             $aExamples = $this->aExamples;
             $aExamples[$sName] = [
                 'value' => $mValue
@@ -88,7 +136,12 @@
             return $oClone;
         }
 
-        public function description(string $sDescription):self {
+        /**
+         * @param string $sDescription
+         *
+         * @return static
+         */
+        public function description(string $sDescription) {
             $oClone = clone $this;
             $oClone->sDescription = $sDescription;
             return $oClone;

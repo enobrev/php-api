@@ -1,18 +1,18 @@
 <?php
     namespace Enobrev\API\Middleware\Response;
 
-    use BenMorel\OpenApiSchemaToJsonSchema\Converter\SchemaConverter;
-    use cebe\openapi\ReferenceContext;
-    use cebe\openapi\spec\OpenApi;
-    use cebe\openapi\spec\Reference;
-    use cebe\openapi\spec\Responses;
-    use cebe\openapi\SpecObjectInterface;
     use ReflectionException;
 
     use Adbar\Dot;
     use BenMorel\OpenApiSchemaToJsonSchema\Convert;
+    use BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidInputException;
+    use BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidTypeException;
+    use cebe\openapi\exceptions\TypeErrorException;
+    use cebe\openapi\exceptions\UnresolvableReferenceException;
+    use cebe\openapi\ReferenceContext;
+    use cebe\openapi\spec\Reference;
+    use cebe\openapi\spec\Responses;
     use cebe\openapi\spec\Schema as OpenApi_Schema;
-    use cebe\openapi\spec\Response as OpenApi_Response;
     use JsonSchema\Constraints\Constraint;
     use JsonSchema\Validator;
     use Middlewares;
@@ -24,16 +24,15 @@
     use Enobrev\API\Exception;
     use Enobrev\API\Exception\ValidationException;
     use Enobrev\API\FullSpec;
-    use Enobrev\API\FullSpec\Component\Schema;
     use Enobrev\API\HTTP;
     use Enobrev\API\Middleware\ResponseBuilder;
-    use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Spec;
     use Enobrev\Log;
+    use stdClass;
 
     class ValidateResponse implements MiddlewareInterface {
-        private $bThrowException = false;
+        private bool $bThrowException = false;
 
         public function __construct($bThrowException = false) {
             $this->bThrowException = $bThrowException;
@@ -45,7 +44,11 @@
          *
          * @return ResponseInterface
          * @throws Exception\HttpErrorException
+         * @throws InvalidInputException
+         * @throws InvalidTypeException
          * @throws ReflectionException
+         * @throws TypeErrorException
+         * @throws UnresolvableReferenceException
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.ValidateResponse');
@@ -68,10 +71,10 @@
          * @return ServerRequestInterface
          * @throws Exception\HttpErrorException
          * @throws ReflectionException
-         * @throws \BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidInputException
-         * @throws \BenMorel\OpenApiSchemaToJsonSchema\Exception\InvalidTypeException
-         * @throws \cebe\openapi\exceptions\TypeErrorException
-         * @throws \cebe\openapi\exceptions\UnresolvableReferenceException
+         * @throws InvalidInputException
+         * @throws InvalidTypeException
+         * @throws TypeErrorException
+         * @throws UnresolvableReferenceException
          */
         private function validateResponse(ServerRequestInterface $oRequest): ServerRequestInterface {
             $oSpec = AttributeSpec::getSpec($oRequest);
@@ -141,7 +144,13 @@
             return $this->bThrowException;
         }
 
-        // Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
+        /**
+         * Merge AllOf Because allOf in json-schema does not mean merge, it means match ALL entries and that's now how we're using it
+         * @param $oSchema
+         *
+         * @return OpenApi_Schema|mixed
+         * @throws TypeErrorException
+         */
         private function mergeAllOfs($oSchema)  {
             if (isset($oSchema->allOf)) {
                 $oMerged = new Dot;
@@ -169,7 +178,7 @@
                     foreach($oSubSchema as $sSubProperty => $oSubSubSchema) {
                         if (preg_match('/^{|}$/', $sSubProperty, $aMatches)) {
                             $bFoundDynamicProperty = true;
-                            $oSchema->{'x-patternProperties'} = new \stdClass();
+                            $oSchema->{'x-patternProperties'} = new stdClass();
                             $oSchema->{'x-patternProperties'}->{'.*'} = $this->findPatternProperties($oSubSubSchema);
                         }
                     }

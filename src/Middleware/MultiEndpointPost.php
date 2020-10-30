@@ -55,7 +55,6 @@
             $this->oData = new Dot();
 
             while (count($aQuery) > 0) {
-                /** @var array $aPost */
                 $aPost = array_splice($aQuery, 0, 1);
                 $sEndpoint = key($aPost);
                 try {
@@ -177,7 +176,7 @@
          * @throws Exception\InvalidJmesPath
          * @throws Exception\NoTemplateValues
          */
-        private function getTemplateValue($sTemplate) {
+        private function getTemplateValue(string $sTemplate) {
             if (!is_string($sTemplate)) {
                 return $sTemplate;
             }
@@ -209,12 +208,13 @@
                         if (!is_array($aValues)) {
                             $aValues = [$aValues];
                         } else if (count($aValues) && is_array($aValues[0])) { // cannot work with a multi-array
+                            $e = new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
                             Log::ex('MultiEndpointPost.getTemplateValue.JMESPath', $e, [
                                 'template'   => $sTemplate,
                                 'expression' => $sExpression
                             ]);
 
-                            throw new Exception\InvalidJmesPath('JmesPath Needs to return a flat array, this was a multidimensional array.  Consider the flatten projection operator []');
+                            throw $e;
                         }
                     }
 

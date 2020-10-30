@@ -41,6 +41,7 @@ class HttpErrorException extends Exception {
 
     /**
      * Add data context used in the error handler
+     * @param array $aContext
      */
     public function setContext(array $aContext) {
         $this->aContext = $aContext;

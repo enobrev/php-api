@@ -62,7 +62,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function hasClassPath($sPath): bool {
+        public static function hasClassPath(string $sPath): bool {
             $aMap = self::getMap('_CLASSES_');
             return isset($aMap[$sPath]);
         }
@@ -74,7 +74,7 @@
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function getClassName($sPath): string {
+        public static function getClassName(string $sPath): ?string {
             $aMap = self::getMap('_CLASSES_');
             return $aMap[$sPath] ?? null;
         }
@@ -105,15 +105,15 @@
         }
 
         /**
-         * @param string                               $sPath
+         * @param string      $sPath
          * @param ArrayIterator|ORM\Table[]|ORM\Tables $oData
-         * @param string                               $sKeyField
+         * @param string|null $sKeyField
          *
-         * @return array
+         * @return array|ORM\Field[][]
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function getIndexedResponseMaps(string $sPath, $oData, string $sKeyField = null): array {
+        public static function getIndexedResponseMaps(string $sPath, $oData, ?string $sKeyField = null): array {
             $aResponse = [];
             foreach($oData as $oDatum) {
                 /** @noinspection AdditionOperationOnArraysInspection */
@@ -124,15 +124,15 @@
         }
 
         /**
-         * @param string    $sPath
-         * @param ORM\Table $oDatum
-         * @param string    $sKeyField
+         * @param string      $sPath
+         * @param ORM\Table   $oDatum
+         * @param string|null $sKeyField
          *
-         * @return array
+         * @return ORM\Field[][]
          * @throws Exception\InvalidDataMapPath
          * @throws Exception\MissingDataMapDefinition
          */
-        public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum, string $sKeyField = null): array {
+        public static function getIndexedResponseMap(string $sPath, ORM\Table $oDatum, ?string $sKeyField = null): array {
             if (!$sKeyField) {
                 $sKeyField = $oDatum->getPrimary()[0]->sColumn;
             }

@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Spec;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\SpecObjectInterface;
     use Enobrev\API\FullSpec;
     use Enobrev\API\FullSpec\Component\Reference;
@@ -11,12 +12,14 @@
     class AuthenticationErrorResponse implements OpenApiInterface, ErrorResponseInterface {
         use ErrorResponseTrait;
 
-        /** @var number */
-        private $iCode = HTTP\UNAUTHORIZED;
-        
-        /** @var string */
-        private $sMessage;
+        private int $iCode = HTTP\UNAUTHORIZED;
 
+        private string $sMessage;
+
+        /**
+         * @return SpecObjectInterface
+         * @throws TypeErrorException
+         */
         public function getSpecObject(): SpecObjectInterface {
             return JsonResponse::allOf([
                 Reference::create(FullSpec::SCHEMA_DEFAULT),

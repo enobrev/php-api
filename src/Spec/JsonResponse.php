@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Spec;
 
+    use cebe\openapi\exceptions\TypeErrorException;
     use cebe\openapi\spec\Schema;
     use cebe\openapi\spec\Reference;
     use cebe\openapi\SpecObjectInterface;
@@ -9,6 +10,7 @@
     use Enobrev\API\OpenApiInterface;
     use Enobrev\API\Spec;
     use Enobrev\Log;
+    use Exception;
 
     class JsonResponse implements OpenApiInterface {
         private const TYPE_ALLOF = 'allOf';
@@ -61,7 +63,7 @@
 
         /**
          * @return SpecObjectInterface
-         * @throws \cebe\openapi\exceptions\TypeErrorException
+         * @throws TypeErrorException
          */
         public function getSpecObject(): SpecObjectInterface {
             if (!$this->mSchema) {
@@ -114,6 +116,6 @@
                 return $oSchema;
             }
 
-            throw new \Exception('No Schema to Return');
+            throw new Exception('No Schema to Return');
         }
     }

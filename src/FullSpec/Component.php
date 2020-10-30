@@ -3,9 +3,7 @@
 
 
     use Adbar\Dot;
-    use Enobrev\API\FullSpec;
     use Enobrev\API\Param;
-    use function Enobrev\array_not_associative;
 
     class Component {
         private const SCHEMA_DEFAULT = self::TYPE_SCHEMA . '/_default';

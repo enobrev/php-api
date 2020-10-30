@@ -2,10 +2,8 @@
     namespace Enobrev\API\Param;
     
     use cebe\openapi\spec\Schema;
-    use Enobrev\API\Exception;
     use Enobrev\API\Param;
     use Enobrev\API\ParamTrait;
-    use function Enobrev\dbg;
 
     class _Array extends Param {
         use ParamTrait;

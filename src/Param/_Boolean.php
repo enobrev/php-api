@@ -11,8 +11,8 @@
         /** @var string */
         protected $sType = Param::BOOLEAN;
 
-        public function default($bDefault):self {
-            return $this->validation(['default' => (bool) $bDefault]);
+        public function default($mDefault):self {
+            return $this->validation(['default' => (bool) $mDefault]);
         }
 
         /**

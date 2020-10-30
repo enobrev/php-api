@@ -1,6 +1,7 @@
 <?php
     namespace Enobrev\API\Param;
 
+    use Enobrev\Log;
     use stdClass;
 
     use cebe\openapi\spec\Schema;
@@ -67,7 +68,7 @@
                     } else if (is_array($mItem)) {
                         $aSchema['properties'][$sParam] = Spec::arrayToSchema($mItem);
                     } else {
-                        dbg('Param\_Object.getSchema.Unknown', $sParam, $mItem);
+                        Log::e('Param\_Object.getSchema.Unknown', ['param' => $sParam, 'item' => $mItem]);
                     }
                 }
             } else {

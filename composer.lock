@@ -401,12 +401,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "9bf5124ecaa65068e8d084d85988b5876f3a0430"
+                "reference": "719d03a0c36d38c1163f294e46b97a602900639d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/9bf5124ecaa65068e8d084d85988b5876f3a0430",
-                "reference": "9bf5124ecaa65068e8d084d85988b5876f3a0430",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/719d03a0c36d38c1163f294e46b97a602900639d",
+                "reference": "719d03a0c36d38c1163f294e46b97a602900639d",
                 "shasum": ""
             },
             "require": {
@@ -457,7 +457,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2020-10-30T05:15:59+00:00"
+            "time": "2020-10-30T08:09:01+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -465,12 +465,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "ecf0ca785a3f6eef15917e002c50fa4223079127"
+                "reference": "ecea8f4890f044d933994199c79b23cf85ca86b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/ecf0ca785a3f6eef15917e002c50fa4223079127",
-                "reference": "ecf0ca785a3f6eef15917e002c50fa4223079127",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/ecea8f4890f044d933994199c79b23cf85ca86b5",
+                "reference": "ecea8f4890f044d933994199c79b23cf85ca86b5",
                 "shasum": ""
             },
             "require": {
@@ -515,7 +515,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2020-10-30T04:46:34+00:00"
+            "time": "2020-10-30T08:06:45+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
