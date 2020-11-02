@@ -20,7 +20,7 @@
 
         private ?OpenApiInterface $mJson = null;
 
-        private string $sDiscriminator;
+        private ?string $sDiscriminator = null;
 
         private ?array $aMapping = null;
 
