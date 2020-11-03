@@ -103,7 +103,11 @@
          *
          * @return static
          */
-        public function example(string $mExample) {
+        public function example($mExample) {
+            if (!is_string($mExample)) {
+                $mExample = json_encode($mExample);
+            }
+
             $oClone = clone $this;
             $oClone->sExample = $mExample;
             return $oClone;
