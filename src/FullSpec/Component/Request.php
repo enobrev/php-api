@@ -97,8 +97,8 @@
          */
 
         public function getSpecObject(): SpecObjectInterface {
-            assert($this->sDescription,                  new Exception('Full Scope Request Components require a description'));
-            assert($this->mPost || $this->mJson, new Exception('Full Scope Request Components needs a JSON or form-data schema'));
+            assert(isset($this->sDescription),                  new Exception('Full Scope Request Components require a description'));
+            assert(isset($this->mPost) || isset($this->mJson), new Exception('Full Scope Request Components needs a JSON or form-data schema'));
 
             $oResponse = new Dot([
                 'description' => $this->sDescription,
