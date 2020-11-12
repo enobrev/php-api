@@ -47,6 +47,10 @@
                 $aSchema['description'] = $this->sDescription;
             }
 
+            if (!empty($this->sExample)) {
+                $aSchema['example'] = $this->sExample;
+            }
+
             return new Schema($aSchema);
         }
 

@@ -90,6 +90,10 @@
                 $aSchema['nullable'] = true;
             }
 
+            if (!empty($this->sExample)) {
+                $aSchema['example'] = $this->sExample;
+            }
+
             return new Schema($aSchema);
         }
 

@@ -167,6 +167,10 @@
                 $aSchema['description'] = $this->sDescription;
             }
 
+            if (!empty($this->sExample)) {
+                $aSchema['example'] = $this->sExample;
+            }
+
             $aSchema['type'] = $this->getType();
 
             return new Schema($aSchema);
