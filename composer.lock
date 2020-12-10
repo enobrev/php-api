@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9b45894df4877160996a4a5792dd6013",
+    "content-hash": "8137d175345afe9ffc740acc9905018d",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -61,15 +61,21 @@
         },
         {
             "name": "benmorel/openapi-schema-to-json-schema",
-            "version": "dev-fix-patternProperties_as_properties",
+            "version": "0.1.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/enobrev/openapi-schema-to-json-schema",
-                "reference": "9eef1e72681eafbdd7f3b41452481eb0e72b9637"
+                "url": "https://github.com/BenMorel/openapi-schema-to-json-schema.git",
+                "reference": "d94d7f29f2270dbbf0700b44318974b140619ceb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/BenMorel/openapi-schema-to-json-schema/zipball/d94d7f29f2270dbbf0700b44318974b140619ceb",
+                "reference": "d94d7f29f2270dbbf0700b44318974b140619ceb",
+                "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "php": ">=7.2"
+                "php": "^7.2 || ^8.0"
             },
             "require-dev": {
                 "php-coveralls/php-coveralls": "^2.0",
@@ -81,21 +87,21 @@
                     "BenMorel\\OpenApiSchemaToJsonSchema\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "BenMorel\\OpenApiSchemaToJsonSchema\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
             "description": "Convert an OpenAPI schema object to a JSON Schema object",
             "keywords": [
                 "JSON Schema",
-                "OpenAPI",
-                "Swagger"
+                "openapi",
+                "swagger"
             ],
-            "time": "2020-03-06T22:36:41+00:00"
+            "support": {
+                "issues": "https://github.com/BenMorel/openapi-schema-to-json-schema/issues",
+                "source": "https://github.com/BenMorel/openapi-schema-to-json-schema/tree/0.1.4"
+            },
+            "time": "2020-12-10T16:06:59+00:00"
         },
         {
             "name": "bshaffer/oauth2-server-php",
@@ -5504,7 +5510,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "benmorel/openapi-schema-to-json-schema": 20,
         "enobrev/php-orm": 20,
         "enobrev/php-tools": 20,
         "nikic/fast-route": 20
