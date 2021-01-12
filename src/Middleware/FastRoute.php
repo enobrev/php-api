@@ -27,6 +27,14 @@
     class FastRoute implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
+        private string $sCachePath;
+        private bool $bCacheEnabled;
+
+        public function __construct(string $sCachePath, bool $bCacheEnabled = true) {
+            $this->sCachePath   = $sCachePath;
+            $this->bCacheEnabled = $bCacheEnabled;
+        }
+
         public static function getRouteClassName(ServerRequestInterface $oRequest): ?string {
             $oRoute = self::getAttribute($oRequest);
             return $oRoute ? $oRoute->class : null;
@@ -54,7 +62,7 @@
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer            = Log::startTimer('Enobrev.Middleware.FastRoute');
             $oTimerDispatcher  = Log::startTimer('Enobrev.Middleware.FastRoute.Dispatcher');
-            $oRouter = FastRouteLib\simpleDispatcher(static function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
+            $oRouter = FastRouteLib\cachedDispatcher(static function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
                 $aRoutes = AttributeFullSpecRoutes::getRoutes($oRequest);
                 if ($aRoutes) {
                     foreach ($aRoutes as $sPath => $aMethods) {
@@ -63,7 +71,10 @@
                         }
                     }
                 }
-            });
+            }, [
+                'cacheFile'     => $this->sCachePath,
+                'cacheDisabled' => !$this->bCacheEnabled
+            ]);
             Log::dt($oTimerDispatcher);
             Log::d('Enobrev.Middleware.FastRoute', [
                 'method'     => $oRequest->getMethod(),
