@@ -29,7 +29,9 @@
     use function Enobrev\array_not_associative;
 
     class Spec {
-        private const SKIP_PRIMARY = 1024;
+        public const SKIP_PRIMARY = 1024;
+
+        public const SKIP_GENERATED = 2048;
 
         private string $sSummary = '';
 
@@ -558,6 +560,10 @@
 
             foreach($aFields as $oField) {
                 if ($iOptions & self::SKIP_PRIMARY && $oField->isPrimary()) {
+                    continue;
+                }
+
+                if ($iOptions & self::SKIP_GENERATED && $oField->isGenerated()) {
                     continue;
                 }
 
