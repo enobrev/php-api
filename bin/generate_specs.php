@@ -98,16 +98,21 @@
             'scopes'            => $sAuthScopes, // "[Table\AuthScopes::CMS]",
         ];
 
-        $aNonPost = [];
-        $aNonPostInBody = [];
+        $iNonPost       = 0;
+        $iNonPostInBody = 0;
         foreach($aTable['fields'] as &$aField) {
             if ($aField['type'] === 'Field\\DateTime') {
-                $aNonPost[]       = "'" . $aField['name'] . "'";
-                $aNonPostInBody[] = "'" . $aField['name'] . "'";
+                $iNonPost++;
+                $iNonPostInBody++;
+            }
+
+            if ($aField['generated']) {
+                $iNonPost++;
+                $iNonPostInBody++;
             }
 
             if ($aField['primary']) {
-                $aNonPost[] = "'" . $aField['name'] . "'";
+                $iNonPost++;
             }
 
             if (!$aField['primary']) {
@@ -163,8 +168,7 @@
         }
         unset($aField);
 
-        $aTable['spec']['non_post']          = '[' . implode(', ', $aNonPost) . ']';
-        $aTable['spec']['show_post']         = count($aTable['fields']) > count($aNonPost);
+        $aTable['spec']['show_post'] = count($aTable['fields']) > $iNonPost;
 
         /// ------------------------
 
@@ -204,8 +208,7 @@
 
         } else {
 
-            $aTable['spec']['non_post_in_body']  = '[' . implode(', ', $aNonPostInBody) . ']';
-            $aTable['spec']['show_post_in_body'] = count($aTable['fields']) > count($aNonPostInBody);
+            $aTable['spec']['show_post_in_body'] = count($aTable['fields']) > $iNonPostInBody;
 
             /// ------------------------
 

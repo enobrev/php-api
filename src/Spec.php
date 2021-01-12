@@ -29,9 +29,11 @@
     use function Enobrev\array_not_associative;
 
     class Spec {
-        public const SKIP_PRIMARY = 1024;
+        public const SKIP_PRIMARY   = 1024;
 
         public const SKIP_GENERATED = 2048;
+
+        public const SKIP_DATETIMES = 4096;
 
         private string $sSummary = '';
 
@@ -554,7 +556,7 @@
          *
          * @return Param[]
          */
-        private static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
+        public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
             $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
 
@@ -564,6 +566,10 @@
                 }
 
                 if ($iOptions & self::SKIP_GENERATED && $oField->isGenerated()) {
+                    continue;
+                }
+
+                if ($iOptions & self::SKIP_DATETIMES && $oField instanceof Field\DateTime) {
                     continue;
                 }
 
