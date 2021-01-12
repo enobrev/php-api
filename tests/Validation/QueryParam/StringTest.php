@@ -16,7 +16,6 @@
     use Enobrev\API\FullSpec;
     use Enobrev\API\Method;
     use Enobrev\API\Middleware\FastRoute;
-    use Enobrev\API\Middleware\Request\AttributeFullSpecRoutes;
     use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\API\Middleware\Request\CoerceParams;
     use Enobrev\API\Middleware\Request\ValidateSpec;
@@ -41,7 +40,6 @@
             $this->aPipeline = [
                 new ResponseBuilder(),
                 new MetadataRequest(),
-                new AttributeFullSpecRoutes($oFullSpec),
                 new FastRoute(),
                 new AttributeSpec(),
                 new CoerceParams(),
@@ -138,7 +136,6 @@
             $this->aPipeline = [
                 new ResponseBuilder(),
                 new MetadataRequest(),
-                new AttributeFullSpecRoutes($oFullSpec),
                 new FastRoute(),
                 new AttributeSpec(),
                 new CoerceParams(),

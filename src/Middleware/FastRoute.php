@@ -28,11 +28,11 @@
     class FastRoute implements MiddlewareInterface, RequestAttributeInterface {
         use RequestAttribute;
 
-        private string $sCachePath;
+        private ?string $sCachePath;
         private bool $bCacheEnabled;
 
-        public function __construct(string $sCachePath, bool $bCacheEnabled = true) {
-            $this->sCachePath   = $sCachePath;
+        public function __construct(bool $bCacheEnabled = false, string $sCachePath = null) {
+            $this->sCachePath    = $sCachePath;
             $this->bCacheEnabled = $bCacheEnabled;
         }
 
