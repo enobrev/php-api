@@ -10,6 +10,7 @@
     use Psr\Http\Server\MiddlewareInterface;
     use Psr\Http\Server\RequestHandlerInterface;
 
+    use Enobrev\API\FullSpec;
     use Enobrev\API\HTTP;
     use Enobrev\API\Exception\EndpointNotFound;
     use Enobrev\API\Exception\MethodNotAllowed;
@@ -63,7 +64,7 @@
             $oTimer            = Log::startTimer('Enobrev.Middleware.FastRoute');
             $oTimerDispatcher  = Log::startTimer('Enobrev.Middleware.FastRoute.Dispatcher');
             $oRouter = FastRouteLib\cachedDispatcher(static function(FastRouteLib\RouteCollector $oRouteCollector) use ($oRequest) {
-                $aRoutes = AttributeFullSpecRoutes::getRoutes($oRequest);
+                $aRoutes = FullSpec::getInstance()->getRoutes();
                 if ($aRoutes) {
                     foreach ($aRoutes as $sPath => $aMethods) {
                         foreach ($aMethods as $sMethod => $sClass) {
