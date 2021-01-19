@@ -51,10 +51,13 @@
                 throw new Exception('Error Parsing JSON Request Body: ' . json_last_error());
             }
 
+            $oSpec     = AttributeSpec::getSpec($oRequest);
+            $aRedacted = $oSpec->redactForLogs('post',  $aParsedBody);
+
             Log::justAddContext([
                 '#request' => [
                     'parameters' => [
-                        'post'  => $sBody ?? null
+                        'post'  => $aRedacted && count($aRedacted) ? json_encode($aRedacted) : null
                     ]
                 ]
             ]);

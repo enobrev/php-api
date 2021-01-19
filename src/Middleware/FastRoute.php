@@ -3,6 +3,7 @@
 
     namespace Enobrev\API\Middleware;
 
+    use Enobrev\API\Middleware\Request\AttributeSpec;
     use FastRoute as FastRouteLib;
     use Laminas\Diactoros\Response;
     use Psr\Http\Message\ResponseInterface;
@@ -129,6 +130,9 @@
 
                 $oRequest = ResponseBuilder::update($oRequest, $oBuilder);
             }
+
+            $oSpec         = AttributeSpec::getSpec($oRequest);
+            $aPathParams   = $oSpec->redactForLogs('path',  $aPathParams);
 
             Log::dt($oTimer, [
                 'method'     => $oRequest->getMethod(),

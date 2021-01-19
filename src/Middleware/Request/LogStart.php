@@ -15,6 +15,10 @@
             $aServerParams = $oRequest->getServerParams();
             $oURI          = $oRequest->getUri();
 
+            $oSpec         = AttributeSpec::getSpec($oRequest);
+            $aQueryParams  = $oSpec->redactForLogs('query', $aQueryParams);
+            $aPostParams   = $oSpec->redactForLogs('post',  $aPostParams);
+
             Log::i('Enobrev.Middleware.LogStart', [
                 '#request' => [
                     'method'     => $oRequest->getMethod(),

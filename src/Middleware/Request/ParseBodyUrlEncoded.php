@@ -36,10 +36,13 @@
             $aParsedBody = $oRequest->getParsedBody();
             parse_str($sBody, $aParsedBody);
 
+            $oSpec     = AttributeSpec::getSpec($oRequest);
+            $aRedacted = $oSpec->redactForLogs('post',  $aParsedBody);
+
             Log::justAddContext([
                 '#request' => [
                     'parameters' => [
-                        'post'  => $aParsedBody && count($aParsedBody) ? json_encode($aParsedBody) : null
+                        'post'  => $aRedacted && count($aRedacted) ? json_encode($aRedacted) : null
                     ]
                 ]
             ]);

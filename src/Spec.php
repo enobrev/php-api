@@ -90,6 +90,8 @@
         /** @var bool  */
         private bool $bValidateResponse = true;
 
+        private array $aSkipLogs = [];
+
         public static function create(): Spec {
             return new self();
         }
@@ -534,6 +536,24 @@
         public function codeSample(string $sLanguage, string $sSource):self {
             $oClone = clone $this;
             $oClone->aCodeSamples[$sLanguage] = $sSource;
+            return $oClone;
+        }
+
+        public function redactForLogs(string $sParamPart, array $aParams): array {
+            if (isset($this->aSkipLogs[$sParamPart])) {
+                foreach($this->aSkipLogs[$sParamPart] as $sKey) {
+                    if (isset($aParams[$sKey])) {
+                        $aParams[$sKey] = '__REDACTED__';
+                    }
+                }
+            }
+
+            return $aParams
+        }
+
+        public function skipLogs(array $aParams) {
+            $oClone = clone $this;
+            $oClone->aSkipLogs = array_merge($oClone->aSkipLogs, $aParams);
             return $oClone;
         }
 
