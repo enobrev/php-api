@@ -559,8 +559,8 @@
          * @return Param[]
          */
         public static function tableToParams(Table $oTable, int $iOptions = 0, array $aExclude = []): array {
-            $aDefinitions = [];
             $aFields = $oTable->getColumnsWithFields();
+            $aDefinitionFields = [];
 
             foreach($aFields as $oField) {
                 if ($iOptions & self::SKIP_PRIMARY && $oField->isPrimary()) {
@@ -579,6 +579,22 @@
                     continue;
                 }
 
+                $aDefinitionFields[] = $oField;
+            }
+
+            return self::fieldsToParams($oTable, $aDefinitionFields, $iOptions);
+        }
+
+        /**
+         * @param Table $oTable
+         * @param array $aFields
+         * @param int   $iOptions
+         *
+         * @return array
+         */
+        public static function fieldsToParams(Table $oTable, array $aFields, int $iOptions = 0) {
+            $aItems = [];
+            foreach($aFields as $oField) {
                 $sField = DataMap::getPublicName($oTable, $oField->sColumn);
                 if (!$sField) {
                     continue;
@@ -586,11 +602,11 @@
 
                 $oParam = self::fieldToParam($oField, $iOptions);
                 if ($oParam instanceof Param) {
-                    $aDefinitions[$sField] = $oParam;
+                    $aItems[$sField] = $oParam;
                 }
             }
 
-            return $aDefinitions;
+            return $aItems;
         }
 
         /**
