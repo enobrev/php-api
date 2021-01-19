@@ -548,7 +548,7 @@
                 }
             }
 
-            return $aParams
+            return $aParams;
         }
 
         public function skipLogs(array $aParams) {
