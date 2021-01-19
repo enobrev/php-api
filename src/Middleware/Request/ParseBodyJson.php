@@ -51,8 +51,7 @@
                 throw new Exception('Error Parsing JSON Request Body: ' . json_last_error());
             }
 
-            $oSpec     = AttributeSpec::getSpec($oRequest);
-            $aRedacted = $oSpec->redactForLogs('post',  $aParsedBody);
+            $aRedacted  = LogStart::redactParamsFromLogs($oRequest, $aParsedBody);
 
             Log::justAddContext([
                 '#request' => [

@@ -36,8 +36,7 @@
             $aParsedBody = $oRequest->getParsedBody();
             parse_str($sBody, $aParsedBody);
 
-            $oSpec     = AttributeSpec::getSpec($oRequest);
-            $aRedacted = $oSpec->redactForLogs('post',  $aParsedBody);
+            $aRedacted  = LogStart::redactParamsFromLogs($oRequest, $aParsedBody);
 
             Log::justAddContext([
                 '#request' => [

@@ -539,24 +539,6 @@
             return $oClone;
         }
 
-        public function redactForLogs(string $sParamPart, array $aParams): array {
-            if (isset($this->aSkipLogs[$sParamPart])) {
-                foreach($this->aSkipLogs[$sParamPart] as $sKey) {
-                    if (isset($aParams[$sKey])) {
-                        $aParams[$sKey] = '__REDACTED__';
-                    }
-                }
-            }
-
-            return $aParams;
-        }
-
-        public function skipLogs(array $aParams) {
-            $oClone = clone $this;
-            $oClone->aSkipLogs = array_merge($oClone->aSkipLogs, $aParams);
-            return $oClone;
-        }
-
         /**
          * @param Table $oTable
          * @param array $aExclude
