@@ -3,6 +3,7 @@
 
     namespace Enobrev\API\Middleware;
 
+    use Enobrev\API\Middleware\Request\AttributeSpec;
     use Exception;
 
     use Laminas\Diactoros\Response\JsonResponse;
@@ -19,21 +20,20 @@
      * @package Enobrev\API\Middleware
      */
     class ResponseBuilderDone implements MiddlewareInterface {
-        private static $aRedactPaths = [];
+        private static $aRedactSpecPaths = [];
 
-        public function __construct(array $aRedactPaths = []) {
-            self::$aRedactPaths = $aRedactPaths;
+        public function __construct(array $aRedactSpecPaths = []) {
+            self::$aRedactSpecPaths = $aRedactSpecPaths;
         }
 
-        public static function shouldRedact(ServerRequestInterface $oRequest): bool {
-            $sPath = $oRequest->getUri()->getPath();
-            foreach (self::$aRedactPaths as $sMatch) {
-                if (preg_match($sMatch, $sPath)) {
-                    return true;
-                }
+        private function shouldRedact(ServerRequestInterface $oRequest): bool {
+            $oSpec    = AttributeSpec::getSpec($oRequest);
+            $aMethods = self::$aRedactSpecPaths[$oSpec->getPathForDocs()] ?? null;
+            if (!$aMethods) {
+                return false;
             }
 
-            return false;
+            return in_array($oSpec->getHttpMethod(), $aMethods);
         }
 
         /**
@@ -45,7 +45,7 @@
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
 
-            if (self::shouldRedact($oRequest)) {
+            if ($this->shouldRedact($oRequest)) {
                 Log::i('Enobrev.Middleware.ResponseBuilderDone', [
                     '#response' => [
                         'status'  => $oResponse->getStatusCode(),
