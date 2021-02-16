@@ -87,7 +87,6 @@
             }
 
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                /** @var {{ table.class }} $o{{ table.title }} */
                 $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
                 $o{{ table.title }}->insert();
 {% if primary|length == 1 %}

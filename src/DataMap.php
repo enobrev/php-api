@@ -137,10 +137,12 @@
         }
 
         /**
-         * @param ORM\Table $oTable
+         * // got this Generics tip from https://medium.com/@ondrejmirtes/generics-in-php-using-phpdocs-14e7301953
+         * @template T of ORM\Table
+         * @param T $oTable
          * @param array     $aPostParams
          *
-         * @return ORM\Table
+         * @return T
          */
         public static function applyPostParamsToTable(ORM\Table $oTable, array $aPostParams): ORM\Table {
             $aMap   = self::getResponseMap($oTable->getTitle(), $oTable);

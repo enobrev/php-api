@@ -59,7 +59,6 @@
          * @throws DbException
          */
         protected function getResponse(Dot $oResponse, ?array $aPostParams): Dot {
-            /** @var {{ table.class }} $o{{ table.title }} */
             $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
             $o{{ table.title }}->insert();
 

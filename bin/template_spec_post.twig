@@ -77,7 +77,6 @@
         protected function getResponse(Dot $oResponse, {% for field in primary %}{{field.php_type}} ${{field.var}}, {% endfor %}?array $aPostParams): Dot {
             $o{{ table.title }} = {{ table.class }}::getById({% for field in primary %}${{field.var}}{% if not loop.last %}, {% endif %}{% endfor %});
             if ($o{{ table.title }} instanceof {{ table.class }} === false) {
-                /** @var {{ table.class }} $o{{ table.title }} */
                 $o{{ table.title }} = DataMap::applyPostParamsToTable(new {{ table.class }}, $aPostParams);
 {% for field in primary %}
                 $o{{ table.title }}->{{ field.name }}->setValue(${{field.var}});
