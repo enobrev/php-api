@@ -83,7 +83,6 @@
             $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $sSearch);
             $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $sSort);
 
-            /** @var {{ table.class_plural }} $o{{ table.plural }} */
             $o{{ table.plural }} = {{ table.class_plural }}::getForCMS(
                 $iPage,
                 $iPer,
