@@ -29,7 +29,8 @@
         public function getSchema(): Schema {
             $aSchema = $this->aValidation;
 
-            if ($aSchema['items'] instanceof Param) {
+            $mItems = $aSchema['items'] ?? null;
+            if ($mItems instanceof Param) {
                 $aSchema['items'] = $aSchema['items']->getSchema();
             }
 
