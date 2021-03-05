@@ -61,6 +61,10 @@
             return $this->sType;
         }
 
+        public function getDescription():string {
+            return $this->sDescription;
+        }
+
         protected function getValidationForSchema():array {
             $aValidation = $this->aValidation;
 
