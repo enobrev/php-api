@@ -395,12 +395,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "7565f9eb5b45dd649222db25660229bb82a4e733"
+                "reference": "5055ce088cf40ccf88096d2d8021a449013945ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/7565f9eb5b45dd649222db25660229bb82a4e733",
-                "reference": "7565f9eb5b45dd649222db25660229bb82a4e733",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/5055ce088cf40ccf88096d2d8021a449013945ba",
+                "reference": "5055ce088cf40ccf88096d2d8021a449013945ba",
                 "shasum": ""
             },
             "require": {
@@ -445,7 +445,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2021-04-07T20:02:49+00:00"
+            "time": "2021-04-08T07:13:13+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
