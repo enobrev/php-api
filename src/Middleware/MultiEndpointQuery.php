@@ -266,6 +266,8 @@
                     assert(!is_array($sValue), new Exception\InvalidTemplateResponse('Path Templates MUST reference values that can be flattened.  This template references a value that cannot be easily flattened'));
                 }
 
+                $aValues = array_values(array_filter(array_unique($aValues)));
+
                 if ($sPrefix) {
                     Log::d('MultiEndpointQuery.getTemplateValue', [
                         'state'  => 'Prefix',
@@ -294,7 +296,8 @@
                     return implode(',', $aUniqueValues);
                 }
 
-                assert(false, new Exception\NoTemplateValues());
+                //assert(false, new Exception\NoTemplateValues());
+                throw new Exception\NoTemplateValues();
             }
 
             return $sTemplate;
