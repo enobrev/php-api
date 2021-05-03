@@ -24,7 +24,7 @@
         public function spec(): Spec {
             return Spec::create()
                 ->httpMethod      (Method\{{ spec.http_method }})
-                ->path            ('{{ spec.path_prefix}}/{{ table.name }}[/]')
+                ->path            ('{{ spec.path_prefix}}/{{ table.name }}')
                 ->summary         ('List {{ table.name }}')
                 ->description     ('Get listing of `{{ table.name }}`')
                 ->scopes          ({{ spec.scopes|raw }})

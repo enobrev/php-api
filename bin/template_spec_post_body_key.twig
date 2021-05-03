@@ -27,7 +27,7 @@
         public function spec(): Spec {
             return Spec::create()
                 ->httpMethod        (Method\{{ spec.http_method }})
-                ->path              ('{{ spec.path_prefix}}/{{ table.name }}[/]')
+                ->path              ('{{ spec.path_prefix}}/{{ table.name }}')
                 ->summary           ('Save {{ table.name }}')
                 ->description       ('Create or Update `{{ table.name }}` designated by {% for field in primary%}{% if loop.first %}{% elseif loop.last %} and {% else %}, {% endif %}`{{ field.short }}`{% endfor %} in POST body')
                 ->scopes            ({{ spec.scopes|raw }})
