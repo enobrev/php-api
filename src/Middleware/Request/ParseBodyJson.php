@@ -10,6 +10,12 @@
     use Enobrev\Log;
 
     class ParseBodyJson implements MiddlewareInterface {
+        private static bool $bLogObjects = false;
+
+        public function __construct(bool $bLogObjects) {
+            self::$bLogObjects = $bLogObjects;
+        }
+
         /**
          * @param ServerRequestInterface $oRequest
          * @param RequestHandlerInterface $oHandler
@@ -53,13 +59,15 @@
 
             $aRedacted  = LogStart::redactParamsFromLogs($oRequest, $aParsedBody);
 
-            Log::justAddContext([
-                '#request' => [
-                    'parameters' => [
-                        'post'  => $aRedacted && count($aRedacted) ? json_encode($aRedacted) : null
+            if ($aRedacted && count($aRedacted)) {
+                Log::justAddContext([
+                    '#request' => [
+                        'parameters' => [
+                            'post' => self::$bLogObjects ? $aRedacted : json_encode($aRedacted)
+                        ]
                     ]
-                ]
-            ]);
+                ]);
+            }
 
             Log::dt($oTimer);
             return $oHandler->handle($oRequest->withParsedBody($aParsedBody));

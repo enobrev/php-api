@@ -9,6 +9,12 @@
     use Enobrev\Log;
 
     class ParseBodyUrlEncoded implements MiddlewareInterface {
+        private static bool $bLogObjects = false;
+
+        public function __construct(bool $bLogObjects) {
+            self::$bLogObjects = $bLogObjects;
+        }
+
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
             $oTimer = Log::startTimer('Enobrev.Middleware.ParseBodyUrlEncoded');
             $aContentType = $oRequest->getHeader('Content-Type');
@@ -38,13 +44,15 @@
 
             $aRedacted  = LogStart::redactParamsFromLogs($oRequest, $aParsedBody);
 
-            Log::justAddContext([
-                '#request' => [
-                    'parameters' => [
-                        'post'  => $aRedacted && count($aRedacted) ? json_encode($aRedacted) : null
+            if ($aRedacted && count($aRedacted)) {
+                Log::justAddContext([
+                    '#request' => [
+                        'parameters' => [
+                            'post' => self::$bLogObjects ? $aRedacted : json_encode($aRedacted)
+                        ]
                     ]
-                ]
-            ]);
+                ]);
+            }
 
             Log::dt($oTimer);
             return $oHandler->handle($oRequest->withParsedBody($aParsedBody));
