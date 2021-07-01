@@ -12,7 +12,7 @@
     class ParseBodyJson implements MiddlewareInterface {
         private static bool $bLogObjects = false;
 
-        public function __construct(bool $bLogObjects) {
+        public function __construct(bool $bLogObjects = false) {
             self::$bLogObjects = $bLogObjects;
         }
 

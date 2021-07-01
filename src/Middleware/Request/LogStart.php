@@ -10,9 +10,11 @@
     use function Enobrev\dbg;
 
     class LogStart implements MiddlewareInterface {
-        private static $aRedactPaths = [];
+        private static bool $bLogObjects = false;
+        private static array $aRedactPaths = [];
 
-        public function __construct(array $aRedactPaths = []) {
+        public function __construct(bool $bLogObjects = false,  array $aRedactPaths = []) {
+            self::$bLogObjects = $bLogObjects;
             self::$aRedactPaths = $aRedactPaths;
         }
 
@@ -56,23 +58,30 @@
             $aServerParams = $oRequest->getServerParams();
             $oURI          = $oRequest->getUri();
 
-            $aQueryParams  = self::redactParamsFromLogs($oRequest, $aQueryParams);
-            $aPostParams   = self::redactParamsFromLogs($oRequest, $aPostParams);
-
-            Log::i('Enobrev.Middleware.LogStart', [
+            $aLog = [
                 '#request' => [
                     'method'     => $oRequest->getMethod(),
                     'host'       => $oURI->getHost(),
                     'path'       => $oURI->getPath(),
                     'uri'        => $aServerParams && isset($aServerParams['REQUEST_URI']) ? $aServerParams['REQUEST_URI'] : null,
-                    'parameters' => [
-                        'query'  => $aQueryParams && count($aQueryParams) ? json_encode($aQueryParams) : null,
-                        'post'   => $aPostParams  && count($aPostParams)  ? json_encode($aPostParams)  : null
-                    ],
+                    'parameters' => [],
                     'headers'    => json_encode($oRequest->getHeaders()),
                     'referrer'   => $oRequest->hasHeader('referer') ? $oRequest->getHeaderLine('referer') : null
                 ]
-            ]);
+            ];
+
+            $aQueryParams  = self::redactParamsFromLogs($oRequest, $aQueryParams);
+            $aPostParams   = self::redactParamsFromLogs($oRequest, $aPostParams);
+
+            if ($aQueryParams  && count($aQueryParams)) {
+                $aLog['#request']['parameters']['query'] = self::$bLogObjects ? $aQueryParams : json_encode($aQueryParams);
+            }
+
+            if ($aPostParams  && count($aPostParams)) {
+                $aLog['#request']['parameters']['post'] = self::$bLogObjects ? $aPostParams : json_encode($aPostParams);
+            }
+
+            Log::i('Enobrev.Middleware.LogStart', $aLog);
 
             return $oHandler->handle($oRequest);
         }
