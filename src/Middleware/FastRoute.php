@@ -75,8 +75,7 @@
                     }
                 }
             }, [
-                'cacheKey'      => 'fastroute',
-                'cacheFile'     => $this->sCachePath,
+                'cacheKey'      => $this->sCachePath,
                 'cacheDisabled' => !$this->bCacheEnabled
             ]);
             Log::dt($oTimerDispatcher);
