@@ -75,6 +75,7 @@
                     }
                 }
             }, [
+                'cacheKey'      => 'fastroute',
                 'cacheFile'     => $this->sCachePath,
                 'cacheDisabled' => !$this->bCacheEnabled
             ]);
