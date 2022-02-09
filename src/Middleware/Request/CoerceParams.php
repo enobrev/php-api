@@ -69,7 +69,7 @@
                 foreach ($oSpec->resolvePostParams() as $sParam => $oParam) {
                     if (isset($aPostParams[$sParam])) {
                         $mCoerced = $oParam->coerce($aPostParams[$sParam]);
-                        Log::d('Enobrev.Middleware.CoerceParams.post', ['original' => var_export($aPostParams[$sParam], true), 'coerced' => var_export($mCoerced, true)]);
+//                        Log::d('Enobrev.Middleware.CoerceParams.post', ['original' => var_export($aPostParams[$sParam], true), 'coerced' => var_export($mCoerced, true)]);
                         if ($mCoerced !== $aPostParams[$sParam]) {
                             $aPostParams[$sParam] = $mCoerced;
                             $aCoerced['post'][] = $sParam;
@@ -98,7 +98,7 @@
                 }
             }
 
-            Log::dt($oTimer, ['coerced' => $aCoerced]);
+            Log::dt($oTimer); // ['coerced' => $aCoerced]
             return $oHandler->handle($oRequest);
         }
     }
