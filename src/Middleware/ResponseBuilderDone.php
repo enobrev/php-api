@@ -3,7 +3,6 @@
 
     namespace Enobrev\API\Middleware;
 
-    use Enobrev\API\Middleware\Request\AttributeSpec;
     use Exception;
 
     use Laminas\Diactoros\Response\JsonResponse;
@@ -13,6 +12,7 @@
     use Psr\Http\Server\RequestHandlerInterface;
 
     use Enobrev\API\HTTP;
+    use Enobrev\API\Middleware\Request\AttributeSpec;
     use Enobrev\Log;
     use function Enobrev\dbg;
 
@@ -64,15 +64,23 @@
                 Log::ex('Enobrev.Middleware.ResponseBuilderDone', $e);
             }
 
+            $iSize = 0;
+
             if (!$sBody) {
-                $sBody = '{"log_error": "not_encoded"}';
+                $sBody = '__NOT_ENCODED__';
+            } else {
+                $iSize = strlen($sBody);
+            }
+
+            if ($iSize > 30000) {
+                $sBody = '__TRUNCATED__';
             }
 
             Log::i('Enobrev.Middleware.ResponseBuilderDone', [
                 '#response' => [
                     'status'  => $oResponse->getStatusCode(),
                     'headers' => json_encode($oResponse->getHeaders()),
-                    'size'    => strlen($sBody)
+                    'size'    => $iSize
                 ],
                 'body'     => $sBody
             ]);
