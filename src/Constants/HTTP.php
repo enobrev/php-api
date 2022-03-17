@@ -73,6 +73,7 @@
 
     // CUSTOM ERROR
     const BAD_RESPONSE                       = 555; // Reponse Failed Validation
+    const QUIET_INTERNAL_SERVER_ERROR        = 600; // 500 error but without alerts
 
     const TEXT = [
         CONTINUE_                          => 'Continue',
@@ -139,5 +140,6 @@
         LOOP_DETECTED                      => 'Loop Detected',
         NETWORK_AUTHENTICATION_REQUIRED    => 'Network Authentication Required',
 
-        BAD_RESPONSE                       => 'Bad Response' // Reponse Failed Validation
+        BAD_RESPONSE                       => 'Bad Response',               // Reponse Failed Validation
+        QUIET_INTERNAL_SERVER_ERROR        => 'Quiet Internal Server Error' // 500 error but without alerts
     ];
