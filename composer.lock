@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1b20253145ecdd63e916abeda983fff0",
+    "content-hash": "124e6ee7fd4a49a14289a22dbbb0f040",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -315,12 +315,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "c896fe7dc79642a0d786807b480487407ba3579e"
+                "reference": "34be311ee2f51f94fb29dccac76b16d8f1f8e32d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/c896fe7dc79642a0d786807b480487407ba3579e",
-                "reference": "c896fe7dc79642a0d786807b480487407ba3579e",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/34be311ee2f51f94fb29dccac76b16d8f1f8e32d",
+                "reference": "34be311ee2f51f94fb29dccac76b16d8f1f8e32d",
                 "shasum": ""
             },
             "require": {
@@ -331,7 +331,7 @@
                 "ext-pdo": "*",
                 "ext-readline": "*",
                 "laminas/laminas-httphandlerrunner": "^2.0",
-                "php": ">=7.4",
+                "php": ">=8.1",
                 "twig/twig": "^3.1",
                 "vanilla/garden-cli": "^3.1"
             },
@@ -370,7 +370,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2022-03-24T01:09:50+00:00"
+            "time": "2022-03-24T15:47:10+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -378,12 +378,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "ecb778f7463eea94c2bce703e6328ffc924e496f"
+                "reference": "9a9e1b752a6594c1e28c38459e22a54d3e016c76"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/ecb778f7463eea94c2bce703e6328ffc924e496f",
-                "reference": "ecb778f7463eea94c2bce703e6328ffc924e496f",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/9a9e1b752a6594c1e28c38459e22a54d3e016c76",
+                "reference": "9a9e1b752a6594c1e28c38459e22a54d3e016c76",
                 "shasum": ""
             },
             "require": {
@@ -393,7 +393,7 @@
                 "laminas/laminas-diactoros": "^2.2",
                 "laminas/laminas-httphandlerrunner": "^2.0",
                 "monolog/monolog": "^2.0",
-                "php": ">=7.4"
+                "php": ">=8.1"
             },
             "require-dev": {
                 "phpunit/phpunit": "^9.4"
@@ -428,7 +428,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2022-03-24T00:44:22+00:00"
+            "time": "2022-03-24T15:46:13+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -4012,14 +4012,14 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.4",
+        "php": ">=8.1",
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-readline": "*"
     },
     "platform-dev": [],
     "platform-overrides": {
-        "php": "7.4"
+        "php": "8.1"
     },
     "plugin-api-version": "2.2.0"
 }

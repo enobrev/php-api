@@ -178,7 +178,11 @@
 
                 switch(true) {
                     case $oTable->$sTableField instanceof ORM\Field\JSONObject:
-                        $mValue = (object) json_decode($oTable->$sTableField->getValue(), false);
+                        if ($oTable->$sTableField->hasValue()) {
+                            $mValue = (object)json_decode($oTable->$sTableField->getValue(), false);
+                        } else {
+                            $mValue = null;
+                        }
                         break;
 
                     case $oTable->$sTableField instanceof ORM\Field\JSONArray:
