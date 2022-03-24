@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "34fc10ecc495970d65a98912893dbed4",
+    "content-hash": "147cd2c068d7587309d8fc5ef6d7bf55",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -315,12 +315,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "34be311ee2f51f94fb29dccac76b16d8f1f8e32d"
+                "reference": "1e31f90260c3861a05b56833227d44b27f864e4d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/34be311ee2f51f94fb29dccac76b16d8f1f8e32d",
-                "reference": "34be311ee2f51f94fb29dccac76b16d8f1f8e32d",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/1e31f90260c3861a05b56833227d44b27f864e4d",
+                "reference": "1e31f90260c3861a05b56833227d44b27f864e4d",
                 "shasum": ""
             },
             "require": {
@@ -333,7 +333,7 @@
                 "laminas/laminas-httphandlerrunner": "^2.0",
                 "php": ">=8.1",
                 "twig/twig": "^3.1",
-                "vanilla/garden-cli": "^3.1"
+                "vanilla/garden-cli": "dev-master"
             },
             "require-dev": {
                 "ext-sqlite3": "*",
@@ -370,7 +370,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2022-03-24T15:47:10+00:00"
+            "time": "2022-03-24T18:29:12+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -1665,21 +1665,15 @@
         },
         {
             "name": "vanilla/garden-cli",
-            "version": "v3.1.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/vanilla/garden-cli.git",
-                "reference": "d9844c47f4f2812259ee1b583aa66e7b6b5d85c5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/vanilla/garden-cli/zipball/d9844c47f4f2812259ee1b583aa66e7b6b5d85c5",
-                "reference": "d9844c47f4f2812259ee1b583aa66e7b6b5d85c5",
-                "shasum": ""
+                "url": "https://github.com/enobrev/garden-cli.git",
+                "reference": "5e28daf1a1b59f209f8c9cb7e7aec9ba84173a5a"
             },
             "require": {
                 "ext-json": "*",
-                "php": ">=7.2",
+                "php": ">=8.1",
                 "psr/log": "^1.0"
             },
             "require-dev": {
@@ -1695,13 +1689,26 @@
                 "phpdocumentor/reflection-docblock": "Required for the CliApplication functionality.",
                 "vanilla/garden-container": "Required for the CliApplication functionality."
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
                     "Garden\\Cli\\": "src"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Garden\\Cli\\Tests\\": "tests"
+                }
+            },
+            "scripts": {
+                "phpcs": [
+                    "phpcs --standard=./vendor/vanilla/standards/code-sniffer/Vanilla ./src"
+                ],
+                "psalter": [
+                    "./vendor/bin/psalter --issues=MissingReturnType,MissingClosureReturnType,InvalidReturnType,InvalidNullableReturnType,InvalidFalsableReturnType,MissingParamType,MismatchingDocblockParamType,MismatchingDocblockReturnType,LessSpecificReturnType,PossiblyUndefinedVariable,PossiblyUndefinedGlobalVariable,UnusedProperty,UnusedVariable"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1712,11 +1719,7 @@
                 }
             ],
             "description": "A full-featured, yet ridiculously simple commandline parser for your next php cli script. Stop fighting with getopt().",
-            "support": {
-                "issues": "https://github.com/vanilla/garden-cli/issues",
-                "source": "https://github.com/vanilla/garden-cli/tree/v3.1.2"
-            },
-            "time": "2020-10-25T13:36:44+00:00"
+            "time": "2022-03-24T18:25:45+00:00"
         }
     ],
     "packages-dev": [
@@ -3943,7 +3946,8 @@
         "cebe/php-openapi": 20,
         "enobrev/php-orm": 20,
         "enobrev/php-tools": 20,
-        "nikic/fast-route": 20
+        "nikic/fast-route": 20,
+        "vanilla/garden-cli": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

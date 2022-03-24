@@ -32,6 +32,10 @@
         {
             "type": "git",
             "url":  "https://github.com/enobrev/php-openapi.git"
+        },
+        {
+            "type": "git",
+            "url":  "https://github.com/enobrev/garden-cli.git"
         }
     ],
     "require": {
@@ -53,7 +57,7 @@
         "nikic/fast-route": "2.0.x-dev",
         "softcreatr/jsonpath": "^0.8.0",
         "twig/twig": "^3.1",
-        "vanilla/garden-cli": "^3.1"
+        "vanilla/garden-cli": "dev-master"
     },
     "require-dev": {
         "laminas/laminas-stratigility": "^3.2",
