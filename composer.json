@@ -24,6 +24,10 @@
         {
             "type": "vcs",
             "url":  "https://github.com/enobrev/php-tools"
+        },
+        {
+            "type": "git",
+            "url":  "https://github.com/enobrev/php-dot-notation.git"
         }
     ],
     "require": {
@@ -31,7 +35,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-readline": "*",
-        "adbario/php-dot-notation": "^2.2",
+        "adbario/php-dot-notation": "2.x-dev",
         "benmorel/openapi-schema-to-json-schema": "^0.1.4",
         "bshaffer/oauth2-server-php": "^1.11",
         "cebe/php-openapi": "^1.3",
