@@ -63,8 +63,8 @@
         /** @var static */
         private static $oInstance;
 
-        private final function __clone() {}
-        private final function __wakeup() {}
+        private function __clone() {}
+        public function __wakeup() {}
         private function __construct() {
             $this->aComponents      = [];
             $this->aSpecs           = [];
