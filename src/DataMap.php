@@ -176,38 +176,34 @@
 
                 $mValue = $oTable->$sTableField->getValue();
 
-                switch(true) {
-                    case $oTable->$sTableField instanceof ORM\Field\JSONObject:
-                        if ($oTable->$sTableField->hasValue()) {
+                if ($oTable->$sTableField->isNull()) {
+                    $mValue = null;
+                } else {
+                    switch (true) {
+                        case $oTable->$sTableField instanceof ORM\Field\JSONObject:
                             $mValue = (object)json_decode($oTable->$sTableField->getValue(), false);
-                        } else {
-                            $mValue = null;
-                        }
-                        break;
+                            break;
 
-                    case $oTable->$sTableField instanceof ORM\Field\JSONArray:
-                    case $oTable->$sTableField instanceof ORM\Field\JSONText:
-                        $mValue = json_decode($oTable->$sTableField->getValue(), false);
-                        break;
+                        case $oTable->$sTableField instanceof ORM\Field\JSONArray:
+                        case $oTable->$sTableField instanceof ORM\Field\JSONText:
+                            $mValue = json_decode($oTable->$sTableField->getValue(), false);
+                            break;
 
-                    case $oTable->$sTableField instanceof ORM\Field\Date:
-                    case $oTable->$sTableField instanceof ORM\Field\DateTime:
-                        if ($oTable->$sTableField->isNull()) {
-                            $mValue = null;
-                        } else {
-                            $mValue = (string) $oTable->$sTableField;
-                        }
-                        break;
-                }
+                        case $oTable->$sTableField instanceof ORM\Field\Date:
+                        case $oTable->$sTableField instanceof ORM\Field\DateTime:
+                            $mValue = (string)$oTable->$sTableField;
+                            break;
+                    }
 
-                switch(true) {
-                    case $mValue instanceof DateTime:
-                        $mValue = $mValue->format(DateTime::RFC3339);
-                        break;
+                    switch(true) {
+                        case $mValue instanceof DateTime:
+                            $mValue = $mValue->format(DateTime::RFC3339);
+                            break;
 
-                    case $mValue instanceof Money:
-                        $mValue = $mValue->getAmount();
-                        break;
+                        case $mValue instanceof Money:
+                            $mValue = $mValue->getAmount();
+                            break;
+                    }
                 }
 
                 $aResponseMap[$sPublicField] = $mValue;
