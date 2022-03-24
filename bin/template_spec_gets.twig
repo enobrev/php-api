@@ -78,7 +78,7 @@
          *
          * @throws DbException
          */
-        protected function getResponse(Dot $oResponse, int $iPage, int $iPer, ?string $sSearch, ?string $sSort, ?string $sSync = null): Dot {
+        protected function getResponse(Dot $oResponse, int $iPage, int $iPer, ?string $sSearch = null, ?string $sSort = null, ?string $sSync = null): Dot {
             $oBaseTable = new {{ table.class }};
             $aSearch    = DataMap::convertSearchTablesToORMTables($oBaseTable, $sSearch);
             $aSort      = DataMap::convertSortTablesToORMTables($oBaseTable,   $sSort);
