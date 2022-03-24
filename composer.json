@@ -51,7 +51,7 @@
         "middlewares/utils": "^3.2",
         "mtdowling/jmespath.php": "^2.4",
         "nikic/fast-route": "2.0.x-dev",
-        "softcreatr/jsonpath": "^0.7.2",
+        "softcreatr/jsonpath": "^0.8.0",
         "twig/twig": "^3.1",
         "vanilla/garden-cli": "^3.1"
     },
