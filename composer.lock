@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "224ce1379269f0a93f288d66771662e8",
+    "content-hash": "1b20253145ecdd63e916abeda983fff0",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -157,23 +157,17 @@
         },
         {
             "name": "cebe/php-openapi",
-            "version": "1.6.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/cebe/php-openapi.git",
-                "reference": "8bbbcf1aa3314c535ac315bcd4286ca9cded8a8a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/cebe/php-openapi/zipball/8bbbcf1aa3314c535ac315bcd4286ca9cded8a8a",
-                "reference": "8bbbcf1aa3314c535ac315bcd4286ca9cded8a8a",
-                "shasum": ""
+                "url": "https://github.com/enobrev/php-openapi.git",
+                "reference": "358db659bcd909cd11bb10e9f4baec0f4c48a95d"
             },
             "require": {
                 "ext-json": "*",
                 "justinrainbow/json-schema": "^5.2",
                 "php": ">=7.1.0",
-                "symfony/yaml": "^3.4 || ^4 || ^5 || ^6"
+                "symfony/yaml": "^3.4 | ^4.0 | ^5.0 | ^6.0"
             },
             "conflict": {
                 "symfony/yaml": "3.4.0 - 3.4.4 || 4.0.0 - 4.4.17 || 5.0.0 - 5.1.9 || 5.2.0"
@@ -185,8 +179,9 @@
                 "nexmo/api-specification": "1.0.0",
                 "oai/openapi-specification": "3.0.3",
                 "phpstan/phpstan": "^0.12.0",
-                "phpunit/phpunit": "^6.5 || ^7.5 || ^8.5 || ^9.4"
+                "phpunit/phpunit": "^6.5 || ^7.5 || ^8.5.14 || ^9.4"
             },
+            "default-branch": true,
             "bin": [
                 "bin/php-openapi"
             ],
@@ -201,7 +196,6 @@
                     "cebe\\openapi\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -222,7 +216,7 @@
                 "issues": "https://github.com/cebe/php-openapi/issues",
                 "source": "https://github.com/cebe/php-openapi"
             },
-            "time": "2022-02-10T09:44:31+00:00"
+            "time": "2022-03-24T01:43:41+00:00"
         },
         {
             "name": "doctrine/inflector",
@@ -4010,6 +4004,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "adbario/php-dot-notation": 20,
+        "cebe/php-openapi": 20,
         "enobrev/php-orm": 20,
         "enobrev/php-tools": 20,
         "nikic/fast-route": 20
