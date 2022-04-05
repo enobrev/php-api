@@ -27,10 +27,6 @@
         },
         {
             "type": "git",
-            "url":  "https://github.com/enobrev/php-dot-notation.git"
-        },
-        {
-            "type": "git",
             "url":  "https://github.com/enobrev/php-openapi.git"
         },
         {
@@ -43,7 +39,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-readline": "*",
-        "adbario/php-dot-notation": "2.x-dev",
+        "adbario/php-dot-notation": "^3.1",
         "benmorel/openapi-schema-to-json-schema": "^0.1.4",
         "bshaffer/oauth2-server-php": "^1.11",
         "cebe/php-openapi": "dev-master",
