@@ -19,7 +19,7 @@
             if ($bRequired) {
                 $oClone->iOptions |= self::REQUIRED;
             } else {
-                $oClone->iOptions ^= self::REQUIRED;
+                $oClone->iOptions &= ~self::REQUIRED;
             }
             return $oClone;
         }
@@ -34,7 +34,7 @@
             if ($bDeprecated) {
                 $oClone->iOptions |= self::DEPRECATED;
             } else {
-                $oClone->iOptions ^= self::DEPRECATED;
+                $oClone->iOptions &= ~self::DEPRECATED;
             }
             return $oClone;
         }
@@ -49,7 +49,7 @@
             if ($bNullable) {
                 $oClone->iOptions |= self::NULLABLE;
             } else {
-                $oClone->iOptions ^= self::NULLABLE;
+                $oClone->iOptions &= ~self::NULLABLE;
             }
             return $oClone;
         }
