@@ -10,7 +10,7 @@
 
         protected string $sType = Param::ARRAY;
 
-        public function items(Param $oItems): self {
+        public function items(Param | Schema $oItems): self {
             return $this->validation(['items' => $oItems]);
         }
 
@@ -32,6 +32,8 @@
             $mItems = $aSchema['items'] ?? null;
             if ($mItems instanceof Param) {
                 $aSchema['items'] = $aSchema['items']->getSchema();
+            } else if ($mItems instanceof Schema) {
+                $aSchema['items'] = $aSchema['items'];
             }
 
             if ($this->isDeprecated()) {
