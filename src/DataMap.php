@@ -153,10 +153,11 @@
         /**
          * @param ORM\Table  $oTable
          * @param array|null $aExcludedFields
+         * @param bool       $bSkipGenerated
          *
          * @return array
          */
-        public static function convertTableToResponseArray(ORM\Table $oTable, ?array $aExcludedFields = null): array {
+        public static function convertTableToResponseArray(ORM\Table $oTable, ?array $aExcludedFields = null, bool $bSkipGenerated = false): array {
             $aMap         = self::getMap($oTable->getTitle());
             $aResponseMap = [];
             foreach($aMap as $sPublicField => $sTableField) {
@@ -171,6 +172,10 @@
                 }
 
                 if ($oTable->$sTableField instanceof ORM\Field === false) {
+                    continue;
+                }
+
+                if ($bSkipGenerated && $oTable->$sTableField->isGenerated()) {
                     continue;
                 }
 
