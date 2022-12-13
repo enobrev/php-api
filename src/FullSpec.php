@@ -24,6 +24,7 @@
     use Enobrev\API\Spec\ServerErrorResponse;
     use Enobrev\API\Spec\ValidationErrorResponse;
     use Enobrev\Log;
+    use function Enobrev\dbg;
 
     class FullSpec {
         public const _ANY                          = '_any';
@@ -587,7 +588,7 @@ DESCRIPTION
                     foreach($aSortable as $oFile) {
                         $sContents = file_get_contents($oFile->getPathname());
                         if (preg_match('/namespace\s([^;]+)/', (string)$sContents, $aMatchesNamespace) &&
-                            preg_match_all('/class\s+(\S+)/', (string)$sContents, $aMatchesClass)) {
+                            preg_match_all('/^\s*class\s+(\S+)/', (string)$sContents, $aMatchesClass)) {
                                 foreach($aMatchesClass[1] as $sClass) {
                                     if (strpos($sClass, 'Exception')) {
                                         continue;
