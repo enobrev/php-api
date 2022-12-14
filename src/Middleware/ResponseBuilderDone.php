@@ -43,7 +43,7 @@
          * @return ResponseInterface
          */
         public function process(ServerRequestInterface $oRequest, RequestHandlerInterface $oHandler): ResponseInterface {
-            $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK);
+            $oResponse = new JsonResponse(ResponseBuilder::get($oRequest)->all(), HTTP\OK, encodingOptions: JsonResponse::DEFAULT_JSON_FLAGS | JSON_UNESCAPED_UNICODE);
 
             if ($this->shouldRedact($oRequest)) {
                 Log::i('Enobrev.Middleware.ResponseBuilderDone', [
@@ -59,7 +59,7 @@
 
             $sBody = null;
             try {
-                $sBody = json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+                $sBody = json_encode($oResponse->getPayload(), JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE);
             } catch (Exception $e) {
                 Log::ex('Enobrev.Middleware.ResponseBuilderDone', $e);
             }
