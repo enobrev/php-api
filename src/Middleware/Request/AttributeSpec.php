@@ -30,6 +30,7 @@
             $sClass = FastRoute::getRouteClassName($oRequest);
 
             if (!$sClass) {
+                Log::dt($oTimer);
                 return $oHandler->handle($oRequest);
             }
 
@@ -37,6 +38,7 @@
             $oClass = new $sClass;
 
             if ($oClass instanceof SpecInterface === false) {
+                Log::dt($oTimer);
                 return $oHandler->handle($oRequest);
             }
 
