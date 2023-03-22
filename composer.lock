@@ -333,12 +333,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-orm.git",
-                "reference": "3e1b3f3120bf35e138813470f75aa931dbf4bcdf"
+                "reference": "41a5a60e4a76d1f701d44bcd38428cba4119ddcb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/3e1b3f3120bf35e138813470f75aa931dbf4bcdf",
-                "reference": "3e1b3f3120bf35e138813470f75aa931dbf4bcdf",
+                "url": "https://api.github.com/repos/enobrev/php-orm/zipball/41a5a60e4a76d1f701d44bcd38428cba4119ddcb",
+                "reference": "41a5a60e4a76d1f701d44bcd38428cba4119ddcb",
                 "shasum": ""
             },
             "require": {
@@ -388,7 +388,7 @@
                 "source": "https://github.com/enobrev/php-orm/tree/master",
                 "issues": "https://github.com/enobrev/php-orm/issues"
             },
-            "time": "2022-12-09T18:29:58+00:00"
+            "time": "2023-03-22T04:59:40+00:00"
         },
         {
             "name": "enobrev/php-tools",
@@ -396,12 +396,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/enobrev/php-tools.git",
-                "reference": "6de6f78fea404139a1cf143c56b2fde1e3ab980f"
+                "reference": "48295c316433911f39cb792f5507223b5542ba23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/6de6f78fea404139a1cf143c56b2fde1e3ab980f",
-                "reference": "6de6f78fea404139a1cf143c56b2fde1e3ab980f",
+                "url": "https://api.github.com/repos/enobrev/php-tools/zipball/48295c316433911f39cb792f5507223b5542ba23",
+                "reference": "48295c316433911f39cb792f5507223b5542ba23",
                 "shasum": ""
             },
             "require": {
@@ -447,7 +447,7 @@
                 "source": "https://github.com/enobrev/php-tools/tree/master",
                 "issues": "https://github.com/enobrev/php-tools/issues"
             },
-            "time": "2022-12-09T18:28:58+00:00"
+            "time": "2023-03-22T04:58:23+00:00"
         },
         {
             "name": "filp/whoops",
